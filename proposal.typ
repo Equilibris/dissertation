@@ -30,13 +30,13 @@ Previous work has shown how coinductives can be encoded in lean as quotients of 
 These are highly expressive but accessing cofixed points to a depth $n$ takes $cal(O)(n^2)$ time,
 which compounds when you map data $m$ times to $cal(O)(n^2^m)$, this is a problem when using lean as a general purpose programming language.
 Previous work has focused on trying to achieve this performance within the same universe.
-An alternative approach is trying rather to use a quite exotic type Shrink which has the behaviour of allowing types in higher universes to be shrunk to the lower universes under certain circumstances.
+An alternative approach is trying rather to use Shrink which has the behaviour of allowing types in higher universes to be shrunk to the lower universes under certain circumstances.
 By showing an equivalence between the state-machine implementation of a cofixed point and the current implementation,
 we can instantiate Shrink.
-Doing this gives us the computational behaviour of the state-machine implementation,
-meaning the entire expression collapses to $cal(O)(n)$ resulting in usable coinductive types for general purpose programming in Lean.
+Doing this gives us nice the computational behaviour,
+meaning the entire expression collapses to $cal(O)(n)$.
 A demonstration of the possible gains can be seen in @perf,
-where the $x$-axis is the index into the array and the $y$-axis is a ms duration
+where the $x$-axis is the index into the array and the $y$-axis is a ns (scaled to 1e8) duration
 
 #figure(
   image("MeanPerfWithSamples.png", width: 300pt),
@@ -133,33 +133,33 @@ The goal would be getting to the same order or magnitude.
 
 The plan for work would be devided into a few different stages.
 
-== Variable universe `M`s
+== Variable universe `M`s (2025-10-11 2w 2025-10-24)
 
-To begin,
-the pull requests created from before the start of the project will have to be completed and merged into `mathlib`.
+To begin, the pull requests created from before the start of the project will have to be completed and merged into `mathlib`.
 
-== `List` special example
+== `List` special example (2025-10-25 2w 2025-11-7)
 
-An early step would be to familizarise myself with using the bisimilarity features given by the `M` type to see how pheasable it is to prove equivilences of two `M` types with a simple functor.
+An early step would be to familizarise myself with using the bisimilarity features given by the `M` type.
+This is to see how pheasable it is to prove equivilences of two `M` types with a simple functor.
 
-== Univariate `M`
+== Univariate `M` (2025-11-8 2w 2025-11-21 + (CAT exam) + 2025-12-05 3w 2025-12-23)
 
 After a special example I would move over to the univariate example.
 This will be much easier than the multivariate case as I dont have to suffer with `Typevec`s.
 
-== Multivariate `M`
+== Multivariate `M` (2025-12-26 4w 2026-01-23)
 
 This will be the next natural step.
 Will me much harder than the univariate.
 
-== `Cofix`
+== `Cofix` (2026-01-24 6w 2026-03-06)
 
 Finally, it has to be proven for `Cofix`.
 This will be hard as I will have to suffer with Quot which is really concerning to work with.
 
 = Extentions
 
-== A fast implementation of `Precoroutines`
+== A fast implementation of `Precoroutines` (2026-03-07 2w 2026-03-21)
 
 Precoroutines are a type Alex Keizer is interested in.
 They generalize interaction trees and other similar datatypes useful for denotational purposes.
