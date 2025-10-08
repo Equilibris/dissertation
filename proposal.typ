@@ -4,7 +4,7 @@
 
 #import "template.typ": *
 // Take a look at the file `template.typ` in the file panel
-// to customize this template and discover how it works.
+// to customise this template and discover how it works.
 #show: common.with(
   title: "Diss",
   author: "William Sørensen",
@@ -47,8 +47,8 @@ where the $x$-axis is the index into the array and the $y$-axis is a ns (scaled 
 
 I have worked with QPFs on the meta-programming side for an internship between my Part Ia and Part Ib where I learnt of the basics of polynomial functors, and TypeVecs.
 This means I am aware of what the underlying structures are when it comes to the raw implementation.
-I have also done a pheasability assesment of the project by seeing how the current polynomials respond to universe levels.
-This lead to me making 2 PRs (28095, 28279) to mathlib on TypeVec in preperation for my project.
+I have also done a pheasability assessment of the project by seeing how the current polynomials respond to universe levels.
+This lead to me making 2 PRs (28095, 28279) to mathlib on TypeVec in preparation for my project.
 I also tried to PR (28112) an implementation of computable Shrink to mathlib that later got reverted when it was found to be absurd.
 
 Additionally my supervisors and I did a preliminary assessment to attempt to get a separate D2D supervisor on-board.
@@ -64,7 +64,7 @@ Those are @shrk, @mtype and @cfix.
 
 == `Shrink`<shrk>
 
-`Shrink` is temporarilly the choice used for doing the ABI translation between the two implementations.
+`Shrink` is temporarily the choice used for doing the ABI translation between the two implementations.
 Given that the two types are equivalent then we can non-computably extract a model in the desired universe.
 Given two types $alpha : "Type" u$ and $beta : "Type" v$ for which an isomorphism exists,
 we can construct the type $"Shrink" alpha beta : "Type" v$ for which both diagrams in @shrkops commute.
@@ -100,7 +100,7 @@ Agreement is given by them being the same up to the previous depth.
 A visual example is given in @agree.
 We can have approximations for any n,
 thereby letting the trees take any depth including infinite depth.
-Trees can be terminiated by having no children as one might expect.
+Trees can be terminated by having no children as one might expect.
 
 #figure(
   diagram(cell-size:5mm, $
@@ -122,7 +122,7 @@ These both have the undesired computational behaviour.
 
 `Cofix` is the terminal coalgebra in QPFs,
 (possibly) infinitely big quotiented trees.
-This is the slighly concerning part of the project and by far the highest risk section as working with `Quot` in Lean is a painful experiance.
+This is the slightly concerning part of the project and by far the highest risk section as working with `Quot` in Lean is a painful experience.
 
 = Evaluation
 
@@ -182,7 +182,7 @@ The goal would be getting to the same order or magnitude.
   }
 )
 
-The plan for work would be devided into a few different stages.
+The plan for work would be divided into a few different stages.
 
 == Variable universe `M`s (2025-10-11 2w 2025-10-24)
 
@@ -190,13 +190,13 @@ To begin, the pull requests created from before the start of the project will ha
 
 == `List` special example (2025-10-25 2w 2025-11-7)
 
-An early step would be to familizarise myself with using the bisimilarity features given by the `M` type.
-This is to see how pheasable it is to prove equivilences of two `M` types with a simple functor.
+An early step would be to familiarise myself with using the bisimilarity features given by the `M` type.
+This asses pheasability to prove equivalences of two `M` types with a simple functor.
 
 == Univariate `M` (2025-11-8 2w 2025-11-21 + (CAT exam) + 2025-12-05 3w 2025-12-23)
 
 After a special example I would move over to the univariate example.
-This will be much easier than the multivariate case as I dont have to suffer with `Typevec`s.
+This will be much easier than the multivariate case as I don't have to suffer with `Typevec`s.
 
 == Multivariate `M` (2025-12-26 4w 2026-01-23)
 
@@ -208,12 +208,12 @@ Will me much harder than the univariate.
 Finally, it has to be proven for `Cofix`.
 This will be hard as I will have to suffer with Quot which is really concerning to work with.
 
-= Extentions
+= Extensions
 
 == A fast implementation of `Precoroutines` (2026-03-07 2w 2026-03-21)
 
 Precoroutines are a type Alex Keizer is interested in.
-They generalize interaction trees and other similar datatypes useful for denotational purposes.
+They generalise interaction trees and other similar data-types useful for denotational purposes.
 These leverage some of the powers of QPFs.
 This should come for free from the prior the core.
 
