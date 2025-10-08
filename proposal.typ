@@ -147,11 +147,11 @@ The goal would be getting to the same order or magnitude.
 
     headerline(
       ([11], 1), ([18], 1), ([25], 1),
-      ([1], 1), ([8], 1), ([15], 1), ([22], 1),
-      ([29], 1), ([6], 1), ([13], 1), ([20], 1),
-      ([27], 1), ([3], 1), ([10], 1), ([17], 1),
-      ([24], 1), ([31], 1), ([7], 1), ([14], 1),
-      ([21], 1), ([28], 1), ([7], 1), ([14], 1)
+      ([1],  1), ([8],  1), ([15], 1), ([22], 1),
+      ([29], 1), ([6],  1), ([13], 1), ([20], 1),
+      ([27], 1), ([3],  1), ([10], 1), ([17], 1),
+      ([24], 1), ([31], 1), ([7],  1), ([14], 1),
+      ([21], 1), ([28], 1), ([7],  1), ([14], 1)
     )
 
     taskgroup(
@@ -219,6 +219,5 @@ This should come for free from the prior the core.
 
 = Resources
 
-Access to the restricted side of the lab would be nice to be able to work with the group.
-This is not strictly necessary but would be highly convinient.
+Access to the restricted side of the lab would make working with supervisors easier.
 
