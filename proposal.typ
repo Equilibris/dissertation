@@ -12,17 +12,18 @@
   acknowledgements: lorem(59),
   date: "April 29, 2023",
   college: "Gonville & Caius College",
-  logo: "cst_logo.svg")
-
-*Supervisor:*
-
-*Marking supervisor:* Tobias Grosser
-
-*Team:* Alex Keizer, Meven Lennon-Bertrand
+  logo: "cst_logo.svg"
+)
 
 #show: word-count
 
-Word count: #total-words
+#emph(par(justify:false, text(40pt)[Efficent coinductives through state-machine corecursors]))
+
+*Supervisor:* Alex Keizer
+
+*Marking supervisor:* Tobias Grosser OR Jamie Vicary
+
+*Word count:* #total-words
 
 = Work to be undertaken
 
@@ -30,10 +31,13 @@ Previous work has shown how coinductives can be encoded in lean as quotients of 
 These are highly expressive but accessing cofixed points to a depth $n$ takes $cal(O)(n^2)$ time,
 which compounds when you map data $m$ times to $cal(O)(n^2^m)$, this is a problem when using lean as a general purpose programming language.
 Previous work has focused on trying to achieve this performance within the same universe.
-An alternative approach is trying rather to use Shrink which has the behaviour of allowing types in higher universes to be shrunk to the lower universes under certain circumstances.
-By showing an equivalence between the state-machine implementation of a cofixed point and the current implementation,
-we can instantiate Shrink.
-Doing this gives us nice the computational behaviour,
+An alternative approach is using the state-machine implementation of a corecursor.
+This is a higher universe object which uses the corecursor directly.
+// An alternative approach is trying rather to use Shrink which has the behaviour of allowing types in higher universes to be shrunk to the lower universes under certain circumstances.
+Showing an equivalence between these two representations layes the groundwork for performance gains through future lean features.
+// By showing an equivalence between the state-machine implementation of a cofixed point and the current implementation,
+// we can instantiate Shrink.
+With these we get nice computational behaviour,
 meaning the entire expression collapses to $cal(O)(n)$.
 A demonstration of the possible gains can be seen in @perf,
 where the $x$-axis is the index into the array and the $y$-axis is a ns (scaled to 1e8) duration
@@ -45,51 +49,23 @@ where the $x$-axis is the index into the array and the $y$-axis is a ns (scaled 
 
 = Starting point
 
-I have worked with QPFs on the meta-programming side for an internship between my Part Ia and Part Ib where I learnt of the basics of polynomial functors, and TypeVecs.
+I have worked with QPFs on the meta-programming side for an internship between my Part Ia and Part Ib.
+During this I learnt of the basics of polynomial functors, and TypeVecs.
 This means I am aware of what the underlying structures are when it comes to the raw implementation.
 I have also done a pheasability assessment of the project by seeing how the current polynomials respond to universe levels.
-This lead to me making 2 PRs (28095, 28279) to mathlib on TypeVec in preparation for my project.
-I also tried to PR (28112) an implementation of computable Shrink to mathlib that later got reverted when it was found to be absurd.
+This lead to me making 2 pull requests (\#28095, \#28279) to mathlib on TypeVec in preparation for my project.
+I also tried to pull requests (\#28112) an implementation of computable Shrink to mathlib that later got reverted when it was found to be absurd.
 
-Additionally my supervisors and I did a preliminary assessment to attempt to get a separate D2D supervisor on-board.
-This is what can be seen in @perf.
-
-There are more minor refactoring PRs on `mathlib` which don't change any behaviour but in general all of these can be #link("https://github.com/leanprover-community/mathlib4/issues?q=author%3AEquilibris%20created%3A%3C2025-10-10")[found on this link].
+There are more minor refactoring pull requests towards the mathlib reposity which don't change any behaviour but in general all of these can be
+#link("https://github.com/leanprover-community/mathlib4/issues?q=author%3AEquilibris%20created%3A%3C2025-10-10")[found on this link].
 I Include these for completeness and transparency.
 
 = Substance
 
 There are a few structures that will be worked with during this project.
-Those are @shrk, @mtype and @cfix.
 
-== `Shrink`<shrk>
-
-`Shrink` is temporarily the choice used for doing the ABI translation between the two implementations.
-Given that the two types are equivalent then we can non-computably extract a model in the desired universe.
-Given two types $alpha : "Type" u$ and $beta : "Type" v$ for which an isomorphism exists,
-we can construct the type $"Shrink" alpha beta : "Type" v$ for which both diagrams in @shrkops commute.
-
-#figure(
-  diagram(cell-size: 15mm, $
-      alpha
-        edge("m" "k", ->)
-        edge("dr", bb(1)_alpha, ->)
-      & "Shrink" alpha beta
-        edge("d", "d" "e" "s" "t", ->, label-side: #left)
-      & "Shrink" alpha beta
-        edge("d", "d" "e" "s" "t", ->, label-side: #left)
-        edge("dr", bb(1)_("Shrink" alpha beta), ->)
-      \
-      & alpha
-      & alpha
-        edge("m" "k", ->)
-      & "Shrink" alpha beta
-  $),
-  caption:[Operations on Shrink]
-)<shrkops>
-
-An attempt was made to make this computable by using `unsafeCasts` but these had to be reverted.
-For now the exact type is undecided as there is a PR by the Lean FRO adding specialised types for this purpose.
+An attempt was made to make `Shrink` computable by using `unsafeCasts` but these had to be reverted.
+For now the exact type is undecided as there is a RFC by the Lean FRO adding repr types for this purpose.
 
 == `M`<mtype>
 
@@ -124,6 +100,33 @@ These both have the undesired computational behaviour.
 (possibly) infinitely big quotiented trees.
 This is the slightly concerning part of the project and by far the highest risk section as working with `Quot` in Lean is a painful experience.
 
+== `Shrink`<shrk>
+
+`Shrink` is temporarily the choice used for doing the ABI translation between the two implementations.
+Given that the two types are equivalent then we can non-computably extract a model in the desired universe.
+Given two types $alpha : "Type" u$ and $beta : "Type" v$ for which an isomorphism exists,
+we can construct the type $"Shrink" alpha beta : "Type" v$ for which both diagrams in @shrkops commute.
+
+#figure(
+  diagram(cell-size: 15mm, $
+      alpha
+        edge("m" "k", ->)
+        edge("dr", bb(1)_alpha, ->)
+      & "Shrink" alpha beta
+        edge("d", "d" "e" "s" "t", ->, label-side: #left)
+      & "Shrink" alpha beta
+        edge("d", "d" "e" "s" "t", ->, label-side: #left)
+        edge("dr", bb(1)_("Shrink" alpha beta), ->)
+      \
+      & alpha
+      & alpha
+        edge("m" "k", ->)
+      & "Shrink" alpha beta
+  $),
+  caption:[Operations on Shrink]
+)<shrkops>
+
+
 = Evaluation
 
 The success of this project can be given by how close to the theorised performance we can get to.
@@ -137,12 +140,12 @@ The goal would be getting to the same order or magnitude.
     import timeliney: *
 
     headerline(
-      group(([*Oct 2025*], 4)),
-      group(([*Nov 2025*], 4)),
-      group(([*Dec 2025*], 4)),
-      group(([*Jan 2026*], 4)),
-      group(([*Feb 2026*], 4)),
-      group(([*Mar 2026*], 4))
+      group(([*Oct 25*], 4)),
+      group(([*Nov 25*], 4)),
+      group(([*Dec 25*], 4)),
+      group(([*Jan 26*], 4)),
+      group(([*Feb 26*], 4)),
+      group(([*Mar 26*], 4))
     )
 
     headerline(
@@ -168,7 +171,8 @@ The goal would be getting to the same order or magnitude.
     taskgroup(
       title: [*Extensions*],
       {
-        task("Fast Precoroutines", (from: 19, to: 22, style: (stroke: gray)))
+        task("Fast Precoroutines", (from: 19, to: 21, style: (stroke: gray)))
+        task("Fast Precoroutines", (from: 21, to: 23, style: (stroke: gray)))
       }
     )
 
@@ -210,7 +214,13 @@ This will be hard as I will have to suffer with Quot which is really concerning 
 
 = Extensions
 
-== A fast implementation of `Precoroutines` (2026-03-07 2w 2026-03-21)
+== `Shrink`ing the representations (2026-03-07 2w 2026-03-20)
+
+This is a research heavy component of the project.
+This involves finding a sound way of implementing @shrk.
+This will be novel work.
+
+== A fast implementation of `Precoroutines` (2026-03-21 2w 2026-04-04)
 
 Precoroutines are a type Alex Keizer is interested in.
 They generalise interaction trees and other similar data-types useful for denotational purposes.
@@ -219,5 +229,5 @@ This should come for free from the prior the core.
 
 = Resources
 
-Access to the restricted side of the lab would make working with supervisors easier.
+Access to the restricted side of the lab is needed for working with the further team.
 
