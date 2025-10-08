@@ -1,4 +1,6 @@
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
+// #import "@preview/timeliney:0.4.0"
+#import "@preview/wordometer:0.1.5": word-count, total-words
 
 #import "template.typ": *
 // Take a look at the file `template.typ` in the file panel
@@ -18,10 +20,23 @@
 
 *Team:* Alex Keizer, Meven Lennon-Bertrand
 
+#show: word-count
+
+Word count: #total-words
+
 = Work to be undertaken
 
-
-Previous work has shown how coinductives can be encoded in lean as quotients of polynomial functors (QPFs). These are highly expressive but accessing cofixed points to a depth $n$ takes $cal(O)(n^2)$ time, which compounds when you map data $m$ times to $cal(O)(n^2^m)$, this is a problem when using lean as a general purpose programming language. Previous work has focused on trying to achieve this performance within the same universe. An alternative approach is trying rather to use a quite exotic type Shrink which has the behaviour of allowing types in higher universes to be shrunk to the lower universes under certain circumstances. By showing an equivalence between the state-machine implementation of a cofixed point and the current implementation, we can instantiate Shrink. Doing this gives us the computational behaviour of the state-machine implementation, meaning the entire expression collapses to $cal(O)(n)$ resulting in usable coinductive types for general purpose programming in Lean. A demonstration of the possible gains can be seen in @perf, where the $x$-axis is the index into the array and the $y$-axis is a ms duration
+Previous work has shown how coinductives can be encoded in lean as quotients of polynomial functors (QPFs).
+These are highly expressive but accessing cofixed points to a depth $n$ takes $cal(O)(n^2)$ time,
+which compounds when you map data $m$ times to $cal(O)(n^2^m)$, this is a problem when using lean as a general purpose programming language.
+Previous work has focused on trying to achieve this performance within the same universe.
+An alternative approach is trying rather to use a quite exotic type Shrink which has the behaviour of allowing types in higher universes to be shrunk to the lower universes under certain circumstances.
+By showing an equivalence between the state-machine implementation of a cofixed point and the current implementation,
+we can instantiate Shrink.
+Doing this gives us the computational behaviour of the state-machine implementation,
+meaning the entire expression collapses to $cal(O)(n)$ resulting in usable coinductive types for general purpose programming in Lean.
+A demonstration of the possible gains can be seen in @perf,
+where the $x$-axis is the index into the array and the $y$-axis is a ms duration
 
 #figure(
   image("MeanPerfWithSamples.png", width: 300pt),
@@ -30,37 +45,62 @@ Previous work has shown how coinductives can be encoded in lean as quotients of 
 
 = Starting point
 
-I have worked with QPFs on the meta-programming side for an internship between my Part Ia and Part Ib where I learnt of the basics of polynomial functors, and TypeVecs. This means I am aware of what the underlying structures are when it comes to the raw implementation. I have also done a pheasability assesment of the project by seeing how the current polynomials respond to universe levels. This lead to me making 2 PRs (28095, 28279) to mathlib on TypeVec in preperation for my project. I also tried to PR (28112) an implementation of computable Shrink to mathlib that later got reverted when it was found to be absurd.
+I have worked with QPFs on the meta-programming side for an internship between my Part Ia and Part Ib where I learnt of the basics of polynomial functors, and TypeVecs.
+This means I am aware of what the underlying structures are when it comes to the raw implementation.
+I have also done a pheasability assesment of the project by seeing how the current polynomials respond to universe levels.
+This lead to me making 2 PRs (28095, 28279) to mathlib on TypeVec in preperation for my project.
+I also tried to PR (28112) an implementation of computable Shrink to mathlib that later got reverted when it was found to be absurd.
 
-Additionally my supervisors and I did a preliminary assessment to attempt to get a separate D2D supervisor on-board. This is what can be seen in @perf.
+Additionally my supervisors and I did a preliminary assessment to attempt to get a separate D2D supervisor on-board.
+This is what can be seen in @perf.
 
-There are more minor refactoring PRs on `mathlib` which don't change any behaviour but in general all of these can be #link("https://github.com/leanprover-community/mathlib4/issues?q=author%3AEquilibris%20created%3A%3C2025-10-10")[found on this link]. I Include these for completeness and transparency.
+There are more minor refactoring PRs on `mathlib` which don't change any behaviour but in general all of these can be #link("https://github.com/leanprover-community/mathlib4/issues?q=author%3AEquilibris%20created%3A%3C2025-10-10")[found on this link].
+I Include these for completeness and transparency.
 
 = Substance
 
-There are a few structures that will be worked with during this project. Those are @shrk, @mtype and @cfix.
+There are a few structures that will be worked with during this project.
+Those are @shrk, @mtype and @cfix.
 
 == `Shrink`<shrk>
 
-`Shrink` is temporarilly the choice used for doing the ABI translation between the two implementations. Given that the two types are equivalent then we can non-computably extract a model in the desired universe. Given two types $alpha : "Type" u$ and $beta : "Type" v$ for which an isomorphism exists, we can construct the type $"Shrink" alpha beta : "Type" v$ for which both diagrams in @shrkops commute.
+`Shrink` is temporarilly the choice used for doing the ABI translation between the two implementations.
+Given that the two types are equivalent then we can non-computably extract a model in the desired universe.
+Given two types $alpha : "Type" u$ and $beta : "Type" v$ for which an isomorphism exists,
+we can construct the type $"Shrink" alpha beta : "Type" v$ for which both diagrams in @shrkops commute.
 
 #figure(
   diagram(cell-size: 15mm, $
-      alpha edge("m" "k", ->) edge("dr", bb(1)_alpha, ->)
-      & "Shrink" alpha beta edge("d", "d" "e" "s" "t", ->, label-side: #left)
-
-      & "Shrink" alpha beta edge("d", "d" "e" "s" "t", ->, label-side: #left) edge("dr", bb(1)_("Shrink" alpha beta), ->)
+      alpha
+        edge("m" "k", ->)
+        edge("dr", bb(1)_alpha, ->)
+      & "Shrink" alpha beta
+        edge("d", "d" "e" "s" "t", ->, label-side: #left)
+      & "Shrink" alpha beta
+        edge("d", "d" "e" "s" "t", ->, label-side: #left)
+        edge("dr", bb(1)_("Shrink" alpha beta), ->)
       \
-      & alpha & alpha edge("m" "k", ->) & "Shrink" alpha beta
+      & alpha
+      & alpha
+        edge("m" "k", ->)
+      & "Shrink" alpha beta
   $),
   caption:[Operations on Shrink]
 )<shrkops>
 
-An attempt was made to make this computable by using `unsafeCasts` but these had to be reverted. For now the exact type is undecided as there is a PR by the Lean FRO adding specialised types for this purpose.
+An attempt was made to make this computable by using `unsafeCasts` but these had to be reverted.
+For now the exact type is undecided as there is a PR by the Lean FRO adding specialised types for this purpose.
 
 == `M`<mtype>
 
-The `M` type is the name given to the terminal coalgebra of polynomial functors; the possibly infinitely deep trees. These are generated by progressive approximation where earlier trees must "agree" with the later ones. Agreement is given by them being the same up to the previous depth. A visual example is given in @agree. We can have approximations for any n, thereby letting the trees take any depth including infinite depth. Trees can be terminiated by having no children as one might expect.
+The `M` type is the name given to the terminal coalgebra of polynomial functors;
+the possibly infinitely deep trees.
+These are generated by progressive approximation where earlier trees must "agree" with the later ones.
+Agreement is given by them being the same up to the previous depth.
+A visual example is given in @agree.
+We can have approximations for any n,
+thereby letting the trees take any depth including infinite depth.
+Trees can be terminiated by having no children as one might expect.
 
 #figure(
   diagram(cell-size:5mm, $
@@ -73,23 +113,30 @@ The `M` type is the name given to the terminal coalgebra of polynomial functors;
   caption:[Agreement of two trees of height 1 and 2]
 )<agree>
 
-The current QPF implementation has 2 `M` types; univariate and multivariate implementations. These both have the undesired computational behaviour. `M` types are polynomial
+The current QPF implementation has 2 `M` types;
+univariate and multivariate implementations.
+These both have the undesired computational behaviour.
+`M` types are polynomial
 
 == `Cofix`<cfix>
 
-`Cofix` is the terminal coalgebra in QPFs, (possibly) infinitely big quotiented trees. This is the slighly concerning part of the project and by far the highest risk section as working with `Quot` in Lean is a painful experiance.
+`Cofix` is the terminal coalgebra in QPFs,
+(possibly) infinitely big quotiented trees.
+This is the slighly concerning part of the project and by far the highest risk section as working with `Quot` in Lean is a painful experiance.
 
 = Evaluation
 
-The success of this project can be given by how close to the theorised performance we can get to. The goal would be getting to the same order or magnitude.
+The success of this project can be given by how close to the theorised performance we can get to.
+The goal would be getting to the same order or magnitude.
 
-= Core
+= Core timeline
 
-The plan for work would be devided into a few different stages
+The plan for work would be devided into a few different stages.
 
 == Variable universe `M`s
 
-To begin, the pull requests created from before the start of the project will have to be completed and merged into `mathlib`.
+To begin,
+the pull requests created from before the start of the project will have to be completed and merged into `mathlib`.
 
 == `List` special example
 
@@ -97,23 +144,30 @@ An early step would be to familizarise myself with using the bisimilarity featur
 
 == Univariate `M`
 
-After a special example I would move over to the univariate example. This will be much easier than the multivariate case as I dont have to suffer with `Typevec`s.
+After a special example I would move over to the univariate example.
+This will be much easier than the multivariate case as I dont have to suffer with `Typevec`s.
 
 == Multivariate `M`
 
-This will be the next natural step. Will me much harder than the univariate.
+This will be the next natural step.
+Will me much harder than the univariate.
 
 == `Cofix`
 
-Finally, it has to be proven for `Cofix`. This will be hard as I will have to suffer with Quot which is really concerning to work with.
+Finally, it has to be proven for `Cofix`.
+This will be hard as I will have to suffer with Quot which is really concerning to work with.
 
 = Extentions
 
 == A fast implementation of `Precoroutines`
 
-Precoroutines are a type Alex Keizer is interested in. They generalize interaction trees and other similar datatypes useful for denotational purposes. These leverage some of the powers of QPFs. This should come for free from the prior the core.
+Precoroutines are a type Alex Keizer is interested in.
+They generalize interaction trees and other similar datatypes useful for denotational purposes.
+These leverage some of the powers of QPFs.
+This should come for free from the prior the core.
 
 = Resources
 
-Access to the restricted side of the lab would be nice to be able to work with the group. This is not strictly necessary but would be highly convinient.
+Access to the restricted side of the lab would be nice to be able to work with the group.
+This is not strictly necessary but would be highly convinient.
 
