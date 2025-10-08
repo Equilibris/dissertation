@@ -1,5 +1,5 @@
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
-// #import "@preview/timeliney:0.4.0"
+#import "@preview/timeliney:0.4.0"
 #import "@preview/wordometer:0.1.5": word-count, total-words
 
 #import "template.typ": *
@@ -130,6 +130,57 @@ The success of this project can be given by how close to the theorised performan
 The goal would be getting to the same order or magnitude.
 
 = Core timeline
+
+#timeliney.timeline(
+  show-grid: true,
+  {
+    import timeliney: *
+
+    headerline(
+      group(([*Oct 2025*], 4)),
+      group(([*Nov 2025*], 4)),
+      group(([*Dec 2025*], 4)),
+      group(([*Jan 2026*], 4)),
+      group(([*Feb 2026*], 4)),
+      group(([*Mar 2026*], 4))
+    )
+
+    headerline(
+      ([11], 1), ([18], 1), ([25], 1),
+      ([1], 1), ([8], 1), ([15], 1), ([22], 1),
+      ([29], 1), ([6], 1), ([13], 1), ([20], 1),
+      ([27], 1), ([3], 1), ([10], 1), ([17], 1),
+      ([24], 1), ([31], 1), ([7], 1), ([14], 1),
+      ([21], 1), ([28], 1), ([7], 1), ([14], 1)
+    )
+
+    taskgroup(
+      title: [*Core Work*],
+      {
+        task("Variable universe M's", (from: 0, to: 2, style: (stroke: blue)))
+        task("List special example", (from: 2, to: 4, style: (stroke: green)))
+        task("Univariate M", (from: 4, to: 9, style: (stroke: orange)))
+        task("Multivariate M", (from: 9, to: 13, style: (stroke: red)))
+        task("Cofix", (from: 13, to: 19, style: (stroke: purple)))
+      }
+    )
+
+    taskgroup(
+      title: [*Extensions*],
+      {
+        task("Fast Precoroutines", (from: 19, to: 22, style: (stroke: gray)))
+      }
+    )
+
+    milestone(
+      at: 7,
+      align(center, [
+        *CAT Exam*\
+        Dec 2025
+      ])
+    )
+  }
+)
 
 The plan for work would be devided into a few different stages.
 
