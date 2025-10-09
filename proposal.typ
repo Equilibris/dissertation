@@ -56,7 +56,7 @@ versus in orange the performance of a prototype implementation the state-machine
 = Core project
 
 This project will be implementing the state-machine encoding (@sme) of coinductive types,
-and formalising the equivalence between these two engodings (@equiv).
+and formalising the equivalence between these two embedding (@equiv).
 I will start with the special example of equivalence between `Stream`s in the two representations,
 then building up to the general cofix structure.
 
@@ -142,7 +142,7 @@ These are simply a quotient over $M$ types lifting the quotient from the source 
 The equivalence between the current implementation of `Cofix` and $M$ and the state-machine representation is the core of the project.
 The functions in both directions are given by $f : "corec"_"Pae" "dest"_"Sme"$ and $f^(-1) : "corec"_"Sme" "dest"_"Pae"$.
 The difficulty comes from proving $f compose f^(-1) = bb(1)$ and $f^(-1) compose f = bb(1)$.
-The proof of these equialities will be proven using bisimilarity,
+The proof of these equalities will be proven using bisimilarity,
 and other parts of the theory currently established for $M$ types.
 Simpler versions of this equivalence also exist for the simpler representation.
 
@@ -186,7 +186,7 @@ coinductive NTMonad (A : Type)
 
 = Evaluation
 
-This projects success can be broken down into a few disjoint critrea.
+This projects success can be broken down into a few disjoint criteria.
 
 1. If the equivalence (@equiv) has been proven,
 2. how close to the theorised performance we get with the state-machine encoding,
@@ -268,7 +268,7 @@ The first step would be implementing `Stream` under the two representations.
 Then I will familiarise myself with using bisimilarity to formalise the equivalence.
 This is a first step to just understand how these features work.
 
-// Write that i am actually implemeting theme
+// Write that i am actually implementing theme
 // An early step would be to familiarise myself with using the bisimilarity features given by the `M` type.
 // This shows feasibility to prove equivalences of two `M` types with a simple functor.
 
@@ -290,7 +290,7 @@ These are quite difficult to reason about.
 == `Cofix` (2026-01-24 6w 2026-03-06)
 
 Finally, the `Cofix` type has to be implemented.
-This will be the most challanging part as I will have to work with quotients.
+This will be the most challenging part as I will have to work with quotients.
 
 == Implementing the NTMonad (2026-03-07 2w 2026-03-20)
 
