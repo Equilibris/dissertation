@@ -23,7 +23,7 @@
 
 *Marking supervisor:* /* Tobias Grosser OR */ Jamie Vicary
 
-*Director of studies:* Russell Moore
+*Director of studies:* Russell Moore and Paula Buttery
 
 *Word count:* #total-words
 
