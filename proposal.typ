@@ -54,11 +54,18 @@ During this I learnt of the basics of polynomial functors, and TypeVecs.
 This means I am aware of what the underlying structures are when it comes to the raw implementation.
 I have also done a pheasability assessment of the project by seeing how the current polynomials respond to universe levels.
 This lead to me making 2 pull requests (\#28095, \#28279) to mathlib on TypeVec in preparation for my project.
-I also tried to pull requests (\#28112) an implementation of computable Shrink to mathlib that later got reverted when it was found to be absurd.
+I also tried to merge (\#28112) an implementation of computable Shrink to mathlib that later got reverted when it was found to be absurd.
 
 There are more minor refactoring pull requests towards the mathlib reposity which don't change any behaviour but in general all of these can be
 #link("https://github.com/leanprover-community/mathlib4/issues?q=author%3AEquilibris%20created%3A%3C2025-10-10")[found on this link].
 I Include these for completeness and transparency.
+
+= Core project
+
+This project will relate to implementing the state-machine representation of coinductives along with their theory.
+The goal will be showing the equivalence between this and the progressive approximation representation.
+Initially this will showing the equivalence between a `Stream` the two representations,
+then building up the the general cofix structure.
 
 = Substance
 
@@ -161,7 +168,7 @@ The goal would be getting to the same order or magnitude.
       title: [*Core Work*],
       {
         task("Variable universe M's", (from: 0, to: 2, style: (stroke: blue)))
-        task("List special example", (from: 2, to: 4, style: (stroke: green)))
+        task("Stream special example", (from: 2, to: 4, style: (stroke: green)))
         task("Univariate M", (from: 4, to: 9, style: (stroke: orange)))
         task("Multivariate M", (from: 9, to: 13, style: (stroke: red)))
         task("Cofix", (from: 13, to: 19, style: (stroke: purple)))
@@ -192,7 +199,7 @@ The plan for work would be divided into a few different stages.
 
 To begin, the pull requests created from before the start of the project will have to be completed and merged into `mathlib`.
 
-== `List` special example (2025-10-25 2w 2025-11-7)
+== `Stream` special example (2025-10-25 2w 2025-11-7)
 
 An early step would be to familiarise myself with using the bisimilarity features given by the `M` type.
 This asses pheasability to prove equivalences of two `M` types with a simple functor.
