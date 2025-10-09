@@ -64,8 +64,8 @@ I Include these for completeness and transparency.
 
 This project will relate to implementing the state-machine representation of coinductives along with their theory.
 The goal will be showing the equivalence between this and the progressive approximation representation.
-Initially this will showing the equivalence between a `Stream` the two representations,
-then building up the the general cofix structure.
+Initially this will showing the equivalence between a `Stream` in the two representations,
+then building up to the general cofix structure.
 
 = Substance
 
