@@ -17,65 +17,71 @@
 
 #show: word-count
 
-#emph(par(justify:false, text(40pt)[Efficent coinductives through state-machine corecursors]))
+#emph(par(justify:false, text(40pt)[Efficient coinductives through state-machine corecursors]))
 
 *Supervisor:* Alex Keizer
 
-*Marking supervisor:* Tobias Grosser OR Jamie Vicary
+*Marking supervisor:* /* Tobias Grosser OR */ Jamie Vicary
+
+*Director of studies:* Russell Moore
 
 *Word count:* #total-words
 
 = Work to be undertaken
 
-Previous work has shown how coinductives can be encoded in lean as quotients of polynomial functors (QPFs).
-These are highly expressive but accessing cofixed points to a depth $n$ takes $cal(O)(n^2)$ time,
-which compounds when you map data $m$ times to $cal(O)(n^2^m)$, this is a problem when using lean as a general purpose programming language.
-Previous work has focused on trying to achieve this performance within the same universe.
-An alternative approach is using the state-machine implementation of a corecursor.
-This is a higher universe object which uses the corecursor directly.
-// An alternative approach is trying rather to use Shrink which has the behaviour of allowing types in higher universes to be shrunk to the lower universes under certain circumstances.
-Showing an equivalence between these two representations layes the groundwork for performance gains through future lean features.
-// By showing an equivalence between the state-machine implementation of a cofixed point and the current implementation,
-// we can instantiate Shrink.
-With these we get nice computational behaviour,
-meaning the entire expression collapses to $cal(O)(n)$.
-A demonstration of the possible gains can be seen in @perf,
-where the $x$-axis is the index into the array and the $y$-axis is a ns (scaled to 1e8) duration
+Previous work has shown how coinductive types can be encoded in Lean as quotients of polynomial functors (QPFs).
+This encoding is expressive but inefficient for cofixed points.
+For example accessing the $n$ index of a stream takes $cal(O)(n^2)$ time.
+This becomes an issue when using Lean as a general purpose programming language.
+An alternative approach is using a state-machine based encoding of cofixed points.
+This representation directly encodes the coalgebric structure and is well understood.
+The goal of this project is formalising the equivalence between these two representations.
+This equivalence should come directly from the corecursors of each of the implementations.
+With these we get nice computational behaviour of the compiled code,
+meaning directly getting a stream to depth $n$ is $cal(O)(n)$.
+In @perf we can see in blue the performance from the current implementation,
+versus in orange the performance of a prototype implementation the state-machine based version.
+
+// A demonstration of the possible gains can be seen in @perf,
+// the $x$-axis index and the $y$-axis is a duration.
 
 #figure(
   image("MeanPerfWithSamples.png", width: 300pt),
   caption: [Graph plotting current performance v possible gains]
 )<perf>
 
-= Starting point
-
-I have worked with QPFs on the meta-programming side for an internship between my Part Ia and Part Ib.
-During this I learnt of the basics of polynomial functors, and TypeVecs.
-This means I am aware of what the underlying structures are when it comes to the raw implementation.
-I have also done a pheasability assessment of the project by seeing how the current polynomials respond to universe levels.
-This lead to me making 2 pull requests (\#28095, \#28279) to mathlib on TypeVec in preparation for my project.
-I also tried to merge (\#28112) an implementation of computable Shrink to mathlib that later got reverted when it was found to be absurd.
-
-There are more minor refactoring pull requests towards the mathlib reposity which don't change any behaviour but in general all of these can be
-#link("https://github.com/leanprover-community/mathlib4/issues?q=author%3AEquilibris%20created%3A%3C2025-10-10")[found on this link].
-I Include these for completeness and transparency.
-
 = Core project
 
-This project will relate to implementing the state-machine representation of coinductives along with their theory.
-The goal will be formalizing the equivalence between this and the progressive approximation representation.
-This is straight forward as the 
-I will start with the equivalence between a `Stream` in the two representations,
+This project will be implementing the state-machine representation of coinductive types.
+The goal will be formalising the equivalence between this and the progressive approximation representation.
+I will start with the equivalence between `Stream`s in the two representations,
 then building up to the general cofix structure.
+
+After this I will be implementing a coinductive monad allowing us to encode non-termination as an effect using the state-machine representation.
+This will simply be an example demonstrating the first part of the project.
+
+= Starting point <startpoint>
+
+I have worked with QPFs on the meta-programming side for an internship between my Part Ia and Part Ib.
+During this I learnt of the basics of polynomial functors, and `TypeVec`s.
+This means I am aware of what the underlying structures are when it comes to the raw implementation.
+I have also done a feasibility assessment of the project by seeing how the current polynomials respond to universe levels.
+This lead to me making 2 pull requests (\#28095, \#28279) to mathlib on `TypeVec` in preparation for my project.
+I also tried to merge (\#28112) an implementation of commutable Shrink to mathlib that later got reverted when it was found to be inconsistent.
+
+There are more minor refactoring pull requests towards the mathlib repository which don't change any behaviour but in general all of these can be
+#link("https://github.com/leanprover-community/mathlib4/issues?q=author%3AEquilibris%20created%3A%3C2025-10-10")[#emph[found on this link]].
+I Include these for completeness and transparency.
 
 = Substance
 
-There are a few structures that will be worked with during this project.
+// There are a few structures that will be worked with during this project.
+// `Shrink` (@shrk) is only used in the extension @shrkext
 
-An attempt was made to make `Shrink` computable by using `unsafeCasts` but these had to be reverted.
-For now the exact type is undecided as there is a RFC by the Lean FRO adding repr types for this purpose.
+// An attempt was made to make `Shrink` commutable by using `unsafeCasts` but these had to be reverted.
+// For now the exact type is undecided as there is a RFC by the Lean FRO adding repr types for this purpose.
 
-== `M`<mtype>
+== The `M` type<mtype>
 
 The `M` type is the name given to the terminal coalgebra of polynomial functors;
 the possibly infinitely deep trees.
@@ -84,11 +90,11 @@ Agreement is given by them being the same up to the previous depth.
 A visual example is given in @agree.
 We can have approximations for any n,
 thereby letting the trees take any depth including infinite depth.
-Trees can be terminated by having no children as one might expect.
+Trees can be terminated by having no children.
 
 #figure(
   diagram(cell-size:5mm, $
-  0 edge("rrrrrrrrr", "..") & & & edge("lld") edge("d") edge("dr") & & & & edge("lld") edge("dd") edge("dr") &
+  0 edge("rrrrrrrrr", "..") & & & edge("lld") edge("d") edge("dr") & & & & edge("lld") edge("d") edge("dr") &
   \
   1 edge("rrrrrrrrr", "..") & & & & & edge("d") edge("dr") & & & edge("d")
   \
@@ -100,40 +106,52 @@ Trees can be terminated by having no children as one might expect.
 The current QPF implementation has 2 `M` types;
 univariate and multivariate implementations.
 These both have the undesired computational behaviour.
-`M` types are polynomial
+`M` types are polynomial.
 
-== `Cofix`<cfix>
+== The `Cofix` type<cfix>
 
 `Cofix` is the terminal coalgebra in QPFs,
 (possibly) infinitely big quotiented trees.
 This is the slightly concerning part of the project and by far the highest risk section as working with `Quot` in Lean is a painful experience.
 
-== `Shrink`<shrk>
+== The non-termination monad
 
-`Shrink` is temporarily the choice used for doing the ABI translation between the two implementations.
-Given that the two types are equivalent then we can non-computably extract a model in the desired universe.
-Given two types $alpha : "Type" u$ and $beta : "Type" v$ for which an isomorphism exists,
-we can construct the type $"Shrink" alpha beta : "Type" v$ for which both diagrams in @shrkops commute.
+The non-termination monad is a simple example of a coinductive.
+This will be useful for testing the state-machine representation's performance,
+I will be implementing this
+The structure of the monad as a coinductive has two constructors as seen in this psudocode:
 
-#figure(
-  diagram(cell-size: 15mm, $
-      alpha
-        edge("m" "k", ->)
-        edge("dr", bb(1)_alpha, ->)
-      & "Shrink" alpha beta
-        edge("d", "d" "e" "s" "t", ->, label-side: #left)
-      & "Shrink" alpha beta
-        edge("d", "d" "e" "s" "t", ->, label-side: #left)
-        edge("dr", bb(1)_("Shrink" alpha beta), ->)
-      \
-      & alpha
-      & alpha
-        edge("m" "k", ->)
-      & "Shrink" alpha beta
-  $),
-  caption:[Operations on Shrink]
-)<shrkops>
+```
+coinductive NTMonad (A : Type)
+  | val : A -> NTMonad A
+  | tau : NTMonad A -> NTMonad A
+```
 
+// == `Shrink`<shrk>
+
+// `Shrink` is temporarily the choice used for doing the ABI translation between the two implementations.
+// Given that the two types are equivalent then we can non-computably extract a model in the desired universe.
+// Given two types $alpha : "Type" u$ and $beta : "Type" v$ for which an isomorphism exists,
+// we can construct the type $"Shrink" alpha beta : "Type" v$ for which both diagrams in @shrkops commute.
+
+// #figure(
+//   diagram(cell-size: 15mm, $
+//       alpha
+//         edge("m" "k", ->)
+//         edge("dr", bb(1)_alpha, ->)
+//       & "Shrink" alpha beta
+//         edge("d", "d" "e" "s" "t", ->, label-side: #left)
+//       & "Shrink" alpha beta
+//         edge("d", "d" "e" "s" "t", ->, label-side: #left)
+//         edge("dr", bb(1)_("Shrink" alpha beta), ->)
+//       \
+//       & alpha
+//       & alpha
+//         edge("m" "k", ->)
+//       & "Shrink" alpha beta
+//   $),
+//   caption:[Operations on Shrink]
+// )<shrkops>
 
 = Evaluation
 
@@ -158,11 +176,13 @@ The goal would be getting to the same order or magnitude.
 
     headerline(
       ([11], 1), ([18], 1), ([25], 1),
-      ([1],  1), ([8],  1), ([15], 1), ([22], 1),
-      ([29], 1), ([6],  1), ([13], 1), ([20], 1),
-      ([27], 1), ([3],  1), ([10], 1), ([17], 1),
-      ([24], 1), ([31], 1), ([7],  1), ([14], 1),
-      ([21], 1), ([28], 1), ([7],  1), ([14], 1)
+      ([1 ], 1), ([8 ], 1), ([15], 1),
+      ([22], 1), ([29], 1), ([6 ], 1),
+      ([13], 1), ([20], 1), ([27], 1),
+      ([3 ], 1), ([10], 1), ([17], 1),
+      ([24], 1), ([31], 1), ([7 ], 1),
+      ([14], 1), ([21], 1), ([28], 1),
+      ([7 ], 1), ([14], 1), ([21], 1),
     )
 
     taskgroup(
@@ -173,14 +193,14 @@ The goal would be getting to the same order or magnitude.
         task("Univariate M", (from: 4, to: 9, style: (stroke: orange)))
         task("Multivariate M", (from: 9, to: 13, style: (stroke: red)))
         task("Cofix", (from: 13, to: 19, style: (stroke: purple)))
+        task("NTMonad", (from: 19, to: 21, style: (stroke: gray)))
       }
     )
 
     taskgroup(
       title: [*Extensions*],
       {
-        task("Fast Precoroutines", (from: 19, to: 21, style: (stroke: gray)))
-        task("Fast Precoroutines", (from: 21, to: 23, style: (stroke: gray)))
+        task("Shrink", (from: 21, to: 23, style: (stroke: gray)))
       }
     )
 
@@ -198,44 +218,63 @@ The plan for work would be divided into a few different stages.
 
 == Variable universe `M`s (2025-10-11 2w 2025-10-24)
 
-To begin, the pull requests created from before the start of the project will have to be completed and merged into `mathlib`.
+// Rephrase to just have these structures.
+To begin with I have to make the corecursor universe polymorphic.
+As stated in @startpoint I have most of this code written.
+I will attempt to get this merged into mathlib,
+but if this review process takes too long I will be working on my own branch.
+// To begin, the pull requests created from before the start of the project will have to be completed and merged into `mathlib`.
 
 == `Stream` special example (2025-10-25 2w 2025-11-7)
 
-An early step would be to familiarise myself with using the bisimilarity features given by the `M` type.
-This asses pheasability to prove equivalences of two `M` types with a simple functor.
+The first step would be implementing `Stream` under the two representations.
+Then I will familiarise myself with using bisimilarity to formalise the equivalence.
+This is a first step to just understand how these features work.
+
+// Write that i am actually implemeting theme
+// An early step would be to familiarise myself with using the bisimilarity features given by the `M` type.
+// This shows feasibility to prove equivalences of two `M` types with a simple functor.
 
 == Univariate `M` (2025-11-8 2w 2025-11-21 + (CAT exam) + 2025-12-05 3w 2025-12-23)
 
-After a special example I would move over to the univariate example.
-This will be much easier than the multivariate case as I don't have to suffer with `Typevec`s.
+Implementing the univariate `M` type is the natural next step from this.
+This will be the natural next step in difficulty.
+The work should lay the groundwork for the next proofs.
+// After a special example I would move over to the univariate example.
+// This will be much easier than the multivariate case as I don't have to suffer with `TypeVec`s.
 
 == Multivariate `M` (2025-12-26 4w 2026-01-23)
 
-This will be the next natural step.
-Will me much harder than the univariate.
+The next step will be generalising the univariate implementation,
+the same structure of the proof should be the same for the multivariate case.
+The main difficulty here comes from working with `TypeVec`s.
+These are quite difficult to reason about.
 
 == `Cofix` (2026-01-24 6w 2026-03-06)
 
-Finally, it has to be proven for `Cofix`.
-This will be hard as I will have to suffer with Quot which is really concerning to work with.
+Finally, the `Cofix` type has to be implemented.
+This will be the most challanging part as I will have to work with quotients.
+
+== Implementing the NTMonad (2026-03-07 2w 2026-03-20)
+
+This will be a demonstration of all of the previous work.
 
 = Extensions
 
-== `Shrink`ing the representations (2026-03-07 2w 2026-03-20)
+== Shrinking the representations (2026-03-21 2w 2026-04-04)
 
-This is a research heavy component of the project.
-This involves finding a sound way of implementing @shrk.
-This will be novel work.
+This involves finding a sound way allowing the current theory to use the efficient representation.
+The soundness of this will be difficult to reason about as it requires working with the Lean code generator.
+Therefore I leave this as an extension.
+//
+// == A fast implementation of `Precoroutines` (2026-03-21 2w 2026-04-04)
 
-== A fast implementation of `Precoroutines` (2026-03-21 2w 2026-04-04)
-
-Precoroutines are a type Alex Keizer is interested in.
-They generalise interaction trees and other similar data-types useful for denotational purposes.
-These leverage some of the powers of QPFs.
-This should come for free from the prior the core.
+// Precoroutines are a type Alex Keizer is interested in.
+// They generalise interaction trees and other similar data-types useful for denotational purposes.
+// These leverage some of the powers of QPFs.
+// This should come for free from the prior the core.
 
 = Resources
 
-Access to the restricted side of the lab is needed for working with the further team.
+Access to the restricted side of the lab is needed for working with the greater team.
 
