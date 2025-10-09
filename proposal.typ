@@ -34,11 +34,10 @@
 
 Previous work has shown how coinductive types can be encoded in Lean as quotients of polynomial functors (QPFs)@avigad_et_al.
 // This encoding is expressive but inefficient for cofixed points.
-This is done through approximation (@mtype).
+This is done through progressive approximation (@mtype).
 For example accessing the $n$ index of a stream takes $cal(O)(n^2)$ time.
 This becomes an issue when using Lean as a general purpose programming language.
 An alternative approach is using a state-machine based encoding (@sme) of cofixed points.
-This representation directly encodes the coalgebric structure and is well understood.
 // The goal of this project is formalising the equivalence (@equiv) between these two representations.
 // This equivalence should come directly from the corecursors of each of the implementations.
 With these we get nice computational behaviour of the compiled code,
@@ -98,7 +97,8 @@ some type $alpha : "Type"$,
 a function $f : alpha arrow.r F alpha$,
 and some witness $a : alpha$.
 With this you quotient over bisimilarity,
-thereby only allowing direct usage of $"dest" : "Sme" F arrow.r F ("Sme" F)$
+thereby only allowing direct usage of $"dest" : "Sme" F arrow.r F ("Sme" F)$.
+This implementation is simple to implement.
 
 == The $M$ type<mtype>
 
@@ -183,8 +183,14 @@ coinductive NTMonad (A : Type)
 
 = Evaluation
 
-The success of this project can be given by how close to the theorised performance we can get to.
-The goal would be getting to the same order or magnitude.
+This projects success can be broken down into a few disjoint critrea.
+
+1. If the equivalence (@equiv) has been proven,
+2. how close to the theorised performance we get with the state-machine encoding,
+3. and the ability to construct the example structures.
+
+// The success of this project can be given by how close to the theorised performance we can get to.
+// The goal would be getting to the same order or magnitude.
 
 = Core timeline
 
