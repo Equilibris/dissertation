@@ -17,13 +17,24 @@
 // your own content!
 
 = Introduction
-#lorem(600)
 
-== In this paper
-#lorem(20)
+#include "content/01_Intro/main.typ"
 
-=== Contributions
-#lorem(40)
+= Preparation
 
-= Related Work
-#lorem(500)
+#include "content/02_Preparation/main.typ"
+
+= Implementation
+
+#include "content/03_Implementation/main.typ"
+
+= Evaluation
+
+#include "content/04_Evaluation/main.typ"
+
+= Conclusions
+
+#include "content/05_Conclusions/main.typ"
+
+= Appendicies
+
