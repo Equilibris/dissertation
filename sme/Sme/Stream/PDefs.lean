@@ -71,7 +71,6 @@ theorem corec.hd {A Gen : Type _} {gen : Gen → A × Gen} {g : Gen}
 theorem corec.tl {A Gen : Type _} {gen : Gen → A × Gen} {g : Gen}
     : (corec gen g).tl = (corec gen (gen g).snd) := rfl
 
-
 def dest (x : PStream A) : A × PStream A := ⟨x.hd, x.tl⟩
 
 @[simp]

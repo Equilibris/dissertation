@@ -69,6 +69,9 @@ def tl : SStream A → SStream A :=
       match his rab with
       | .step h _ => Quotient.sound ⟨r, his, h⟩
 
+example (x : PreStream A) : x.hd = hd (.mk (PreStream.setoid A) x) := rfl
+example (x : PreStream A) : .mk _ x.tl = tl (.mk (PreStream.setoid A) x) := rfl
+
 coinductive Bisim (A : Type _) : SStream A → SStream A → Prop
   | step {a b : SStream A}
     (cont : Bisim a.tl b.tl)
