@@ -102,7 +102,9 @@ def setoid (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Setoid (PreM P α
 
 end PreM
 
-def SM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) := Quotient (PreM.setoid P α)
+def SM.{args, ind}
+    (P : MvPFunctor.{args} (n + 1)) (α : TypeVec.{args} n) := 
+  Quotient (PreM.setoid.{args, ind} P α)
 
 namespace SM
 

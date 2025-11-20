@@ -14,56 +14,58 @@ def liftAppend {β} (v : P (α ::: β))
     | .fz, h => .up (v.snd .fz h.down)
     | .fs s, h => .up (v.snd s.fs h.down)⟩
 
--- TODO: Free one of these variables, make it SM.{u, v}
-def SM.equiv : SM.{u, u} P α ≃ M.{u} P α := ⟨
-  M.corecU P (MvFunctor.map (TypeVec.id ::: ULift.up.{u, u+1}) ∘ SM.dest),
-  SM.corec (liftAppend ∘ M.dest P),
-  fun x => SM.bisim ⟨
-    fun a b => a = .corec
-        (liftAppend ∘ M.dest P)
-        (.corecU _ (MvFunctor.map (TypeVec.id ::: ULift.up.{u, u+1}) ∘ SM.dest) b),
-    fun a b => by
-      induction b using Quotient.ind; rename_i b
-      rcases b with ⟨gen, g⟩
-      rintro rfl
-      rw [dest_corec]
-      exact (MvPFunctor.liftR_iff _ _ _).mpr ⟨
-        .up (gen g).fst.down,
-        fun
-          | .fz, h  => .corec (liftAppend ∘ M.dest P)
-            <| M.corecU P (MvFunctor.map (TypeVec.id ::: ULift.up.{u, u+1}) ∘ SM.dest)
-            <| corec gen (((gen g).snd Fin2.fz ∘ ULift.up) h.down).down
-          | .fs s, .up h => (gen g).snd (.fs s) (.up h) |>.down |> .up,
-        fun
-          | .fz, h  => .corec gen ((gen g).snd .fz (.up h.down)).down
-          | .fs s, h => (gen g).snd (.fs s) (.up h.down) |>.down |> .up,
-        Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => rfl,
-        Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => rfl,
-        fun | .fz, h | .fs _, h => rfl
-      ⟩,
-    rfl
-  ⟩,
-  fun x => M.bisim _
-    (fun a b => a = .corecU _ (MvFunctor.map (TypeVec.id ::: ULift.up.{u, u+1}) ∘ SM.dest)
-      (.corec (liftAppend ∘ M.dest _) b))
-    (fun a b => by
-      rintro rfl
-      rw [M.dest_corecU]
-      refine ⟨
-        (corec (liftAppend ∘ M.dest P) b).dest.fst.down,
-        ((M.dest P b).snd ·.fs),
-        (M.corecU P
-          (MvFunctor.map (TypeVec.id ::: ULift.up.{u, u+1}) ∘ SM.dest)
-          <| (corec (liftAppend ∘ M.dest P) b).dest.snd Fin2.fz <|.up ·),
-        (M.dest P b).snd .fz,
-        Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => rfl,
-        Sigma.ext rfl <| heq_of_eq rfl,
-        fun _ => rfl
-      ⟩
-    )
-    _ _
-    rfl,
-⟩
+-- TODO: Free one of these variables, make it SM.{u, max u v}
+def SM.equiv : SM.{u, u} P α ≃ M.{u} P α :=
+  let lifter := (TypeVec.id ::: ULift.up.{u, u+1})
+  ⟨
+    M.corecU P (MvFunctor.map lifter ∘ SM.dest),
+    SM.corec (liftAppend ∘ M.dest P),
+    fun x => SM.bisim ⟨
+      fun a b => a = .corec
+          (liftAppend ∘ M.dest P)
+          (.corecU _ (MvFunctor.map lifter ∘ SM.dest) b),
+      fun a b => by
+        induction b using Quotient.ind; rename_i b
+        rcases b with ⟨gen, g⟩
+        rintro rfl
+        rw [dest_corec]
+        exact (MvPFunctor.liftR_iff _ _ _).mpr ⟨
+          .up (gen g).fst.down,
+          fun
+            | .fz, h  => .corec (liftAppend ∘ M.dest P)
+              <| M.corecU P (MvFunctor.map lifter ∘ SM.dest)
+              <| corec gen (((gen g).snd Fin2.fz ∘ ULift.up) h.down).down
+            | .fs s, .up h => (gen g).snd (.fs s) (.up h) |>.down |> .up,
+          fun
+            | .fz, h  => .corec gen ((gen g).snd .fz (.up h.down)).down
+            | .fs s, h => (gen g).snd (.fs s) (.up h.down) |>.down |> .up,
+          Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => rfl,
+          Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => rfl,
+          fun | .fz, h | .fs _, h => rfl
+        ⟩,
+      rfl
+    ⟩,
+    fun x => M.bisim _
+      (fun a b => a = .corecU _ (MvFunctor.map (TypeVec.id ::: ULift.up.{u, u+1}) ∘ SM.dest)
+        (.corec (liftAppend ∘ M.dest _) b))
+      (fun a b => by
+        rintro rfl
+        rw [M.dest_corecU]
+        refine ⟨
+          (corec (liftAppend ∘ M.dest P) b).dest.fst.down,
+          ((M.dest P b).snd ·.fs),
+          (M.corecU P
+            (MvFunctor.map (TypeVec.id ::: ULift.up.{u, u+1}) ∘ SM.dest)
+            <| (corec (liftAppend ∘ M.dest P) b).dest.snd Fin2.fz <|.up ·),
+          (M.dest P b).snd .fz,
+          Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => rfl,
+          Sigma.ext rfl <| heq_of_eq rfl,
+          fun _ => rfl
+        ⟩
+      )
+      _ _
+      rfl,
+  ⟩
 
 /-- info: 'Sme.SM.equiv' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
