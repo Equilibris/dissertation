@@ -1,3 +1,4 @@
+import Sme.M.SDefs
 
 inductive IsEven : Nat → Type
   | zEven : IsEven 0

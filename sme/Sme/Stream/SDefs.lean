@@ -109,8 +109,7 @@ theorem corec.tl {A Gen : Type _} {gen : Gen → A × Gen} {g : Gen}
 def dest (x : SStream A) : A × SStream A := ⟨x.hd, x.tl⟩
 
 @[simp]
-theorem corec.dest {A Gen : Type _} {gen : Gen → A × Gen} {g : Gen}
-    : (corec gen g).dest = ((gen g).fst, corec gen (gen g).snd) := rfl
+theorem corec.dest {A Gen : Type _} {gen : Gen → A × Gen} {g : Gen} : (corec gen g).dest = ((gen g).fst, corec gen (gen g).snd) := rfl
 
 end SStream
 

@@ -9,8 +9,7 @@ universe u
 
 variable {A : Type u}
 
-set_option pp.universes true in
-def Stream.equiv : SStream.{u, _} A ≃ PStream A := ⟨
+def Stream.equiv : SStream.{u, u} A ≃ PStream A := ⟨
   PStream.corec SStream.dest,
   SStream.corec PStream.dest,
   fun _x => SStream.bisim ⟨

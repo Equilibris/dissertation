@@ -47,6 +47,7 @@ theorem genU.snd {n : ℕ} (P : MvPFunctor.{u} (n + 1)) {α : TypeVec.{u} n} {β
     congr!
     rw [uLift_append1_ULift_uLift]
 
+@[simp]
 theorem M.dest_corecU {α : TypeVec n} {β : Type v}
     (g : β → P.uLift (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (x : β) :

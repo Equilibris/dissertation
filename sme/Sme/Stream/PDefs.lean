@@ -7,6 +7,9 @@ universe u v
 namespace PDef
 
 -- PUnit because its exacly one constructor.
+/- inductive Stream.Base' (α β : Type u) := -/
+/-   | cons (hd : α) (tl : β) -/
+
 def Stream.Base : MvPFunctor 2 := ⟨PUnit, fun _ _ => PUnit⟩
 
 def PStream (A : Type u) := (MvPFunctor.M Stream.Base (fun _ => A))
