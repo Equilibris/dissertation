@@ -3,11 +3,9 @@ import Mathlib.Tactic.GeneralizeProofs
 
 universe u v w
 
-variable {A : Type u} {B : Type v} 
+variable {A : Type u} {B : Type v}
 
-namespace V3
-
-structure ABIRepr (A : Type u) (B : Type v) (eq : A ≃ B) where
+structure ABIRepr (A : Type u) (B : Type v) (eq : A ≃ B) : Type max v w (u + 1) where
   intro ::
   carry : Type u
 
@@ -176,5 +174,5 @@ def equivB : B ≃ r.carry where
     change (_ ∘ _) a = id _
     rw [destB_mkB]
 
-end V3.ABIRepr
+end ABIRepr
 
