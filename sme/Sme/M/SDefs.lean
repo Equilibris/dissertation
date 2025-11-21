@@ -152,7 +152,7 @@ theorem bisim (h : Bisim a b) : a = b := by
       use cast (by rw [hx'₁]) x.dest.snd
       use cast (by rw [hy'₁]) y.dest.snd
       refine ⟨?_, ?_, ?_⟩
-      · rw! (castMode := .all) [←hx'₁, ]
+      · rw! (castMode := .all) [←hx'₁]
         apply Sigma.ext (by rfl)
         rfl
       · rw! (castMode := .all) [←hy'₁, ]
