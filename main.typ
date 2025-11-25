@@ -2,13 +2,13 @@
 // Take a look at the file `template.typ` in the file panel
 // to customize this template and discover how it works.
 #show: project.with(
-  title: "Coind",
+  title: "Efficient coinductives through state-machine corecursors",
   author: "William Sørensen",
   // Insert your abstract after the colon, wrapped in brackets.
   // Example: `abstract: [This is my abstract...]`
   abstract: lorem(59),
   acknowledgements: lorem(59),
-  date: "April 29, 2023",
+  date: "May 22, 2025",
   college: "Gonville & Caius College",
   logo: "cst_logo.svg")
 
