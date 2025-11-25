@@ -1,4 +1,4 @@
-== The ABI Type
+#include "abi.typ"
 
 == Stream implementation
 
