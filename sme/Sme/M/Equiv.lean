@@ -1,5 +1,6 @@
 import Sme.M.SDefs
 import Sme.ABI
+import Sme.M.Utils
 import Mathlib.Logic.Small.Defs
 
 open MvPFunctor
@@ -10,15 +11,7 @@ universe u v w
 
 variable {n : Nat} {P : MvPFunctor.{u} (n + 1)} {α : TypeVec.{u} n}
 
-def liftAppend {β} (v : P (α ::: β))
-    : (uLift.{u, v} P) (TypeVec.uLift.{u, v} α ::: ULift.{u, max u v} (ULift β)) :=
-  ⟨.up v.fst, fun
-    | .fz, h => (.up ∘ .up) (v.snd .fz h.down)
-    | .fs s, h => .up (v.snd s.fs h.down)⟩
-
-variable (P) (α)
-
-def SM.equiv : SM.{u, max u v} P α ≃ M.{u} P α :=
+def SM.equivP : SM.{u, max u v} P α ≃ M.{u} P α :=
   let msm := (MvFunctor.map (TypeVec.id ::: ULift.up.{u, max u v + 1}) ∘ SM.dest)
   let mpa := liftAppend.{u, max u v} ∘ M.dest P ∘ ULift.down.{max u v, u}
   ⟨
@@ -61,28 +54,77 @@ def SM.equiv : SM.{u, max u v} P α ≃ M.{u} P α :=
       rfl,
   ⟩
 
-/-- info: 'Sme.SM.equiv' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+section
+
+@[pp_with_univ]
+def SM.equivXU : SM.{u, max u v} P α ≃ SM.{u, max u w} P α :=
+  SM.equivP.trans SM.equivP.symm
+
+theorem SM.equivXU.inv'
+    {x : SM.{u, max u v} P α}
+    : SM.equivXU x = x := by
+  simp [SM.equivXU]
+
+theorem SM.equivXU.contract'
+    {x : SM.{u, max u v} P α}
+    : (SM.equivXU ∘ SM.equivXU) x = SM.equivXU x := by
+  simp [SM.equivXU]
+
+theorem SM.equivXU.toFun_invFun'
+    {x : SM.{u, max u v} P α}
+    : SM.equivXU x = SM.equivXU.symm x := by
+  simp [SM.equivXU]
+
+def SM.equivXU.transform
+    (v : (MvPFunctor.uLift.{u, (max u w) + 1} P)
+      (TypeVec.uLift.{u, (max u w) + 1} α ::: SM.{u, max u w} P α))
+    : (MvPFunctor.uLift.{u, (max u v) + 1} P) 
+      (TypeVec.uLift.{u, (max u v) + 1} α ::: SM.{u, max u v} P α) :=
+  ⟨
+    .up v.fst.down,
+    fun
+      | .fz, h => SM.equivXU (v.snd .fz (.up h.down))
+      | .fs s, h => .up (v.snd (s.fs) (.up h.down)).down
+  ⟩
+
+theorem SM.v
+    {x : SM.{u, max u v} P α}
+    : (SM.equivXU.{u, v, w} x).dest = SM.equivXU.transform (SM.dest x) := by
+  dsimp [equivXU, equivP]
+  simp [SM.dest_corec]
+  refine Sigma.ext (by rfl) <| heq_of_eq ?_
+  funext i h
+  rcases i with (_|⟨s⟩)
+  · rfl
+  · rfl
+
+-- The soundness of this is extremely dubious
+private unsafe def SM.equivXUImpl : SM.{u, max u v} P α ≃ SM.{u, max u w} P α where
+  toFun := unsafeCast
+  invFun := unsafeCast
+  left_inv _ := lcProof
+  right_inv _ := lcProof
+
+attribute [irreducible, implemented_by SM.equivXUImpl] SM.equivXU
+
+end
+
+/-- info: 'Sme.SM.equivP' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms SM.equiv
+#print axioms SM.equivP
 
-instance : Small.{u} (SM.{u, max u v} P α) where
-  equiv_small := ⟨M.{u} P α, ⟨(SM.equiv.{u, v} P α)⟩⟩
-
-def HpLuM : Type u := ABI _ _ (SM.equiv.{u, v} P α).symm
-
-variable {P} {α}
+def HpLuM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Type u :=
+  ABI _ _ (SM.equivP.{u, u} (P := P) (α := α)).symm
 
 section HpLuM
 
-set_option pp.universes true in
 def corec
     {β : Type v}
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (g : β)
     : HpLuM P α :=
-  .mkB (.corec (fun a =>
-    have := gen a.down
-    sorry) (ULift.up.{max u v,v} g))
+  have := SM.corec gen g
+  .mkB sorry
 
 #check SM.dest
 set_option pp.universes true in

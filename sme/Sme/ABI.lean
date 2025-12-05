@@ -10,9 +10,10 @@ variable {A : Type u} {B : Type v}
 namespace NonOmegaABI
 
 @[pp_with_univ]
-structure ABIRepr (A : Type u) (B : Type v) (eq : A ≃ B) : Type max v (w+1) (u + 1) where
+structure ABIRepr.{low, hi, e} (A : Type low) (B : Type hi) (eq : A ≃ B)
+    : Type max hi (e + 1) (low + 1) where
   intro ::
-  carry : Type u
+  carry : Type low
 
   mkB : B → carry
   mkA : A → carry
@@ -32,20 +33,20 @@ structure ABIRepr (A : Type u) (B : Type v) (eq : A ≃ B) : Type max v (w+1) (u
   destA_toFun_destB  : eq ∘ destA = destB
   destB_invFun_destA : eq.symm ∘ destB = destA
 
-  elim : {motive : carry → Type w}
+  elim : {motive : carry → Type e}
        → (hLog : (z : A) → motive (mkA z))
        → (hCheap : (z : B) → motive (mkB z))
        → (eqA : ∀ z, hLog z ≍ hCheap (eq z))
        → (eqB : ∀ z, hCheap z ≍ hLog (eq.symm z))
        → (v : carry) → motive v
 
-  elimLog : {motive : carry → Type w}
+  elimLog : {motive : carry → Type e}
        → {hLog : (z : A) → motive (mkA z)}
        → {hCheap : (z : B) → motive (mkB z)}
        → {eqA : ∀ z, hLog z ≍ hCheap (eq z)}
        → {eqB : ∀ z, hCheap z ≍ hLog (eq.symm z)}
        → ∀ z, elim hLog hCheap eqA eqB (mkA z) = (hLog z)
-  elimCheap : {motive : carry → Type w}
+  elimCheap : {motive : carry → Type e}
        → {hLog : (z : A) → motive (mkA z)}
        → {hCheap : (z : B) → motive (mkB z)}
        → {eqA : ∀ z, hLog z ≍ hCheap (eq z)}
