@@ -1,4 +1,5 @@
 import Sme.ForMathlib.Data.PFunctor.Multivariate.M
+import Sme.ForMathlib.Data.ULift
 import Mathlib.Control.Functor.Multivariate
 
 universe u v w
@@ -6,6 +7,7 @@ universe u v w
 namespace Sme
 
 open MvPFunctor
+open scoped MvFunctor
 
 variable {n : Nat} {P : MvPFunctor.{u} (n + 1)} {α : TypeVec.{u} n} {β : Type v}
 
@@ -14,10 +16,9 @@ def lift (x : MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v
     : MvPFunctor.uLift.{u, max v w} P
         (TypeVec.uLift.{u, max v w} α ::: ULift.{max u w, v} β) where
   fst := .up x.fst.down
-  snd := fun
-    | .fz, .up v => .up (x.snd .fz (.up v)).down
-    | .fs s, .up v => .up (x.snd (.fs s) (.up v)).down
-
+  snd := (TypeVec.Arrow.transliterate ::: ULift.transliterate)
+      ⊚ x.snd
+      ⊚ TypeVec.Arrow.transliterate
 
 def liftAppend {β} (v : P (α ::: β))
     : (uLift.{u, v} P) (TypeVec.uLift.{u, v} α ::: ULift.{u, max u v} (ULift β)) :=

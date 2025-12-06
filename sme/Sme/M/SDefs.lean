@@ -5,6 +5,8 @@ import Sme.ForMathlib.Data.PFunctor.Multivariate.M
 import Sme.M.Utils
 import Mathlib.Control.Functor.Multivariate
 
+open scoped MvFunctor
+
 namespace Sme
 
 universe u v w x y z
@@ -94,16 +96,23 @@ def setoid (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Setoid (PreM P α
   r := Bisim
   iseqv := ⟨Bisim.refl, Bisim.symm, Bisim.trans⟩
 
+@[pp_with_univ]
 def uLift (a : PreM.{u, v} P α) : PreM.{u, max v w} P α :=
   .corec (fun x =>
-    have := a.gen x.down
+    have v := a.gen x.down
     ⟨
-      .up this.fst.down,
-      fun
-        | .fz, h => .up (.up (this.snd .fz <| .up h.down).down)
-        | .fs s, h => .up (this.snd s.fs <| .up h.down).down
+      v.fst.transliterate,
+      (.transliterate ::: .up ∘ .transliterate) ⊚ v.snd ⊚ .transliterate
     ⟩
   ) (ULift.up.{w} a.g)
+
+theorem uLift_dest {a : PreM P α} : (uLift.{u,v,w} a).dest =
+  ⟨
+    ULift.transliterate a.dest.fst,
+    (TypeVec.Arrow.transliterate ::: uLift)
+    ⊚ a.dest.snd
+    ⊚ TypeVec.Arrow.transliterate
+  ⟩ := Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => rfl
 
 end PreM
 
@@ -264,49 +273,44 @@ def dest_corec
 
 end SM
 
-open scoped MvFunctor
-set_option pp.universes true in
 def SM.uLift : SM.{u, v} P α → SM.{u, max v w} P α :=
   Quotient.lift (fun a => .mk (PreM.setoid P α) a.uLift)
     fun a b ⟨r, his, hr⟩ =>
       Quot.sound ⟨
-        fun a b => ∃ x y, x.uLift = a ∧ y.uLift = b ∧ r x y,
+        (∃ x y, x.uLift = · ∧ y.uLift = · ∧ r x y),
         by
           rintro _ _ ⟨a,b,rfl,rfl,h⟩
           have ⟨v,f₀,f₁,hx, h, rst⟩ := (MvPFunctor.liftR_iff _ _ _).mp <| his _ _ h
           obtain ⟨rfl, rfl⟩ := Sigma.ext_iff.mp hx
           have ⟨h₁,h₂⟩ := Sigma.ext_iff.mp h
           clear h hx
+          dsimp at h₁ h₂
+          rw [PreM.uLift_dest, PreM.uLift_dest]
+          rw! (castMode := .all) [h₁, h₂]
           apply (MvPFunctor.liftR_iff _ _ _).mpr
           conv =>
             rhs; intro _; rhs; intro _; rhs; intro _
             rw [Sigma.ext_iff, Sigma.ext_iff]
           dsimp at h₁ h₂ ⊢
-          have eqa : (PreM.uLift.{u, v, w} b).dest.fst = a.uLift.dest.fst := by
-            dsimp [PreM.dest, lift, PreM.uLift] at h₁ ⊢
-            apply ULift.down_inj.mp
-            have h₁ := ULift.down_inj.mpr h₁
-            dsimp at h₁ ⊢
-            exact h₁
-
-          refine ⟨_,_,?_, ⟨rfl, heq_of_eq rfl⟩, ⟨eqa, ?_⟩, ?_⟩
+          refine ⟨_,_,?_, ⟨rfl, heq_of_eq rfl⟩, ⟨rfl, ?_⟩, ?_⟩
           · refine ?_ ⊚ f₁ ⊚ fun i h => ULift.up h.down
             exact (fun i h => ULift.up h.down) ::: PreM.uLift
-          · apply Function.hfunext rfl
-            rintro i _ rfl
-            apply Function.hfunext (by rw [eqa])
-            intro ha hb heq
-            rcases i with _|⟨i⟩
-            · simp [PreM.uLift, TypeVec.comp, lift, TypeVec.appendFun, TypeVec.splitFun, PreM.uLift ]
-              rw! [←h₂]
-              sorry
-            · rcases ha with ⟨ha⟩; rcases hb with ⟨hb⟩
-              simp [PreM.uLift, TypeVec.comp, lift, TypeVec.appendFun, TypeVec.splitFun, PreM.uLift ,TypeVec.id]
-              apply ULift.down_inj.mp
-              dsimp
-              rw! [←h₂]
-              sorry
-          · sorry
+          · apply heq_of_eq
+            funext i h
+            rcases h with ⟨h⟩
+            congr! 2
+            apply eq_of_heq <| eqRec_heq_iff.mpr <| cast_heq _ f₁
+          rintro i ⟨j⟩
+          rcases i with (_|i)
+          <;> simp [TypeVec.RelLast]
+          · exact ⟨_, rfl, _, rfl, rst .fz ⟨j⟩⟩
+          · apply ULift.down_inj.mp
+            apply ULift.down_inj.mpr
+            simp only [TypeVec.comp, TypeVec.appendFun, TypeVec.splitFun,
+              TypeVec.Arrow.transliterate, TypeVec.Arrow.uLift_up, TypeVec.Arrow.uLift_down,
+              ULift.up.injEq, ULift.down_inj]
+            exact rst i.fs ⟨j⟩
+
           ,
         ⟨_,_,rfl,rfl,hr⟩
       ⟩

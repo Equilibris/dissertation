@@ -52,43 +52,52 @@ theorem uLift_append1_ULift_uLift
     : (TypeVec.uLift.{u, v} α ::: ULift.{v, u} β) = (α ::: β).uLift :=
   funext fun | .fz | .fs _ => rfl
 
+@[pp_with_univ]
 def Arrow.uLift_up {α : TypeVec.{u} n} : α ⟹ α.uLift := fun _ => ULift.up
-def Arrow.uLift_down {α : TypeVec.{u} n} : α.uLift ⟹ α := fun _ => ULift.down
-
-def Arrow.uLift_up_splitFun {α : TypeVec.{u} n.succ}
-    : Arrow.uLift_up (α := α) = splitFun Arrow.uLift_up ULift.up :=
-  funext fun | .fz | .fs _ => rfl
-
-def Arrow.uLift_down_splitFun {α : TypeVec.{u} n.succ}
-    : Arrow.uLift_down = splitFun (α := α.uLift) Arrow.uLift_down ULift.down := 
-  funext fun | .fz | .fs _ => rfl
-
-@[simp]
-theorem Arrow.uLift_up_down {α : TypeVec.{u} n}
-    : Arrow.uLift_up ⊚ (Arrow.uLift_down (α := α)) = id := Arrow.ext _ _ (fun _ => rfl)
-
-@[simp]
-theorem Arrow.uLift_down_up {α : TypeVec.{u} n}
-    : Arrow.uLift_down ⊚ (Arrow.uLift_up (α := α)) = id := Arrow.ext _ _ (fun _ => rfl)
+@[pp_with_univ]
+def Arrow.uLift_down {α : TypeVec.{u} n} : α.uLift ⟹ α :=
+  fun _ => ULift.down
+@[pp_with_univ]
+def Arrow.transliterate.{y,z} {α : TypeVec.{u} n} : (uLift.{_,y} α) ⟹ (uLift.{_,z} α) :=
+  uLift_up ⊚ uLift_down
 
 def Arrow.uLift_arrow
     {α β : TypeVec n}
     (h : TypeVec.uLift.{u, v} α ⟹ TypeVec.uLift.{w, x} β)
     : α ⟹ β := uLift_down ⊚ h ⊚ uLift_up
+def Arrow.arrow_uLift
+    {α β : TypeVec n}
+    (h : α ⟹ β)
+    : TypeVec.uLift.{u, v} α ⟹ TypeVec.uLift.{w, x} β := 
+  uLift_up ⊚ h ⊚ uLift_down
 
-def Arrow.uLift_arrow_splitFun
+theorem Arrow.uLift_up_splitFun {α : TypeVec.{u} n.succ}
+    : Arrow.uLift_up (α := α) = splitFun Arrow.uLift_up ULift.up :=
+  funext fun | .fz | .fs _ => rfl
+
+theorem Arrow.uLift_down_splitFun {α : TypeVec.{u} n.succ}
+    : Arrow.uLift_down = splitFun (α := α.uLift) Arrow.uLift_down ULift.down := 
+  funext fun | .fz | .fs _ => rfl
+
+@[simp]
+theorem Arrow.uLift_up_down {α : TypeVec.{u} n}
+    : Arrow.uLift_up ⊚ (Arrow.uLift_down (α := α)) = id := rfl
+
+@[simp]
+theorem Arrow.uLift_down_up {α : TypeVec.{u} n}
+    : Arrow.uLift_down ⊚ (Arrow.uLift_up (α := α)) = id := rfl
+
+@[simp]
+theorem Arrow.transliterate_idempotent
+    : Arrow.transliterate ⊚ Arrow.transliterate = Arrow.transliterate (α := α) := rfl
+
+theorem Arrow.uLift_arrow_splitFun
     {α : TypeVec n.succ}
     {β : TypeVec n.succ}
     (f : α.uLift.drop ⟹ β.uLift.drop)
     (g : α.uLift.last → β.uLift.last)
     : (splitFun f g).uLift_arrow = (splitFun f.uLift_arrow (ULift.down ∘ g ∘ .up)) :=
   funext fun | .fz | .fs _ => rfl
-
-def Arrow.arrow_uLift
-    {α β : TypeVec n}
-    (h : α ⟹ β)
-    : TypeVec.uLift.{u, v} α ⟹ TypeVec.uLift.{w, x} β :=
-  fun | i, ⟨v⟩ => .up (h i v)
 
 end ULift
 
