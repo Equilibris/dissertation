@@ -505,9 +505,17 @@ section
 
 end
 
-@[ext]
-theorem extB {a b : ABI.{u, v} _ _ eq} : a.destB = b.destB → a = b := carry.extB
-theorem extA {a b : ABI.{u, v} _ _ eq} : a.destA = b.destA → a = b := carry.extA
+theorem extB' {a b : ABI.{u, v} _ _ eq} : a.destB = b.destB → a = b := carry.extB
+theorem extA' {a b : ABI.{u, v} _ _ eq} : a.destA = b.destA → a = b := carry.extA
+
+theorem extB
+    {a b : ABI.{u, v} _ _ eq}
+    : (∀ x y, a = .mkB x → b = .mkB y → x = y) → a = b :=
+  fun h => extB' <| h (destB a) (destB b) destB_mkB'.symm destB_mkB'.symm
+theorem extA
+    {a b : ABI.{u, v} _ _ eq}
+    : (∀ x y, a = .mkA x → b = .mkA y → x = y) → a = b :=
+  fun h => extA' <| h (destA a) (destA b) destA_mkA'.symm destA_mkA'.symm
 
 attribute [irreducible] rec mkA mkB destA destB
 
