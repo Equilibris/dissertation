@@ -3,6 +3,7 @@ import Sme.ABI
 import Sme.M.Utils
 import Mathlib.Logic.Small.Defs
 
+open scoped MvFunctor
 open MvPFunctor
 
 namespace Sme
@@ -87,7 +88,8 @@ def SM.equivXU.transform
       | .fs s, h => .up (v.snd (s.fs) (.up h.down)).down
   ⟩
 
-theorem SM.v
+@[simp]
+theorem SM.transform_dest
     {x : SM.{u, max u v} P α}
     : (SM.equivXU.{u, v, w} x).dest = SM.equivXU.transform (SM.dest x) := by
   dsimp [equivXU, equivP]
@@ -116,20 +118,45 @@ end
 def HpLuM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Type u :=
   ABI _ _ (SM.equivP.{u, u} (P := P) (α := α)).symm
 
-section HpLuM
+namespace HpLuM
 
 def corec
     {β : Type v}
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (g : β)
     : HpLuM P α :=
-  have := SM.corec gen g
-  .mkB sorry
+  .mkB <| SM.equivXU <| SM.uLift.{u, v, max u v} <| .corec gen g
 
-#check SM.dest
-set_option pp.universes true in
-def dest : HpLuM P α → P (α ::: HpLuM P α) := sorry
+def dest : HpLuM P α → P (α ::: HpLuM P α) :=
+  ABI.rec
+    ((TypeVec.id ::: ABI.mkA) <$$> M.dest P ·)
+    (MvPFunctor.uLift_down
+      <| (.mp TypeVec.uLift_append1_ULift_uLift ⊚ (TypeVec.id ::: .up ∘ .mkB)) <$$> ·.dest)
+    (fun _ =>
+      heq_of_eq <| Sigma.ext rfl <| heq_of_eq <| funext fun
+        | .fz => funext fun _ => ABI.mkA_mkB_iff_eq.mpr rfl
+        | .fs _ => rfl)
+    (fun _ =>
+      heq_of_eq <| Sigma.ext rfl <| heq_of_eq <| funext fun
+        | .fz => funext fun _ => Eq.symm <| ABI.mkA_mkB_iff_eq_symm.mpr rfl
+        | .fs _ => rfl)
+
+theorem dest_corec
+    {β : Type v}
+    (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
+    (g : β)
+    : dest (corec gen g) = 
+      uLift_down (
+        ((.mp TypeVec.uLift_append1_ULift_uLift ⊚ (TypeVec.id ::: .up ∘ corec gen ∘ ULift.down))) 
+        <$$> gen g
+      ) := by
+  simp only [dest, uLift_down, map_fst, map_snd, corec, ABI.recCheap]
+  rw [SM.transform_dest]
+  refine Sigma.ext (by rfl) <| heq_of_eq <| funext fun
+    | .fz | .fs _ => rfl
 
 end HpLuM
+
+attribute [irreducible] HpLuM.corec HpLuM.dest HpLuM
 
 end Sme

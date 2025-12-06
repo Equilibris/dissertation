@@ -445,6 +445,35 @@ variable {v}
 @[simp] theorem destB_mkA_toFun' : destB (eq := eq) (mkA v) = eq v := carry.destB_mkA_toFun'
 @[simp] theorem destA_mkB_toInv' : destA (eq := eq) (mkB v) = eq.symm v := carry.destA_mkB_toInv'
 
+theorem mkA_inj : Function.Injective (mkA (eq := eq)) :=
+  fun a b h => by
+    change id a = id b
+    repeat rw [←mkA_destA (eq := eq)]
+    dsimp
+    rw [h]
+theorem mkB_inj : Function.Injective (mkB (eq := eq)) :=
+  fun a b h => by
+    change id a = id b
+    repeat rw [←mkB_destB (eq := eq)]
+    dsimp
+    rw [h]
+
+theorem mkA_mkB_iff_eq {a : A} {b : B} : mkA (eq := eq) a = mkB b ↔ eq a = b where
+  mp h := by
+    change id (eq a) = id b
+    repeat rw [←mkB_destB (eq := eq)]
+    change (mkB (eq a)).destB = (mkB b).destB
+    rw [toFun_mkB_mkA', h]
+  mpr h := by rw [←toFun_mkB_mkA', h]
+
+theorem mkA_mkB_iff_eq_symm {a : A} {b : B} : mkA (eq := eq) a = mkB b ↔ a = eq.symm b where
+  mp h := by
+    change id a = id (eq.symm b)
+    repeat rw [←mkA_destA (eq := eq)]
+    dsimp
+    rw [h, destA_mkB_toInv', invFun_mkA_mkB', destA_mkB_toInv']
+  mpr h := by rw [h, invFun_mkA_mkB']
+
 end eqs
 
 section

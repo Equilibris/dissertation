@@ -29,15 +29,16 @@ namespace PreM
 def dest (x : PreM.{u, v} P α)
     : MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::: PreM.{u, v} P α) :=
   MvFunctor.map (TypeVec.id ::: (PreM.corec x.gen ·.down))
-    <| lift.{u, v, v+1}
+    <| transliterate.{u, v, v+1}
     <| x.gen x.g
 
 @[simp]
-def dest_corec
+theorem dest_corec
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (g : β)
     : (corec gen g).dest 
-    = MvFunctor.map (TypeVec.id ::: (corec gen ∘ ULift.down)) (lift.{u,v,v+1} <| gen g) := rfl
+    = MvFunctor.map (TypeVec.id ::: (corec gen ∘ ULift.down))
+      (transliterate.{u,v,v+1} <| gen g) := rfl
 
 def IsBisim (R : PreM.{u, v} P α → PreM.{u, v} P α → Prop) : Prop :=
     ∀ s t, R s t →
@@ -116,6 +117,7 @@ theorem uLift_dest {a : PreM P α} : (uLift.{u,v,w} a).dest =
 
 end PreM
 
+@[pp_with_univ]
 def SM.{args, ind}
     (P : MvPFunctor.{args} (n + 1)) (α : TypeVec.{args} n) :=
   Quotient (PreM.setoid.{args, ind} P α)
@@ -266,13 +268,15 @@ def dest_corec
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (g : β)
     : (corec gen g).dest
-    = MvFunctor.map (TypeVec.id ::: (corec gen ∘ ULift.down)) (lift.{u,v,v+1} <| gen g) := by
+    = MvFunctor.map (TypeVec.id ::: (corec gen ∘ ULift.down))
+      (transliterate.{u,v,v+1} <| gen g) := by
   dsimp [corec, dest, PreM.dest]
   rw [MvFunctor.map_map, ←TypeVec.appendFun_comp, TypeVec.comp_id]
   rfl
 
 end SM
 
+-- This proof was actually truly pain
 def SM.uLift : SM.{u, v} P α → SM.{u, max v w} P α :=
   Quotient.lift (fun a => .mk (PreM.setoid P α) a.uLift)
     fun a b ⟨r, his, hr⟩ =>

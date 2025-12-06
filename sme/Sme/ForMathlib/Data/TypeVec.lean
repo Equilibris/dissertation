@@ -101,4 +101,36 @@ theorem Arrow.uLift_arrow_splitFun
 
 end ULift
 
+@[simp]
+theorem comp.get
+  {A B C : TypeVec (n + 1)}
+  {b : TypeVec.Arrow B C}
+  {a : TypeVec.Arrow A B}
+  {i}
+  : (b ⊚ a) i = b i ∘ (a i) := rfl
+
+@[simp]
+theorem appendFun.get_fz {α β}
+  {A B : TypeVec (n)}
+  {a : TypeVec.Arrow A B}
+  {v : α → β}
+  : (a ::: v) .fz = v := rfl
+
+@[simp]
+theorem appendFun.get_fs {α β}
+  {A B : TypeVec n}
+  {a : TypeVec.Arrow A B}
+  {v : α → β} {i}
+  : (a ::: v) (.fs i) = a i := rfl
+
+@[simp]
+theorem uLift_down.get
+    {α : TypeVec (n + 1)} {i}
+    : Arrow.uLift_down (α := α) i = ULift.down := rfl
+
+@[simp]
+theorem uLift_up.get
+    {α : TypeVec (n + 1)} {i}
+    : Arrow.uLift_up (α := α) i = ULift.up := rfl
+
 end TypeVec
