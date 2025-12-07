@@ -59,7 +59,7 @@ def IsBisim (R : HpLuM.{u} P α → HpLuM.{u} P α → Prop) : Prop :=
 
 def Bisim : HpLuM.{u} P α → HpLuM.{u} P α → Prop := (∃ R, IsBisim R ∧ R · ·)
 
-theorem bisim {a b : HpLuM.{u} P α} : Bisim a b → a = b := by
+theorem bisim' {a b : HpLuM.{u} P α} : Bisim a b → a = b := by
   intro ⟨r, ris, rab⟩
   apply a.extB
   intro a b rfl rfl
@@ -114,6 +114,25 @@ theorem bisim {a b : HpLuM.{u} P α} : Bisim a b → a = b := by
       exact rst
     · exact ULift.down_inj.mp rst
 
+theorem bisim
+    {a b : HpLuM.{u} P α}
+    (R : HpLuM.{u} P α → HpLuM.{u} P α → Prop)
+    (x : R a b)
+    (h : ∀ s t, R s t → ∃ x, ∃ (y z : P.B x ⟹ α ::: HpLuM P α),
+      (s.dest.fst = x ∧ s.dest.snd ≍ y) ∧
+        (t.dest.fst = x ∧ t.dest.snd ≍ z) ∧ ∀ (i : Fin2 (n + 1)) (j : P.B x i),
+        TypeVec.RelLast α R (y i j) (z i j))
+    : a = b :=
+  bisim' ⟨
+    R,
+    fun s t h' => (MvPFunctor.liftR_iff _ _ _).mpr <| by 
+      conv =>
+        rhs; intro _; rhs; intro _; rhs; intro _
+        rw [Sigma.ext_iff, Sigma.ext_iff]
+      refine h s t h',
+    x
+  ⟩
+
 end bisim
 
 def corec'
@@ -121,9 +140,6 @@ def corec'
     (gen : β → P (α ::: β))
     : β → HpLuM P α :=
   corec (fun v => .mpr TypeVec.uLift_append1_ULift_uLift <$$> uLift_up.{u,u} (gen v))
-
-def mk : P (α ::: HpLuM P α) → HpLuM P α :=
-  corec' ((TypeVec.id ::: dest) <$$> ·)
 
 @[simp]
 theorem dest_corec'
@@ -139,23 +155,25 @@ theorem dest_corec'
   funext i h
   rcases i with (_|i) <;> rfl
 
+def mk : P (α ::: HpLuM P α) → HpLuM P α :=
+  corec' ((TypeVec.id ::: dest) <$$> ·)
+
 theorem dest_mk {v : HpLuM P α} : mk (dest v) = v := by
-  refine bisim ⟨(· = (mk ∘ dest) ·), ?_, rfl⟩
+  apply bisim (· = (mk ∘ dest) ·) rfl
   rintro _ x rfl
   dsimp [mk]
   rw [dest_corec']
-  apply (MvPFunctor.liftR_iff _ _ _).mpr
-  conv =>
-    rhs; intro _; rhs; intro _; rhs; intro _
-    rw [Sigma.ext_iff, Sigma.ext_iff]
-  dsimp
-  refine ⟨_, _, _, ⟨rfl, heq_of_eq rfl⟩, ⟨rfl, (heq_of_eq rfl)⟩, ?_⟩
-  rintro (_|i) h <;> rfl
+  refine ⟨
+    _, _, _,
+    ⟨rfl, heq_of_eq rfl⟩,
+    ⟨rfl, (heq_of_eq rfl)⟩,
+    fun | .fz, h | .fs s, h => rfl
+  ⟩
 
 theorem mk_dest {v : P (α ::: HpLuM P α)} : dest (mk v) = v := by
-  have : mk ∘ dest = @_root_.id (HpLuM P α) := funext fun x => dest_mk
+  have : mk ∘ dest = @id (HpLuM P α) := funext fun x => dest_mk
   rw [mk, dest_corec', ←mk, ←comp_map]
-  refine Sigma.ext (by rfl) <| heq_of_eq ?_
+  refine Sigma.ext rfl <| heq_of_eq ?_
   dsimp only [map_fst, map_snd]
   funext i h
   rcases i with (_|i)
@@ -163,44 +181,100 @@ theorem mk_dest {v : P (α ::: HpLuM P α)} : dest (mk v) = v := by
     rw [this]
   · rfl
 
+theorem mk_linv : Function.LeftInverse dest (mk (P := P) (α := α)) :=
+  fun _ => mk_dest
+theorem dest_linv : Function.LeftInverse (mk (P := P) (α := α)) dest :=
+  fun _ => dest_mk
+
+theorem mk.bij : Function.Bijective (mk (P := P) (α := α)) :=
+  Function.bijective_iff_has_inverse.mpr ⟨
+    dest,
+    mk_linv,
+    dest_linv,
+  ⟩
+
+theorem dest.bij : Function.Bijective (dest (P := P) (α := α)) :=
+  Function.bijective_iff_has_inverse.mpr ⟨
+    mk,
+    dest_linv,
+    mk_linv,
+  ⟩
+
+theorem mk.inj : Function.Injective     (mk (P := P) (α := α))   := mk.bij.injective
+theorem mk.sur : Function.Surjective    (mk (P := P) (α := α))   := mk.bij.surjective
+theorem dest.inj : Function.Injective   (dest (P := P) (α := α)) := dest.bij.injective
+theorem dest.sur : Function.Surjective  (dest (P := P) (α := α)) := dest.bij.surjective
+
 def map {α β : TypeVec.{u} n} (m : α ⟹ β) : HpLuM P α → HpLuM P β :=
   corec' ((m ::: id) <$$> ·.dest)
 
 instance : MvFunctor (HpLuM P) where map := map
 
 theorem id_map (x : HpLuM P α) : TypeVec.id <$$> x = x := by
-  apply bisim ⟨(· = TypeVec.id <$$> ·), ?_, rfl⟩
+  apply bisim (· = ·.map TypeVec.id) rfl
   intro _ y rfl
-  change MvFunctor.LiftR _ (corec' _ _).dest y.dest
+  dsimp [map]
   rw [dest_corec']
-  apply (MvPFunctor.liftR_iff _ _ _).mpr
-  conv =>
-    rhs; intro _; rhs; intro _; rhs; intro _
-    rw [Sigma.ext_iff, Sigma.ext_iff]
-  refine ⟨_, _, _, ⟨rfl, heq_of_eq rfl⟩, ⟨rfl, (heq_of_eq rfl)⟩, ?_⟩
-  rintro (_|i) h <;> rfl
+  refine ⟨
+    _, _, _,
+    ⟨rfl, heq_of_eq rfl⟩,
+    ⟨rfl, (heq_of_eq rfl)⟩,
+    fun | .fz, h | .fs s, h => rfl
+  ⟩
 
 theorem comp_map
     {α β γ}
     (g : α ⟹ β) (h : β ⟹ γ)
     (x : HpLuM P α)
     : (h ⊚ g) <$$> x = h <$$> g <$$> x := by
-  apply bisim ⟨(fun a b => ∃ y, a = (h ⊚ g) <$$> y ∧ b = h <$$> g <$$> y), ?ib, ⟨x, rfl, rfl⟩⟩
+  apply bisim (∃ y, · = y.map (h ⊚ g) ∧ · = (y.map g).map h) ⟨x, rfl, rfl⟩
   rintro a b ⟨y, rfl, rfl⟩
-  change MvFunctor.LiftR _ (corec' _ y).dest (corec' _ (corec' _ y)).dest
+  dsimp [map]
   rw [dest_corec', dest_corec', dest_corec']
-  apply (MvPFunctor.liftR_iff _ _ _).mpr
-  conv =>
-    rhs; intro _; rhs; intro _; rhs; intro _
-    rw [Sigma.ext_iff, Sigma.ext_iff]
-  refine ⟨_, _, _, ⟨rfl, heq_of_eq rfl⟩, ⟨rfl, heq_of_eq rfl⟩, ?_⟩
-  rintro (_|i) h
-  · refine ⟨_, rfl, rfl⟩
-  · rfl
+  refine ⟨
+    _, _, _,
+    ⟨rfl, heq_of_eq rfl⟩,
+    ⟨rfl, heq_of_eq rfl⟩,
+    fun
+      | .fz, h => ⟨_, rfl, rfl⟩
+      | .fs s, h => rfl
+  ⟩
 
 instance : LawfulMvFunctor (HpLuM P) where
   id_map := id_map
   comp_map := comp_map
+
+theorem corec_roll
+    {α : TypeVec.{u} n}
+    {X : Type v}
+    {Y : Type w} {x₀ : X}
+    (f : X → Y)
+    (g : Y → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} X))
+    : corec (g ∘ f) x₀ = corec (transliterateMap (ULift.up ∘ f) ∘ g) (f x₀) := by
+  apply bisim
+    (∃ x, corec (g ∘ f) x = · ∧ corec (transliterateMap (ULift.up ∘ f) ∘ g) (f x) = ·)
+    ⟨_, rfl, rfl⟩
+  rintro _ _ ⟨w, rfl, rfl⟩
+  rw [dest_corec, dest_corec]
+  exact ⟨
+    _, _, _,
+    ⟨rfl, heq_of_eq rfl⟩,
+    ⟨rfl, heq_of_eq rfl⟩,
+    fun
+      | .fz, h => ⟨_, rfl, rfl⟩
+      | .fs s, h => rfl
+  ⟩
+
+@[ext 1000]
+theorem ext_dest {α : TypeVec n} {x y : HpLuM P α} (h : x.dest = y.dest) : x = y := by
+  rw [← dest_mk (v := x), h, dest_mk]
+
+@[ext 0]
+theorem ext_mk {α : TypeVec n}
+    {x y : P (α ::: HpLuM P α)}
+    (h : mk x = mk y)
+    : x = y := by
+  rw [← mk_dest (v := x), h, mk_dest]
 
 end Sme.HpLuM
 

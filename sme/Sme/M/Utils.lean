@@ -11,16 +11,24 @@ open scoped MvFunctor
 
 variable {n : Nat} {P : MvPFunctor.{u} (n + 1)} {α : TypeVec.{u} n} {β : Type v}
 
--- TODO: Try to remove one or both of these and replace them with a kind of mapping
-def transliterate (x : MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
-    : MvPFunctor.uLift.{u, max v w} P
-        (TypeVec.uLift.{u, max v w} α ::: ULift.{max u w, v} β) where
+def transliterateMap {γ}
+    (f : β → γ)
+    (x : MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
+    : MvPFunctor.uLift.{u, w} P
+        (TypeVec.uLift.{u, w} α ::: γ) where
   fst := .transliterate x.fst
-  snd := (.transliterate ::: .transliterate) ⊚ x.snd ⊚ .transliterate
+  snd := (.transliterate ::: f ∘ ULift.down) ⊚ x.snd ⊚ .transliterate
 
-def liftAppend {β} (v : P (α ::: β))
-    : (uLift.{u, v} P) (TypeVec.uLift.{u, v} α ::: ULift.{u, max u v} (ULift β)) where
-  fst := .up v.fst
-  snd := (.uLift_up ::: .up ∘ .up) ⊚ v.snd ⊚ .uLift_down
+-- TODO: Try to remove one or both of these and replace them with a kind of mapping
+def transliterate
+    : MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β) 
+    → MvPFunctor.uLift.{u, max v w} P
+        (TypeVec.uLift.{u, max v w} α ::: ULift.{max u w, v} β) := 
+  transliterateMap ULift.up
+
+def liftAppend {β} (x : P (α ::: β))
+    : (uLift.{u, v} P) (TypeVec.uLift.{u, v} α ::: ULift.{u, max u v} (ULift β)) :=
+  ((TypeVec.id ::: ULift.up) ⊚ .mpr TypeVec.uLift_append1_ULift_uLift)
+    <$$> uLift_up x
 
 end Sme

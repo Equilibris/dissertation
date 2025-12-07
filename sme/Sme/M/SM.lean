@@ -1,4 +1,3 @@
-import CoinductivePredicates
 import Mathlib.Data.Quot
 import Mathlib.Tactic.DepRewrite
 import Sme.ForMathlib.Data.PFunctor.Multivariate.M
