@@ -5,3 +5,5 @@
 === Lean formalization <pfunctorlean>
 
 #lorem(100)
+
+=== F-(co)algebras<pfunctofalg>
