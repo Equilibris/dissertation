@@ -1,3 +1,7 @@
+#import "@preview/codly:1.3.0": *
+#import "@preview/codly-languages:0.1.8": *
+
+
 #let common(
   title: "My Dissertation",
   author: "<Insert name>",
@@ -15,6 +19,8 @@
   show math.equation: set text(weight: 400)
   set heading(numbering: "1.1")
   set par(justify: true)
+  show: codly-init.with()
+  codly(languages: codly-languages)
 
   body
 }
@@ -99,9 +105,9 @@
   )
 
   par()[
-    I, #author of #college, being a candidate for the \course, hereby declare that this report and the work described in it are my own work, unaided except as may be specified below, and that the report does not contain material that has already been used to any substantial extent for a comparable purpose.
+    I, #author of #college, being a candidate for the \course, hereby declare that this report and the work described in it are my own work, unaided except as may be specified below, and that the report does not contain material that has already been used to any substantial extent for a comparable purpose. \
     // #v(1em)
-    *Signed*: \
+    *Signed*: #author \
     *Date*: #date
   ]
 

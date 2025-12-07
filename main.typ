@@ -1,8 +1,11 @@
 #import "template.typ": *
+#import "typ/todo.typ": todo, show-todos
+
 // Take a look at the file `template.typ` in the file panel
 // to customize this template and discover how it works.
+
 #show: project.with(
-  title: "Efficient coinductives through state-machine corecursors",
+  title: "Efficient Coinductives through \nState-Machine Corecursors",
   author: "William Sørensen",
   // Insert your abstract after the colon, wrapped in brackets.
   // Example: `abstract: [This is my abstract...]`
@@ -12,9 +15,9 @@
   college: "Gonville & Caius College",
   logo: "cst_logo.svg")
 
-// We generated the example code below so you can see how
-// your document will look. Go ahead and replace it with
-// your own content!
+// #todo[Abtract]
+
+#show-todos()
 
 = Introduction
 
