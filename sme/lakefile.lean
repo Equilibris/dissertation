@@ -17,5 +17,5 @@ require mathlib from git "https://github.com/Equilibris/mathlib4" @ "289a8933c6c
 require CoinductivePredicates from git "https://github.com/Equilibris/CoinductivePredicates" @ "main"
 
 @[default_target]
-lean_lib «Sme» where
+lean_lib Sme where
   -- add any library configuration options here
