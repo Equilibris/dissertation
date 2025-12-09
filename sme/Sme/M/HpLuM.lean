@@ -17,6 +17,10 @@ def HpLuM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Type u :=
 
 namespace HpLuM
 
+def equivM : HpLuM P α ≃ M P α := by 
+  dsimp [HpLuM]
+  exact?
+
 def corec
     {β : Type v}
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
@@ -244,6 +248,14 @@ instance : LawfulMvFunctor (HpLuM P) where
   id_map := id_map
   comp_map := comp_map
 
+theorem dest_map
+    {α β : TypeVec.{u} n} (g : α ⟹ β) (x : HpLuM P α)
+    : dest (g <$$> x) = (g ::: (g <$$> ·)) <$$> dest x := by
+  simp [MvFunctor.map, map]
+  refine Sigma.ext (by rfl) <| heq_of_eq ?_
+  funext i h
+  rcases i with (_|_) <;> rfl
+
 theorem corec_roll
     {α : TypeVec.{u} n}
     {X : Type v}
@@ -275,6 +287,14 @@ theorem ext_mk {α : TypeVec n}
     (h : mk x = mk y)
     : x = y := by
   rw [← mk_dest (v := x), h, mk_dest]
+
+instance inhabited
+    {α : TypeVec _}
+    [I : Inhabited P.A]
+    [df : ∀ i, Inhabited (α i)]
+    : Inhabited (HpLuM P α) where
+  default := .corec' (fun x =>
+    ⟨x, fun | .fz, _ => x | .fs i, _ => (df i).default⟩) I.default
 
 end Sme.HpLuM
 

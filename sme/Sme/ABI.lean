@@ -474,6 +474,26 @@ theorem mkA_mkB_iff_eq_symm {a : A} {b : B} : mkA (eq := eq) a = mkB b ↔ a = e
     rw [h, destA_mkB_toInv', invFun_mkA_mkB', destA_mkB_toInv']
   mpr h := by rw [h, invFun_mkA_mkB']
 
+def equivA : A ≃ ABI _ _ eq where
+  toFun  := ABI.mkA
+  invFun := ABI.destA
+  left_inv  := fun a => by
+    change (carry.destA ∘ carry.mkA) a = id _
+    rw [carry.mkA_destA]
+  right_inv := fun a => by
+    change (carry.mkA ∘ carry.destA) a = id _
+    rw [carry.destA_mkA]
+
+def equivB : B ≃ ABI _ _ eq where
+  toFun  := ABI.mkB
+  invFun := ABI.destB
+  left_inv  := fun a => by
+    change (carry.destB ∘ carry.mkB) a = id _
+    rw [carry.mkB_destB]
+  right_inv := fun a => by
+    change (carry.mkB ∘ carry.destB) a = id _
+    rw [carry.destB_mkB]
+
 end eqs
 
 section

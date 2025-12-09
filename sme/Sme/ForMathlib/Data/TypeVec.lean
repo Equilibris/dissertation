@@ -133,4 +133,12 @@ theorem uLift_up.get
     {α : TypeVec (n + 1)} {i}
     : Arrow.uLift_up (α := α) i = ULift.up := rfl
 
+@[simp]
+theorem repeat.get {X} : {n i : _} → TypeVec.repeat n X i = X
+  | _, .fz => rfl
+  | _, .fs i => repeat.get (i := i)
+
+def repeat_out {X} (f : ∀ i, X → β i) : TypeVec.repeat n X ⟹ β :=
+  fun i h => f i (repeat.get.mp h)
+
 end TypeVec
