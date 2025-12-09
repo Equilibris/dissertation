@@ -14,9 +14,6 @@ def QStream.Base : MvPFunctor 2 := ⟨
 def QStreamSl α := M QStream.Base (fun _ => α)
 def QStreamHp α := HpLuM QStream.Base (fun _ => α)
 
-/- codata QStream α -/
-/-   | cons : α → QStream α → QStream α -/
-
 structure QStreamBig.{u} (α : Type _) where
   corec ::
     {t : Type u}
@@ -108,7 +105,7 @@ def runTestsHp : IO Unit := do
 
   return ()
 
-#eval runTestsHp
-
+/- #eval runTests -/
+/- #eval runTestsHp -/
 
 end Test
