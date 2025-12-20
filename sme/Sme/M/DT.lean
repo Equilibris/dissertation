@@ -4,6 +4,7 @@ import Mathlib.Data.QPF.Multivariate.Constructions.Cofix
 import Sme.M.Prj
 import Sme.M.HpLuM
 import Sme.Vec
+import Sme.EquivP
 
 namespace Sme
 
@@ -12,77 +13,108 @@ open scoped MvFunctor
 
 universe u v
 
-inductive DTSum (α β : Type u) : Type u
-  /-- Hand responsibility back to the co-recursor -/
-  | recall (v : α)
-  /-- Continue constructing a DeepThunk -/
-  | cont   (v : β)
-
 variable {α β : Type u} {n : Nat}
 
-namespace DTSum
-
-def Uncurried : MvPFunctor 2 where
+def DTSum : MvPFunctor 2 where
   A := ULift Bool
   B := fun
     | .up .true   => !![PUnit, PEmpty]
     | .up .false  => !![PEmpty, PUnit]
 
-def Uncurried.cont {α} (v : α .fz) : Uncurried α :=
+instance : EquivP 2 Sum DTSum where
+  equiv := {
+    toFun
+      | ⟨.up .true, v⟩ => .inr (v (.fs .fz) .unit)
+      | ⟨.up .false, v⟩ => .inl (v .fz .unit)
+    invFun
+      | .inl v => ⟨.up .false, fun | .fs .fz, h => h.elim | .fz, h => v⟩
+      | .inr v => ⟨.up .true,  fun | .fs .fz, h => v | .fz, h => h.elim⟩
+    right_inv
+      | .inl _ | .inr _ => rfl
+    left_inv := by
+      rintro ⟨(_|_), h⟩
+      <;> refine Sigma.ext rfl <| heq_of_eq ?_
+      <;> funext i h
+      <;> rcases i with (_|_|_|_)
+      <;> cases h
+      <;> rfl
+  }
+
+namespace DTSum
+
+def cont {α} (v : α .fz) : DTSum α :=
   ⟨.up .false, fun | .fs .fz, e => e.elim | .fz, .unit => v⟩
-def Uncurried.recall {α} (v : α <| .fs .fz) : Uncurried α :=
+
+def recall {α} (v : α <| .fs .fz) : DTSum α :=
   ⟨.up .true,  fun | .fz, e => e.elim | .fs .fz, .unit => v⟩
 
-def equiv {α : TypeVec 2} : Uncurried α ≃ DTSum (α <| .fs .fz) (α <| .fz) where
+def equiv {α : TypeVec 2} : DTSum α ≃ (α <| .fs .fz) ⊕ (α <| .fz) where
   toFun := fun
-    | ⟨.up .true,  v⟩ => .recall (v (.fs .fz) .unit)
-    | ⟨.up .false, v⟩ => .cont (v (.fz) .unit)
+    | ⟨.up .true,  v⟩ => .inl (v (.fs .fz) .unit)
+    | ⟨.up .false, v⟩ => .inr (v (.fz) .unit)
   invFun := fun
-    | .recall v => Uncurried.recall v
-    | .cont v => Uncurried.cont v
+    | .inl v => recall v
+    | .inr v => cont v
   left_inv := by
     rintro (_|_)
     <;> refine Sigma.ext rfl <| heq_of_eq ?_
     <;> funext i h
     <;> rcases i with (_|_|_|_)
     <;> cases h
-    <;> simp [Uncurried.cont, Uncurried.recall]
-  right_inv := fun | .recall _ | .cont _ => rfl
+    <;> simp [cont, recall]
+  right_inv := fun | .inl _ | .inr _ => rfl
 
-def equiv' {α β} : Uncurried !![α, β] ≃ DTSum α β where
+def equiv' {α β} : DTSum !![α, β] ≃ α ⊕ β where
   toFun := fun
-    | ⟨.up .true,  v⟩ => .recall (v (.fs .fz) .unit)
-    | ⟨.up .false, v⟩ => .cont (v (.fz) .unit)
+    | ⟨.up .true,  v⟩ => .inl (v (.fs .fz) .unit)
+    | ⟨.up .false, v⟩ => .inr (v (.fz) .unit)
   invFun := fun
-    | .recall v => Uncurried.recall v
-    | .cont v => Uncurried.cont v
+    | .inl v => recall v
+    | .inr v => cont v
   left_inv := by
     rintro (_|_)
     <;> refine Sigma.ext rfl <| heq_of_eq ?_
     <;> funext i h
     <;> rcases i with (_|_|_|_)
     <;> cases h
-    <;> simp [Uncurried.cont, Uncurried.recall]
-  right_inv := fun | .recall _ | .cont _ => rfl
+    <;> simp [cont, recall]
+  right_inv := fun | .inl _ | .inr _ => rfl
 
 end DTSum
 
-namespace DeepThunk
-
-abbrev innerMapper {n} : Vec (MvPFunctor (n.succ)) n
-  | .fz => comp DTSum.Uncurried !![prj <| .fs .fz, prj .fz]
+abbrev DeepThunk.innerMapper {n} : Vec (MvPFunctor (n.succ)) n
+  | .fz => comp DTSum !![prj <| .fs .fz, prj .fz]
   | .fs n => prj (n.add 2)
 
-abbrev HoFunctor {n} (F : MvPFunctor n) : MvPFunctor (n + 1) := comp F innerMapper
+-- Takes a functor P α β γ ⋯, and maps it to P (ξ ⊕ α) β γ ⋯
+abbrev DeepThunk.NatTrans {n} (P : MvPFunctor n) : MvPFunctor (n + 1) := comp P innerMapper
 
-def Uncurried {n} (F : MvPFunctor n) := HpLuM (HoFunctor F)
+def DeepThunk {n} (P : MvPFunctor n) := HpLuM (DeepThunk.NatTrans P)
+
+namespace DeepThunk
+
+-- TODO: Change this to use ⊕ instead of DTSum
+def DTComp (F : CurriedTypeFun.{u, v} n) : CurriedTypeFun.{u, v} n.succ :=
+  CurriedTypeFun.append fun ξ =>
+    .ofTvF fun α =>
+      sorry
+    /- F (innerMapper · α) -/
+
+instance {n} {F : CurriedTypeFun.{u, v} n} {P} [efp : EquivP _ F P]
+    : EquivP _ (DTComp F) (NatTrans P) where
+  equiv := {
+    toFun v := efp.equiv <| comp.get v
+    invFun v := comp.mk sorry
+    left_inv := sorry
+    right_inv := sorry
+  }
 
 /-- Between the original functor and the ⊕-composed functor there is an injection,
     it occurs by taking the right step at every point co-recursively.
 
     The instances of the hof will have this defined as a coercion. -/
 def inject
-  {P : MvPFunctor n.succ} {α : TypeVec n} : HpLuM P α → Uncurried P (α ::: β) :=
+  {P : MvPFunctor n.succ} {α : TypeVec n} : HpLuM P α → DeepThunk P (α ::: β) :=
   .corec' fun v =>  by
     refine comp.mk <|
       (TypeVec.splitFun
@@ -103,7 +135,7 @@ def inject
 def corec
     {β : Type v}
     {P : MvPFunctor n.succ} {α : TypeVec.{u} n}
-    (gen : β → Uncurried (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
+    (gen : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
     : β → HpLuM P α :=
   .corec (fun (v : HpLuM _ _) => by
       refine ⟨(comp.get v.dest).fst.transliterate, ?_⟩
@@ -111,10 +143,10 @@ def corec
         (fun i h => ULift.transliterate ?_)
         fun h => .up ?_
       ) ⊚ (comp.get v.dest).snd ⊚ TypeVec.Arrow.transliterate
-      · exact (h.snd (i.add 2)) (prj.fn_same.mpr .unit)
+      · exact h.snd (i.add 2) (prj.fn_same.mpr .unit)
       exact match DTSum.equiv <| MvPFunctor.comp.get h with
-        | .recall v => gen <| ULift.down (v.snd (.fs .fz) .unit)
-        | .cont v => (v.snd .fz .unit)
+        | .inl v => gen <| ULift.down (v.snd (.fs .fz) .unit)
+        | .inr v => (v.snd .fz .unit)
     ) ∘ gen
 
 end DeepThunk

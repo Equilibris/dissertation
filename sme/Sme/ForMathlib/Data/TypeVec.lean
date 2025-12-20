@@ -124,6 +124,14 @@ theorem appendFun.get_fs {α β}
   : (a ::: v) (.fs i) = a i := rfl
 
 @[simp]
+theorem splitFun.get_fz {α α' : TypeVec (n + 1)} {f : drop α ⟹ drop α'} {g : last α → last α'} 
+    : splitFun f g .fz = g := rfl
+
+@[simp]
+theorem splitFun.get_fs {α α' : TypeVec (n + 1)} {f : drop α ⟹ drop α'} {g : last α → last α'} {i}
+    : splitFun f g (.fs i) = f i := rfl
+
+@[simp]
 theorem uLift_down.get
     {α : TypeVec (n + 1)} {i}
     : Arrow.uLift_down (α := α) i = ULift.down := rfl

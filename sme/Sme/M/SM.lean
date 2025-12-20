@@ -5,7 +5,7 @@ import Sme.M.Utils
 import Sme.M.PreM
 import Mathlib.Control.Functor.Multivariate
 
-open scoped MvFunctor
+open MvFunctor
 
 namespace Sme
 
@@ -21,7 +21,7 @@ def SM.{args, ind}
 namespace SM
 
 def dest : SM.{u, v} P α → MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::: SM.{u, v} P α) :=
-  Quotient.lift (MvFunctor.map (TypeVec.id ::: (Quotient.mk (PreM.setoid P α) ·)) ∘ PreM.dest)
+  Quotient.lift (map (TypeVec.id ::: (Quotient.mk (PreM.setoid P α) ·)) ∘ PreM.dest)
     fun | a, b, ⟨r, his, rab⟩ => (by
       have ⟨hd, ca, cb, ha, hb, h⟩ := (MvPFunctor.liftR_iff _ _ _).mp <| his _ _ rab
       dsimp
@@ -35,7 +35,7 @@ def dest : SM.{u, v} P α → MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::
 
 def IsBisim (R : SM.{u, v} P α → SM.{u, v} P α → Prop) : Prop :=
     ∀ s t, R s t →
-      MvFunctor.LiftR (TypeVec.RelLast _ R) s.dest t.dest
+      LiftR (TypeVec.RelLast _ R) s.dest t.dest
 
 def Bisim : SM.{u, v} P α → SM.{u, v} P α → Prop :=
   (∃ R, IsBisim R ∧ R · ·)
@@ -164,10 +164,10 @@ def dest_corec
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (g : β)
     : (corec gen g).dest
-    = MvFunctor.map (TypeVec.id ::: (corec gen ∘ ULift.down))
+    = map (TypeVec.id ::: (corec gen ∘ ULift.down))
       (transliterate.{u,v,v+1} <| gen g) := by
   dsimp [corec, dest, PreM.dest]
-  rw [MvFunctor.map_map, ←TypeVec.appendFun_comp, TypeVec.comp_id]
+  rw [map_map, ←TypeVec.appendFun_comp, TypeVec.comp_id]
   rfl
 
 end SM

@@ -2,7 +2,7 @@ import Sme.ForMathlib.Data.PFunctor.Multivariate.M
 import Sme.M.Utils
 import Mathlib.Control.Functor.Multivariate
 
-open scoped MvFunctor
+open MvFunctor
 
 namespace Sme
 
@@ -21,7 +21,7 @@ namespace PreM
 
 def dest (x : PreM.{u, v} P α)
     : MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::: PreM.{u, v} P α) :=
-  MvFunctor.map (TypeVec.id ::: (PreM.corec x.gen ·.down))
+  map (TypeVec.id ::: (PreM.corec x.gen ·.down))
     <| transliterate.{u, v, v+1}
     <| x.gen x.g
 
@@ -30,12 +30,12 @@ theorem dest_corec
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (g : β)
     : (corec gen g).dest 
-    = MvFunctor.map (TypeVec.id ::: (corec gen ∘ ULift.down))
+    = map (TypeVec.id ::: (corec gen ∘ ULift.down))
       (transliterate.{u,v,v+1} <| gen g) := rfl
 
 def IsBisim (R : PreM.{u, v} P α → PreM.{u, v} P α → Prop) : Prop :=
     ∀ s t, R s t →
-      MvFunctor.LiftR (TypeVec.RelLast _ R) s.dest t.dest
+      LiftR (TypeVec.RelLast _ R) s.dest t.dest
 
 def Bisim : PreM.{u, v} P α → PreM.{u, v} P α → Prop :=
   (∃ R, IsBisim R ∧ R · ·)

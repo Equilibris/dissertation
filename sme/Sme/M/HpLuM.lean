@@ -1,6 +1,7 @@
 import Sme.ABI
 import Sme.HEq
 import Sme.M.Equiv
+import Sme.EquivP
 import Mathlib.Logic.Small.Defs
 
 open scoped MvFunctor
@@ -17,9 +18,7 @@ def HpLuM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Type u :=
 
 namespace HpLuM
 
-def equivM : HpLuM P α ≃ M P α := by 
-  dsimp [HpLuM]
-  exact?
+def equivM : HpLuM P α ≃ M P α := ABI.equivA.symm
 
 def corec
     {β : Type v}
@@ -295,6 +294,37 @@ instance inhabited
     : Inhabited (HpLuM P α) where
   default := .corec' (fun x =>
     ⟨x, fun | .fz, _ => x | .fs i, _ => (df i).default⟩) I.default
+
+section
+
+variable
+    {n : Nat}
+    {F : CurriedTypeFun.{u, v} (n + 1)}
+    {α : TypeVec.{u} n}
+    {P : MvPFunctor (n + 1)}
+    [EquivP _ F P]
+
+def mkE : F.app (α ::: HpLuM P α) → HpLuM P α :=
+  HpLuM.mk ∘ EquivP.equiv.symm
+
+def destE : HpLuM P α → F.app (α ::: HpLuM P α) :=
+  EquivP.equiv ∘ HpLuM.dest
+
+@[simp]
+theorem destE_mkE
+    {v : HpLuM P α}
+    : mkE (destE (F := F) v) = v := by
+  dsimp [destE, mkE]
+  rw [Equiv.symm_apply_apply, HpLuM.dest_mk]
+
+@[simp]
+theorem mkE_destE
+    {v : F.app (α ::: HpLuM P α)}
+    : destE (mkE v) = v := by
+  dsimp [destE, mkE]
+  rw [HpLuM.mk_dest, Equiv.apply_symm_apply]
+
+end
 
 end Sme.HpLuM
 
