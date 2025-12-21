@@ -307,6 +307,10 @@ variable
 def mkE : F.app (α ::: HpLuM P α) → HpLuM P α :=
   HpLuM.mk ∘ EquivP.equiv.symm
 
+-- TODO: Get this right
+instance : CoeHead (F.app (α ::: HpLuM P α)) (HpLuM P α) where
+  coe := mkE
+
 def destE : HpLuM P α → F.app (α ::: HpLuM P α) :=
   EquivP.equiv ∘ HpLuM.dest
 

@@ -36,7 +36,27 @@ instance : EquivP 2 Sum DTSum where
       <;> refine Sigma.ext rfl <| heq_of_eq ?_
       <;> funext i h
       <;> rcases i with (_|_|_|_)
-      <;> cases h
+      <;> rcases h with (_|_)
+      <;> rfl
+  }
+
+-- TODO: Is this some categorical object
+instance : EquivP 2 Sum DTSum.uLift where
+  equiv := {
+    toFun
+      | ⟨.up <| .up .true, v⟩ => .inr (v (.fs .fz) (.up .unit))
+      | ⟨.up <| .up .false, v⟩ => .inl (v .fz (.up .unit))
+    invFun
+      | .inl v => ⟨.up <| .up .false, fun | .fs .fz, h => h.down.elim | .fz, h => v⟩
+      | .inr v => ⟨.up <| .up .true,  fun | .fs .fz, h => v | .fz, h => h.down.elim⟩
+    right_inv
+      | .inl _ | .inr _ => rfl
+    left_inv := by
+      rintro ⟨(_|_), h⟩
+      <;> refine Sigma.ext rfl <| heq_of_eq ?_
+      <;> funext i h
+      <;> rcases i with (_|_|_|_)
+      <;> rcases h with (_|_)
       <;> rfl
   }
 
@@ -82,12 +102,26 @@ def equiv' {α β} : DTSum !![α, β] ≃ α ⊕ β where
 
 end DTSum
 
-abbrev DeepThunk.innerMapper {n} : Vec (MvPFunctor (n.succ)) n
-  | .fz => comp DTSum !![prj <| .fs .fz, prj .fz]
-  | .fs n => prj (n.add 2)
+namespace DeepThunk
+abbrev innerMapper {n} : Vec (MvPFunctor n.succ) n
+  | .fz => .comp DTSum !![.prj <| .fs .fz, .prj .fz]
+  | .fs n => .prj (n.add 2)
+
+abbrev innerMapperC {n} : Vec (CurriedTypeFun n.succ) n
+  | .fz => .comp (show CurriedTypeFun 2 from Sum) !![.prj <| .fs .fz, .prj .fz]
+  | .fs n => .prj (n.add 2)
+
+instance {n} : {i : Fin2 n} → EquivP _ (innerMapperC i) (innerMapper i)
+  | .fz => by
+    apply EquivP.comp' inferInstance
+    rintro (_|_|_|_)
+    <;> dsimp
+    <;> infer_instance
+  | .fs _ => by dsimp [innerMapperC, innerMapper]; infer_instance
 
 -- Takes a functor P α β γ ⋯, and maps it to P (ξ ⊕ α) β γ ⋯
-abbrev DeepThunk.NatTrans {n} (P : MvPFunctor n) : MvPFunctor (n + 1) := comp P innerMapper
+abbrev NatTrans {n} (P : MvPFunctor n) : MvPFunctor (n + 1) := .comp P innerMapper
+end DeepThunk
 
 def DeepThunk {n} (P : MvPFunctor n) := HpLuM (DeepThunk.NatTrans P)
 
@@ -95,26 +129,20 @@ namespace DeepThunk
 
 -- TODO: Change this to use ⊕ instead of DTSum
 def DTComp (F : CurriedTypeFun.{u, v} n) : CurriedTypeFun.{u, v} n.succ :=
-  CurriedTypeFun.append fun ξ =>
-    .ofTvF fun α =>
-      sorry
-    /- F (innerMapper · α) -/
+  .comp F innerMapperC
 
-instance {n} {F : CurriedTypeFun.{u, v} n} {P} [efp : EquivP _ F P]
-    : EquivP _ (DTComp F) (NatTrans P) where
-  equiv := {
-    toFun v := efp.equiv <| comp.get v
-    invFun v := comp.mk sorry
-    left_inv := sorry
-    right_inv := sorry
-  }
+instance (priority := 100) {n} {F : CurriedTypeFun.{u, v} n} {P} [efp : EquivP _ F P]
+    : EquivP _ (DTComp F) (NatTrans P) := by
+  dsimp [DTComp]
+  infer_instance
+
+variable {P : MvPFunctor n.succ} {α : TypeVec n}
 
 /-- Between the original functor and the ⊕-composed functor there is an injection,
     it occurs by taking the right step at every point co-recursively.
 
     The instances of the hof will have this defined as a coercion. -/
-def inject
-  {P : MvPFunctor n.succ} {α : TypeVec n} : HpLuM P α → DeepThunk P (α ::: β) :=
+def inject : HpLuM P α → DeepThunk P (α ::: β) :=
   .corec' fun v =>  by
     refine comp.mk <|
       (TypeVec.splitFun
@@ -124,17 +152,27 @@ def inject
     · exact (fun i h => prj.mk (i.add 2) h)
     exact fun h => comp.mk ⟨
       .up .false,
-      TypeVec.splitFun
-        (TypeVec.splitFun TypeVec.nilFun PEmpty.elim)
+      TypeVec.splitFun (TypeVec.splitFun TypeVec.nilFun PEmpty.elim)
         fun _ => ⟨.unit, (TypeVec.repeat_out fun _ => PEmpty.elim) ::: fun _ => h⟩
       ⟩
+
+theorem inject.injection : Function.Injective (inject : HpLuM P α → DeepThunk P (α ::: β)) := by
+  intro a b h
+  apply HpLuM.bisim (inject · = inject ·) h
+  intro a b h
+  have h0 := HpLuM.ext_dest_iff.mp h
+  rw [inject, HpLuM.dest_corec', HpLuM.dest_corec', ←inject, comp.map_mk, comp.map_mk] at h0
+  have h1 := comp.mk_bij.injective h0; clear h0
+  rw [MvFunctor.map_map] at h1
+  sorry
+
+instance : Coe (HpLuM P α) (DeepThunk P (α ::: β)) := ⟨inject⟩
+
 /-- `DeepThunk.corec` is a co-recursive principle allowing partially yielding results.
   It achives this by changing the recursive point to either the usual argument to the deeper call,
   or continuing the structure.
 -/
-def corec
-    {β : Type v}
-    {P : MvPFunctor n.succ} {α : TypeVec.{u} n}
+def corec {β : Type v}
     (gen : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
     : β → HpLuM P α :=
   .corec (fun (v : HpLuM _ _) => by

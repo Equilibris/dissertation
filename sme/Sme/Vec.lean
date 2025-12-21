@@ -6,11 +6,20 @@ abbrev Vec (α : Type _) (n : Nat) := (i : Fin2 n) → α
 
 namespace Vec
 
-def append1 {α : Type u} {n} (tl : Vec α n) (hd : α) : Vec α (.succ n)
+variable {α : Type u}
+
+def append1 {n} (tl : Vec α n) (hd : α) : Vec α (.succ n)
   | .fs i   => tl i
   | .fz     => hd
 
-def nil {α : Type u} : Vec α 0 := Fin2.elim0
+def nil : Vec α 0 := Fin2.elim0
+
+variable {n}
+
+@[simp]
+theorem append1.get_fz (tl : Vec α n) (hd : α) : append1 tl hd .fz = hd := rfl
+@[simp]
+theorem append1.get_fs (tl : Vec α n) (hd : α) {i} : append1 tl hd (.fs i) = tl i := rfl
 
 end Vec
 

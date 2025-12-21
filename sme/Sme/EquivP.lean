@@ -88,8 +88,8 @@ end CurriedTypeFun
 -- This ought to be generalized to involve ULifting,
 -- this could be a step to liftable MvQPFs.
 class EquivP (n : Nat)
-    (F : CurriedTypeFun.{u, v} n)
-    (P : outParam (MvPFunctor n))
+    (F : outParam (CurriedTypeFun.{u, v} n))
+    (P : (MvPFunctor n))
     : Type max (u + 1) v where
   equiv : ∀ {t}, P t ≃ F.app t
 
@@ -97,15 +97,15 @@ variable {n} {F : CurriedTypeFun.{u, v} n} {P : MvPFunctor n} [EquivP n F P]
 
 namespace EquivP
 
-instance (priority := 100) mvf : MvFunctor F.app where
-  map arr v := EquivP.equiv (arr <$$> EquivP.equiv.symm v)
-instance (priority := 100) : LawfulMvFunctor F.app where
-  id_map _ := by
-    change EquivP.equiv _ = _
-    simp
-  comp_map {x y z} g h o := by
-    change EquivP.equiv _ = _
-    simp [MvPFunctor.comp_map, mvf]
+/- instance (priority := 100) mvf : MvFunctor F.app where -/
+/-   map arr v := EquivP.equiv (arr <$$> EquivP.equiv.symm v) -/
+/- instance (priority := 100) : LawfulMvFunctor F.app where -/
+/-   id_map _ := by -/
+/-     change EquivP.equiv _ = _ -/
+/-     simp -/
+/-   comp_map {x y z} g h o := by -/
+/-     change EquivP.equiv _ = _ -/
+/-     simp [MvPFunctor.comp_map, mvf] -/
 
 instance const {A n} : EquivP n (.const n A) (.const n A) := ⟨{
   toFun a := cast CurriedTypeFun.const_app.symm a.fst
@@ -145,5 +145,22 @@ instance comp
     unfold TypeVec.comp
     simp
 }⟩
+
+def comp'
+    {m n} {baseP} {base : CurriedTypeFun n}
+    (eqB : EquivP _ base baseP)
+    {QP : Fin2 n → MvPFunctor.{u} m}
+    {Q : Fin2 n → CurriedTypeFun m}
+    (eqQ : ∀ v, EquivP _ (Q v) (QP v))
+    : EquivP m (.comp base Q) (.comp baseP QP) := by infer_instance
+
+-- TODO: Is this useless?
+instance {m} {g gP} {f fP : Vec _ m}
+    [eqG : EquivP n g gP]
+    [eqF : ∀ v : Fin2 m, EquivP n (f v) (fP v)]
+    : {v : Fin2 (m + 1)}
+    → EquivP n (Vec.append1 f g v) (Vec.append1 fP gP v)
+  | .fz => eqG
+  | .fs _ => eqF _
 
 end Sme.EquivP

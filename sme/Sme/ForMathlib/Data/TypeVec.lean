@@ -99,6 +99,15 @@ theorem Arrow.uLift_arrow_splitFun
     : (splitFun f g).uLift_arrow = (splitFun f.uLift_arrow (ULift.down ∘ g ∘ .up)) :=
   funext fun | .fz | .fs _ => rfl
 
+theorem splitFun_comp'
+    {α α' β : TypeVec (n + 1)}
+    (f : α.drop ⟹ α'.drop)
+    (g : α.last → α'.last)
+    (h : α' ⟹ β)
+    : h ⊚ TypeVec.splitFun f g = TypeVec.splitFun ((h ·.fs) ⊚ f) (h .fz ∘ g) :=
+  funext fun | .fz | .fs _ => rfl
+
+
 end ULift
 
 @[simp]
