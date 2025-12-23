@@ -89,9 +89,14 @@ theorem eta
   apply congr rfl 
     <| eq_cast_iff_heq.mpr (heq_const_of_unique.mpr fn_same.symm).symm
 
-end prj
+theorem map_mk
+    {n : Nat} {α β : TypeVec n} {i : Fin2 n} {v : α i}
+    {f : α ⟹ β}
+    : f <$$> mk i v = mk i (f i v) := by
+  ext
+  simp [mk, MvFunctor.map, prj, map, TypeVec.comp_get]
 
-end MvPFunctor
+end MvPFunctor.prj
 
 namespace Sme.CurriedTypeFun
 

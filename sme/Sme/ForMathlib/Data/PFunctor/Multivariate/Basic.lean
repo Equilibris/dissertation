@@ -16,6 +16,9 @@ theorem map_fst : (arr <$$> z).fst = z.fst := rfl
 @[simp]
 theorem map_snd : (arr <$$> z).snd = arr ⊚ z.snd := rfl
 
+@[simp]
+theorem map_mk {a b} : (arr <$$> Sigma.mk a b : P β) = (Sigma.mk a (arr ⊚ b) : P β) := rfl
+
 @[pp_with_univ]
 def uLift (P : MvPFunctor.{u} n) : MvPFunctor.{max u v} n where
   A := ULift P.A

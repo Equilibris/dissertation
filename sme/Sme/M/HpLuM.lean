@@ -261,9 +261,9 @@ theorem corec_roll
     {Y : Type w} {x₀ : X}
     (f : X → Y)
     (g : Y → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} X))
-    : corec (g ∘ f) x₀ = corec (transliterateMap (ULift.up ∘ f) ∘ g) (f x₀) := by
+    : corec (g ∘ f) x₀ = corec (transliterateMap (ULift.up ∘ f ∘ ULift.down) ∘ g) (f x₀) := by
   apply bisim
-    (∃ x, corec (g ∘ f) x = · ∧ corec (transliterateMap (ULift.up ∘ f) ∘ g) (f x) = ·)
+    (∃ x, corec (g ∘ f) x = · ∧ corec (transliterateMap (ULift.up ∘ f ∘ ULift.down) ∘ g) (f x) = ·)
     ⟨_, rfl, rfl⟩
   rintro _ _ ⟨w, rfl, rfl⟩
   rw [dest_corec, dest_corec]
@@ -329,6 +329,31 @@ theorem mkE_destE
   rw [HpLuM.mk_dest, Equiv.apply_symm_apply]
 
 end
+
+def uLift_up : HpLuM P α → HpLuM (MvPFunctor.uLift.{u, v} P) α.uLift :=
+  .corec' (.mpr TypeVec.uLift_append1_ULift_uLift <$$> MvPFunctor.uLift_up ·.down.dest)
+    ∘ .up
+
+def uLift_down : HpLuM (MvPFunctor.uLift.{u, v} P) α.uLift → HpLuM P α :=
+  .corec (fun i => transliterateMap ULift.up i.dest)
+
+-- TODO: do this
+def uLift_up_down {x : HpLuM P.uLift α.uLift} : uLift_up (uLift_down x) = x := by
+  stop
+  apply HpLuM.bisim (fun x y => x = y.uLift_down.uLift_up) rfl
+  rintro _ x rfl
+  simp only [uLift_down, uLift_up]
+  conv =>
+    rhs; intro x; rhs; intro y; rhs; intro z
+    simp only [Function.comp_apply, dest_corec', dest_corec, map_fst]
+    repeat rw [←uLift_down]
+    skip
+  refine ⟨x.uLift_down.uLift_up.dest.fst, ?_, ?_, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ?_⟩
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
 
 end Sme.HpLuM
 

@@ -154,17 +154,72 @@ def inject : HpLuM P α → DeepThunk P (α ::: β) :=
       .up .false,
       TypeVec.splitFun (TypeVec.splitFun TypeVec.nilFun PEmpty.elim)
         fun _ => ⟨.unit, (TypeVec.repeat_out fun _ => PEmpty.elim) ::: fun _ => h⟩
-      ⟩
+    ⟩
+
+theorem dest_inject {x : HpLuM P α}
+    : (inject x : DeepThunk P (α ::: β)).dest
+    = comp.mk (TypeVec.splitFun
+      (fun (i : Fin2 n) v => (by apply prj.mk (i.add 2) v))
+      (fun v => by exact comp.mk ⟨
+        .up .false,
+        TypeVec.splitFun
+          (fun | .fz, h => h.elim)
+          (fun _ => prj.mk Fin2.fz <| inject v)⟩
+      ) <$$> x.dest) := by
+  rw [inject, HpLuM.dest_corec', ←inject, comp.map_mk]
+  simp [MvFunctor.map_map, TypeVec.splitFun_comp']
+  unfold Function.comp TypeVec.comp
+  simp
+  conv =>
+    lhs; arg 1; lhs; lhs; intro i x
+    rw [prj.map_mk]
+    change prj.mk i.fs.fs x
+  congr
+  funext v
+  rw [comp.map_mk]
+  change comp.mk ⟨_, _⟩ = _
+  rw [TypeVec.splitFun_comp']
+  congr 3
+  · simp
+    funext i x
+    rcases i with (_|_|_)
+    simp
+    exact x.elim
+  · funext i
+    change _ <$$> prj.mk _ _ = _
+    rw [prj.map_mk]
+    rfl
+  /- sorry -/
 
 theorem inject.injection : Function.Injective (inject : HpLuM P α → DeepThunk P (α ::: β)) := by
   intro a b h
   apply HpLuM.bisim (inject · = inject ·) h
   intro a b h
   have h0 := HpLuM.ext_dest_iff.mp h
-  rw [inject, HpLuM.dest_corec', HpLuM.dest_corec', ←inject, comp.map_mk, comp.map_mk] at h0
+  rw [dest_inject, dest_inject] at h0
   have h1 := comp.mk_bij.injective h0; clear h0
-  rw [MvFunctor.map_map] at h1
+  have : a.dest.fst = b.dest.fst := by
+    sorry
+  stop
+  simp [MvFunctor.map_map, TypeVec.splitFun_comp'] at h1
+  unfold Function.comp TypeVec.comp at h1
+  simp at h1
+  conv at h1 =>
+    lhs; lhs; lhs; intro i x
+    rw [prj.map_mk (by dsimp [Fin2.add]) (by funext _; simp [Fin2.add, TypeVec.id]), cast_eq]
+  conv at h1 =>
+    rhs; lhs; lhs; intro i x
+    rw [prj.map_mk (by dsimp [Fin2.add]) (by funext _; simp [Fin2.add, TypeVec.id]), cast_eq]
+  conv at h1 =>
+    lhs; lhs; rhs; intro x
+    rw [comp.map_mk]
+    change comp.mk ⟨.up .false, _⟩
+    rw [TypeVec.splitFun_comp']
+    unfold Function.comp TypeVec.comp
+    simp []
+    arg 1; arg 2; lhs; intro i x
   sorry
+
 
 instance : Coe (HpLuM P α) (DeepThunk P (α ::: β)) := ⟨inject⟩
 
@@ -186,6 +241,9 @@ def corec {β : Type v}
         | .inl v => gen <| ULift.down (v.snd (.fs .fz) .unit)
         | .inr v => (v.snd .fz .unit)
     ) ∘ gen
+
+theorem inject_corec {x : HpLuM (P.uLift) α} {v : β}
+    : corec (fun _ => inject x.uLift_up) v = x := sorry
 
 end DeepThunk
 
