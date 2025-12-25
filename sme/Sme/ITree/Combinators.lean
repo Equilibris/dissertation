@@ -68,5 +68,18 @@ theorem dest_eq : (spin : ITree E A).dest = .tau spin := by
 
 end spin
 
+abbrev ignore : ITree E A → ITree E PUnit := map (Function.const _ PUnit.unit)
+
+def trigger {V} : E V → ITree E (PLift V) := (.vis · (.ret ∘ PLift.up))
+
+def forever (t : ITree E A) : ITree E B := iter (map (Function.const _ (.inl t))) t
+
+def burn : Nat → ITree E A → ITree E A
+  | 0 => id
+  | n+1 => (match dest · with
+    | .ret t => .ret t
+    | .tau t => burn n t
+    | .vis e k => .vis e k)
+
 end Sme.ITree
 

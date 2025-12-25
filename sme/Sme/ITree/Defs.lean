@@ -85,6 +85,26 @@ def mk (v : Base E (ITree E R) R) : ITree E R :=
 @[simp] theorem dest_mk {v : ITree E R} : mk (dest v) = v := HpLuM.destE_mkE
 @[simp] theorem mk_dest {v : Base E (ITree E R) R} : dest (mk v) = v := HpLuM.mkE_destE
 
+theorem dest.bij : Function.Bijective (dest : ITree E R → _) := 
+  Function.bijective_iff_has_inverse.mpr ⟨
+    mk,
+    fun _ => dest_mk,
+    fun _ => mk_dest,
+  ⟩
+theorem dest.inj_eq {a b : ITree E R} : dest a = dest b ↔ a = b where
+  mp v := dest.bij.injective v
+  mpr v := v ▸ rfl
+
+theorem mk.bij : Function.Bijective (mk : _ → ITree E R) := 
+  Function.bijective_iff_has_inverse.mpr ⟨
+    dest,
+    fun _ => mk_dest,
+    fun _ => dest_mk,
+  ⟩
+theorem mk.inj_eq {a b : Base E _ R} : mk a = mk b ↔ a = b where
+  mp v := mk.bij.injective v
+  mpr v := v ▸ rfl
+
 def tau (t : ITree E R) : ITree E R := .mk <| .tau t
 def ret (r : R) : ITree E R := .mk <| .ret r
 def vis {A} (e : E A) (c : A → ITree E R) : ITree E R := .mk <| .vis e c
@@ -120,12 +140,14 @@ theorem dest_corec {β g} (gen : β → Base E β R)
 theorem corec_roll {α β v}
     (f : α → β)
     (g : β → Base E α R)
-    : corec (g ∘ f) v = corec (.map f id ∘ g) (f v) := by sorry
+    : corec (g ∘ f) v = corec (.map f id ∘ g) (f v) := by 
+  sorry
 
 @[ext 100]
-theorem dest_eq {a b : ITree E R} (h : dest a = dest b) : a = b := by
-  dsimp [dest, HpLuM.destE] at h
-  exact HpLuM.ext_dest (Equiv.injective _ h)
+theorem dest_eq {a b : ITree E R} (h : dest a = dest b) : a = b := HpLuM.ext_destE h
+
+@[ext 100]
+theorem mk_eq {a b : Base E _ R} (h : mk a = mk b) : a = b := HpLuM.ext_mkE h
 
 def dtcorec
     {β : Type v}

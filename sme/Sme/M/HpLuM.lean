@@ -295,7 +295,7 @@ instance inhabited
   default := .corec' (fun x =>
     ⟨x, fun | .fz, _ => x | .fs i, _ => (df i).default⟩) I.default
 
-section
+section equivP
 
 variable
     {n : Nat}
@@ -328,7 +328,16 @@ theorem mkE_destE
   dsimp [destE, mkE]
   rw [HpLuM.mk_dest, Equiv.apply_symm_apply]
 
-end
+
+@[ext 1000]
+theorem ext_destE {α : TypeVec n} {x y : HpLuM P α} (h : x.destE = y.destE) : x = y := by
+  rw [← destE_mkE (v := x), h, destE_mkE]
+
+@[ext 0]
+theorem ext_mkE {α : TypeVec n} {x y : F.app (α ::: HpLuM P α)} (h : mkE x= mkE y) : x = y := by
+  rw [← mkE_destE (v := x), h, mkE_destE]
+
+end equivP
 
 def uLift_up : HpLuM P α → HpLuM (MvPFunctor.uLift.{u, v} P) α.uLift :=
   .corec' (.mpr TypeVec.uLift_append1_ULift_uLift <$$> MvPFunctor.uLift_up ·.down.dest)

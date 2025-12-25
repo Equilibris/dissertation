@@ -73,8 +73,12 @@ where
     | .inr (.vis e f) => .vis e (Sum.inr ∘ f)
     | .inl (.vis e f) => .vis e (Sum.inl ∘ f)
 
+abbrev subst (f : A → ITree E B) (it : ITree E A) : ITree E B := bind it f
+
 @[simp]
-theorem corec_bind {f : A → ITree E B} {r} : corec (bind.body f ∘ Sum.map dest dest) (Sum.inr r) = r := by
+theorem corec_bind
+    {f : A → ITree E B} {r}
+    : corec (bind.body f ∘ Sum.map dest dest) (Sum.inr r) = r := by
   ext
   dsimp [Bisim]
   simp only [dest_corec, Function.comp_apply, Sum.map_inr]
@@ -152,7 +156,7 @@ theorem bind_assoc {x : ITree E A} {f : A → ITree E B} {g : B → ITree E C}
     (fun a b =>
       a = b ∨
       ∃ y : ITree _ _,
-        (bind_map g ∘ bind_map f) y.dest = a ∧ bind_map ((bind · g) ∘ f) y.dest = b),
+        (bind_map g ∘ bind_map f) y.dest = a ∧ bind_map (subst g ∘ f) y.dest = b),
     ?_,
     .inr ⟨_, rfl, rfl⟩
   ⟩
@@ -225,5 +229,21 @@ instance : LawfulMonad (ITree E) where
   pure_seq g x := by
     change bind (.ret _) _ = _
     rw [pure_bind]
+
+@[simp]
+theorem vis_bind {X} {e : E X} {f : _ → ITree E B} {k : X → ITree E A}
+    : bind (.vis e k) f = .vis e (subst f ∘ k) := by
+  refine dest_eq ?_
+  simp [dest_bind, bind_map]
+
+@[simp]
+theorem tau_bind {f : _ → ITree E B} {a : ITree E A} : bind (.tau a) f = .tau (bind a f) := by
+  refine dest_eq ?_
+  simp
+
+@[simp]
+theorem ret_bind {f : _ → ITree E B} {a : A} : bind (.ret a) f = f a := by
+  refine dest_eq ?_
+  simp
 
 end Sme.ITree
