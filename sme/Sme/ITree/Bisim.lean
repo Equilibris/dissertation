@@ -1,7 +1,4 @@
 import CoinductivePredicates
-import Sme.EquivP
-import Sme.M.HpLuM
-import Sme.M.DT
 import Sme.ITree.Defs
 
 namespace Sme.ITree

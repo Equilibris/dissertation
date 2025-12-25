@@ -1,6 +1,3 @@
-import Sme.EquivP
-import Sme.M.HpLuM
-import Sme.M.DT
 import Sme.ITree.Defs
 import Sme.ITree.Bisim
 
@@ -12,7 +9,7 @@ variable {E : Type u → Type u} {A B C : Type (u + 1)}
 
 section functor
 
-def map (f : A → B) : ITree E A → ITree E B := 
+def map (f : A → B) : ITree E A → ITree E B :=
   (corec ((fun
     | .tau v => .tau v
     | .ret v => .ret (f v)
@@ -95,7 +92,8 @@ theorem corec_bind {f : A → ITree E B} {r} : corec (bind.body f ∘ Sum.map de
     simp
 
 @[simp]
-theorem corec_bind' {f : A → ITree E B} : corec (bind.body f ∘ Sum.map dest dest) ∘ Sum.inr  = id := by
+theorem corec_bind' {f : A → ITree E B}
+    : corec (bind.body f ∘ Sum.map dest dest) ∘ Sum.inr  = id := by
   funext x
   simp
 
