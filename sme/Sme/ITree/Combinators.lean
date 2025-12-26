@@ -66,6 +66,32 @@ namespace spin
 theorem dest_eq : (spin : ITree E A).dest = .tau spin := by
   simp [spin, Base.map]
 
+@[simp]
+theorem bind_eq {f : A → ITree E B} : bind spin f = spin := by
+  ext
+  simp [Bisim]
+  refine ⟨
+    fun a b => .tau (bind spin f) = a ∧ Base.tau spin = b ,
+    ?_,
+    ⟨rfl, rfl⟩,
+  ⟩
+  rintro a b ⟨rfl, rfl⟩
+  exact .tau ⟨by simp, dest_eq.symm⟩
+
+@[simp]
+theorem map_eq {f : A → B} : map f (spin : ITree E A) = spin := by
+  ext
+  simp [Bisim]
+  refine ⟨
+    fun a b => .tau (map f spin) = a ∧ Base.tau spin = b ,
+    ?_,
+    ⟨rfl, rfl⟩,
+  ⟩
+  rintro a b ⟨rfl, rfl⟩
+  refine .tau ?_
+  simp
+  rfl
+
 end spin
 
 abbrev ignore : ITree E A → ITree E PUnit := map (Function.const _ PUnit.unit)

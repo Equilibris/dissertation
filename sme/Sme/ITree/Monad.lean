@@ -114,6 +114,8 @@ variable (f : A → ITree E B)
 theorem tau {v} : bind_map f (.tau v) = .tau (bind v f) := rfl
 @[simp]
 theorem ret {v} : bind_map f (.ret v) = (f v).dest := rfl
+@[simp]
+theorem vis {X e k} : bind_map f (.vis (e : E X) k) = .vis e (subst f ∘ k) := rfl
 
 end bind_map
 
