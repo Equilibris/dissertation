@@ -5,7 +5,7 @@ namespace Sme.ITree
 
 universe u v
 
-coinductive Bisim' (E : Type _ → Type _) (R : Type (u + 1))
+coinductive Bisim' (E : Type u → Type u) (R : Type v)
     : Base E (ITree E R) R → Base E (ITree E R) R → Prop where
   | ret {r} : Bisim' E R (.ret r) (.ret r)
   | tau {t v} : Bisim' t.dest v.dest → Bisim' E R (.tau t) (.tau v)
@@ -13,7 +13,7 @@ coinductive Bisim' (E : Type _ → Type _) (R : Type (u + 1))
 
 namespace Bisim'
 
-variable {E : Type u → Type u} {R : Type (u + 1)}
+variable {E : Type u → Type u} {R : Type v}
 
 theorem refl {x} : Bisim' E R x x :=
   ⟨(· = ·), fun {x _} h => h ▸ (match x with
@@ -44,8 +44,11 @@ theorem trans {x y z} : Bisim' E R x y → Bisim' E R y z → Bisim' E R x z :=
   ⟩
 
 inductive Invariant'
-    (Z : PBase E !![R, HpLuM (PBase E) !![R]] → PBase E !![R, HpLuM (PBase E) !![R]] → Prop)
-    : PBase E !![R, HpLuM (PBase E) !![R]] → PBase E !![R, HpLuM (PBase E) !![R]] → Prop
+    (Z :
+      PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]] →
+      PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]] → Prop)
+    : PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]]
+    → PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]] → Prop
   | ret {v} : Invariant' _ ⟨.ret, v⟩ ⟨.ret, v⟩
   | tau {a b}
     : Z (a .fz PUnit.unit).dest (b .fz PUnit.unit).dest
@@ -54,13 +57,14 @@ inductive Invariant'
     : (∀ z, Z (a .fz z).dest (b .fz z).dest )
     → Invariant' _ ⟨.vis A e, a⟩ ⟨.vis A e, b⟩
 
-theorem toInvariant' {x y : PBase E !![R, HpLuM (PBase E) !![R]]} {r}
-    (v : Invariant E R r (equivB.equiv x) (equivB.equiv y))
-    : Invariant' (fun (a b) => r (equivB.equiv a) (equivB.equiv b)) x y := by
+theorem toInvariant' {x y : PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]]} {r}
+    (v : Invariant E R r ((equiv' x)) (equiv' y))
+    : Invariant' (fun (a b) => r (equiv' a) (equiv' b)) x y := by
   change Invariant' _ (id x) (id y)
-  have : _ = (id : PBase E !![R, HpLuM (PBase E) !![R]] → PBase _ _) := equivB.equiv.symm_comp_self
+  have : _ = (id : PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]] → PBase _ _) :=
+    equiv'.symm_comp_self
   rw [←this]; dsimp
-  generalize equivB.equiv x = x, equivB.equiv y = y at *
+  generalize equiv' x = x, equiv' y = y at *
   rcases v with (_|v|v)
   · exact .ret
   · refine .tau v
@@ -72,7 +76,7 @@ theorem bisim (a b : ITree E R) : Bisim' E R a.dest b.dest → a = b := by
   clear *-his
   intro a b rab
   have v := toInvariant' <| his rab
-  dsimp [dest, HpLuM.destE] at v
+  dsimp [equiv', dest, HpLuM.destE] at v
   generalize a.dest = x, b.dest = y at *
   clear *-v his
   rcases v with (_|v|v)
@@ -120,7 +124,6 @@ end Bisim
 def bisim {a b : ITree E R} (h : Bisim a b) : a = b := Bisim'.bisim _ _ h
 
 alias ext := bisim
-
 
 end Sme.ITree
 

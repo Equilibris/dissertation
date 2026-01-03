@@ -7,7 +7,7 @@ namespace Sme
 
 universe u v
 
-variable {E : Type u → Type u} {A B C : Type (u + 1)}
+variable {E : Type u → Type u} {A B C : Type _}
 
 namespace ITree
 

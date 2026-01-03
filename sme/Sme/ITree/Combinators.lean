@@ -4,9 +4,9 @@ import Sme.ITree.Monad
 
 namespace Sme.ITree
 
-universe u v
+universe u x y z
 
-variable {E : Type u → Type u} {A B C : Type (u + 1)}
+variable {E : Type u → Type u} {A B C : Type _}
 
 def iter (it : A → ITree E (A ⊕ B)) (v : A) : ITree E B :=
   .corec (body ∘ dest) (it v)
@@ -21,10 +21,7 @@ where
     | .vis e f => .vis e f
 
 def loop (it : C ⊕ A → ITree E (C ⊕ B)) : A → ITree E B :=
-  iter (do match ← it · with
-    | .inl c => return .inl <| .inl c
-    | .inr v => return .inr <| v
-  ) ∘ Sum.inr
+  iter (map (Sum.map .inl id) ∘ it) ∘ .inr
 
 theorem iter_eq {it : A → ITree E (A ⊕ B)} {v : A}
     : iter it v = bind (it v) (Sum.elim (ITree.tau ∘ iter it) .ret) := by
@@ -33,8 +30,8 @@ theorem iter_eq {it : A → ITree E (A ⊕ B)} {v : A}
   simp [Bisim]
   refine ⟨
     (fun a b => a = b ∨ ∃ y : ITree _ _, 
-        a = (Base.map (corec (iter.body it ∘ dest)) id (iter.body it y.dest)) 
-      ∧ b = (bind_map (Sum.elim (tau ∘ iter it) ret) y.dest)),
+        a = (Base.map (corec (iter.body it ∘ dest)) id (iter.body it y.dest))
+      ∧ b = (bind_map (Sum.rec (tau ∘ iter it) ret) y.dest)),
     ?_,
     .inr ⟨_, rfl, rfl⟩
   ⟩
@@ -49,9 +46,9 @@ theorem iter_eq {it : A → ITree E (A ⊕ B)} {v : A}
     simp only [dest_corec, Function.comp_apply, dest_bind]
     exact ⟨_, rfl, rfl⟩
   · rcases t
-    · simp only [iter.body, bind_map.ret, Sum.elim_inl, Function.comp_apply, dest_tau]
+    · simp only [iter.body, bind_map.ret, Function.comp_apply, dest_tau]
       refine .tau <| .inl rfl
-    · simp only [bind_map.ret, Sum.elim_inr, dest_ret]
+    · simp only [bind_map.ret, dest_ret]
       exact .ret
   · simp [Base.map, iter.body]
     refine .vis fun v => .inr ?_
@@ -96,7 +93,7 @@ end spin
 
 abbrev ignore : ITree E A → ITree E PUnit := map (Function.const _ PUnit.unit)
 
-def trigger {V} : E V → ITree E (PLift V) := (.vis · (.ret ∘ PLift.up))
+def trigger {V} : E V → ITree E V := (.vis · .ret)
 
 def forever (t : ITree E A) : ITree E B := iter (map (Function.const _ (.inl t))) t
 

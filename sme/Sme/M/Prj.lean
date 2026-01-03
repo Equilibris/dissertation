@@ -25,7 +25,7 @@ def mk.fn : {n : Nat} → {α : TypeVec n} → {i : Fin2 n} → α i → (prj.fn
     TypeVec.splitFun (fun _ h => (TypeVec.repeat.get.mp h).elim) fun _ => v
   | _ + 1, _, .fs _, v => TypeVec.splitFun (mk.fn v) PEmpty.elim
 
-def mk {n : Nat} {α : TypeVec n} (i : Fin2 n) (v : α i) : (prj i) α where
+def mk {n : Nat} {α : TypeVec n} (i : Fin2 n) (v : α i) : prj i α where
   fst := .unit
   snd := mk.fn v
 
@@ -50,6 +50,9 @@ theorem mk.fn_same
     → mk.fn v i = fun _ => v
   | _, _, .fz => rfl
   | _, _, .fs i => mk.fn_same (i := i)
+
+def get {n : Nat} {α : TypeVec n} {i : Fin2 n} (v : prj i α) : α i := 
+  v.snd i (cast fn_same.symm .unit: fn i i)
 
 def succ {n β} {i : Fin2 n} {α : TypeVec n} : prj (.fs i) (α ::: β) ≃ prj i α where
   toFun := sorry
@@ -86,7 +89,7 @@ theorem eta
     : MvPFunctor.prj.mk i (x.snd i v) = x := by
   ext
   simp only [mk, mk.fn_same]
-  apply congr rfl 
+  apply congr rfl
     <| eq_cast_iff_heq.mpr (heq_const_of_unique.mpr fn_same.symm).symm
 
 theorem map_mk
@@ -95,6 +98,19 @@ theorem map_mk
     : f <$$> mk i v = mk i (f i v) := by
   ext
   simp [mk, MvFunctor.map, prj, map, TypeVec.comp_get]
+
+@[simp]
+theorem get_mk
+    {n : Nat} {α : TypeVec n} {i : Fin2 n} {v : α i}
+    : prj.get (prj.mk i v) = v := by
+  simp [mk, get]
+
+@[simp]
+theorem mk_get
+    {n : Nat} {α : TypeVec n} {i : Fin2 n} {v : prj i α}
+    : prj.mk i (prj.get v) = v := by
+  ext
+  simp [mk, get]
 
 end MvPFunctor.prj
 

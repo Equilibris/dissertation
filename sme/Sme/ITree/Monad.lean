@@ -5,7 +5,7 @@ namespace Sme.ITree
 
 universe u v
 
-variable {E : Type u → Type u} {A B C : Type (u + 1)}
+variable {E : Type u → Type u} {A B C : Type _}
 
 section functor
 
@@ -128,8 +128,6 @@ theorem dest_bind
   cases i.dest
   any_goals rfl
   simp [bind.body, Base.map_map]
-  cases (f _).dest
-  <;> simp [Base.map]
 
 @[simp]
 theorem mk_bind {i : Base E (ITree E A) A} {f : A → B} : (map f (mk i)) = mk (i.map (map f) f) := by
@@ -145,10 +143,6 @@ theorem pure_bind (x : A) (f : A → ITree E B)
   refine dest_eq ?_
   rw [bind, dest_corec]
   simp [bind.body]
-  cases (f x).dest
-  · simp [Base.map]
-  · rfl
-  · rfl
 
 theorem bind_assoc {x : ITree E A} {f : A → ITree E B} {g : B → ITree E C}
     : (x.bind f).bind g = x.bind ((fun x ↦ x.bind g) ∘ f) := by

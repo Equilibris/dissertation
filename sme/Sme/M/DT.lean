@@ -11,7 +11,7 @@ namespace Sme
 open MvPFunctor
 open scoped MvFunctor
 
-universe u v
+universe u v w
 
 variable {α β : Type u} {n : Nat}
 
@@ -244,6 +244,81 @@ def corec {β : Type v}
 
 theorem inject_corec {x : HpLuM (P.uLift) α} {v : β}
     : corec (fun _ => inject x.uLift_up) v = x := sorry
+
+def bind {β γ : Type v} {α : TypeVec.{u} n}
+    (v : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
+    (m : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} γ))
+    : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} γ) :=
+  .corec'
+    (fun
+      | .inl r => by
+        refine comp.mk (TypeVec.splitFun ?_ ?_ <$$> comp.get r.dest)
+        · exact fun i => (have := prj.get ·; prj.mk _ this)
+        exact (match DTSum.equiv <| comp.get · with
+          | .inl v =>
+            comp.mk
+              <| DTSum.cont
+              <| prj.mk _
+              <| .inr <| m <| ULift.down <| prj.get v
+          | .inr v =>
+            comp.mk <| DTSum.cont <| prj.mk _ <| .inl <| prj.get v)
+      | .inr r => (TypeVec.id ::: .inr) <$$> r.dest
+    )
+    (Sum.inl (β := DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} γ)) v)
+
+/- -- You can generalize it like this but i cannot be bothered -/
+/- def bind {β : Type v} {γ : Type w} {α : TypeVec.{u} n} -/
+/-     (v : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β)) -/
+/-     (m : β → DeepThunk (uLift.{u, w} P) (α.uLift ::: ULift.{u, w} γ)) -/
+/-     : DeepThunk (uLift.{u, w} P) (α.uLift ::: ULift.{u, w} γ) -/
+/-     := -/
+/-   .corec -/
+/-     (fun -/
+/-       | .inl r => sorry -/
+/-       | .inr r => sorry -/
+/-       ) -/
+/-     (Sum.inl (β := DeepThunk (uLift.{u, w} P) (α.uLift ::: ULift.{u, w} γ)) v) -/
+
+
+def flat (v : DeepThunk P (α ::: HpLuM P α)) : HpLuM P α :=
+  .corec' (fun
+    | .inl v => by
+      refine (TypeVec.splitFun ?_ ?_)<$$> comp.get v.dest
+      · exact fun i => (have := prj.get ·; this)
+      exact (match DTSum.equiv <| comp.get · with
+        | .inl v => .inr <| prj.get v
+        | .inr v => .inl <| prj.get v)
+    | .inr v => (TypeVec.id ::: .inr) <$$> v.dest)
+    (Sum.inl (β := HpLuM P α) v)
+
+def ulift_NatTrans α : uLift.{u, v} (NatTrans P) α ≃ NatTrans (uLift.{u, v} (P)) α where
+  toFun x := comp.mk sorry
+  invFun y := sorry
+  left_inv := sorry
+  right_inv := sorry
+
+def ULift_down {x : Type u} : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x)
+    → DeepThunk P (α ::: x) :=
+  HpLuM.corec fun x => by
+    have := (.mp TypeVec.uLift_append1_ULift_uLift ::: id) <$$> x.dest
+    have := comp.get this
+    sorry
+    /- transliterateMap sorry  -/
+
+instance : MvFunctor <| DeepThunk P := HpLuM.instMvFunctor
+
+-- Proof should be very similar to `Combinators.lean:29 / iter_eq`
+theorem corec_eq {β : Type v}
+    (gen : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
+    {v}
+    : corec gen v
+    = flat ((TypeVec.id ::: ULift.up ∘ corec gen ∘ ULift.down) <$$> (gen v)).ULift_down := by
+  apply HpLuM.bisim (fun a b => a = b ∨ 
+    ∃ im, a = corec gen im ∧ b = sorry
+  )
+  · right
+    sorry
+  · sorry
 
 end DeepThunk
 
