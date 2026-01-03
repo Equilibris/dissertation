@@ -51,26 +51,16 @@ instance {E F : Type u → Type u}
   | .inr e => .inr (f <$> e)
 
 def trigger {E F : Type u → Type u} [SubEvent E F] {A : Type _}
-    (e : E A) : ITree F (PLift A) :=
-  .vis (subevent e) (.ret ∘ .up)
+    (e : E A) : ITree F A :=
+  .vis (subevent e) .ret
 
--- Trigger preserves the structure
 theorem trigger_vis
     {E F : Type u → Type u} [SubEvent E F] {A : Type u} (e : E A)
-    : (trigger e).dest = .vis (subevent e : F A) (.ret ∘ .up) := by
-  simp [trigger, ITree.dest_vis]
+    : (trigger e).dest = .vis (subevent e : F A) .ret := by
+  simp [trigger]
 
--- Subevent is just the injection
 @[simp]
 theorem subevent_eq_inj {E F : Type u → Type u} [SubEvent E F] {A : Type u}
     (e : E A) : SubEvent.inj e = (subevent e : F A) := rfl
-
--- Composition laws for SubEvent
-@[simp]
-theorem subevent.comp
-    {E F G : Type u → Type u}
-    [SubEvent E F] [SubEvent F G] [SubEvent E G]
-    {A : Type u} (e : E A)
-    : subevent (subevent e) = subevent (E := E) (F := G) e := rfl
 
 end Sme
