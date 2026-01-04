@@ -27,7 +27,7 @@ theorem iter_eq {it : A → ITree E (A ⊕ B)} {v : A}
     : iter it v = bind (it v) (Sum.elim (ITree.tau ∘ iter it) .ret) := by
   dsimp [iter]
   ext
-  simp [Bisim]
+  simp only [Bisim, dest_corec, Function.comp_apply, dest_bind]
   refine ⟨
     (fun a b => a = b ∨ ∃ y : ITree _ _, 
         a = (Base.map (corec (iter.body it ∘ dest)) id (iter.body it y.dest))
@@ -50,7 +50,7 @@ theorem iter_eq {it : A → ITree E (A ⊕ B)} {v : A}
       refine .tau <| .inl rfl
     · simp only [bind_map.ret, dest_ret]
       exact .ret
-  · simp [Base.map, iter.body]
+  · simp only [Base.map, iter.body, id_eq, bind_map.vis]
     refine .vis fun v => .inr ?_
     simp only [dest_corec, Function.comp_apply, dest_bind]
     exact ⟨_, rfl, rfl⟩
@@ -66,7 +66,7 @@ theorem dest_eq : (spin : ITree E A).dest = .tau spin := by
 @[simp]
 theorem bind_eq {f : A → ITree E B} : bind spin f = spin := by
   ext
-  simp [Bisim]
+  simp only [Bisim, dest_bind, dest_eq, bind_map.tau]
   refine ⟨
     fun a b => .tau (bind spin f) = a ∧ Base.tau spin = b ,
     ?_,
@@ -78,7 +78,7 @@ theorem bind_eq {f : A → ITree E B} : bind spin f = spin := by
 @[simp]
 theorem map_eq {f : A → B} : map f (spin : ITree E A) = spin := by
   ext
-  simp [Bisim]
+  simp only [Bisim, dest_map, dest_eq]
   refine ⟨
     fun a b => .tau (map f spin) = a ∧ Base.tau spin = b ,
     ?_,

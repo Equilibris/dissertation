@@ -153,8 +153,8 @@ theorem max_comm {a b c : Base E _ A} : (x : EStep a b) → (y : EStep a c) → 
 @[simp]
 theorem max_toEStep_l {a b c : Base E _ A} : {x : EStep a b} → {y : Step a c} → max x y.toEStep = c
   | .refl _, _ => by simp only [max]
-  | .tau a, .tau b => by 
-    simp [max, Step.toEStep]
+  | .tau a, .tau b => by
+    simp only [Step.toEStep, max]
     apply max_toEStep_l
 
 @[simp]
@@ -545,7 +545,7 @@ theorem bind_congr_arg
     {X} {k1 : KTree E A X}
     (h : a ≈ b)
     : bind a k1 ≈ bind b k1 := by
-  simp [WBisim]
+  simp only [WBisim, dest_bind]
   refine ⟨
     fun a b => ∃ c d , WBisim' E A c d
         ∧ bind_map k1 c = a
@@ -560,7 +560,7 @@ theorem bind_congr_arg
   · have ⟨h⟩ := WBisim'.stepRet h' h.symm
     have h := h.toEStep.transp_bind_map k1
     have h' := h'.toEStep.transp_bind_map k1
-    simp at h h'
+    simp only [bind_map.ret] at h h'
     exact .refl h h'
   · have ⟨_, bs, ⟨h⟩⟩ := WBisim'.stepVis h' h.symm
     have h := h.toEStep.transp_bind_map k1
@@ -574,7 +574,7 @@ theorem bind_congr_cont
     {X} {k1 k2 : KTree E A X}
     (h : k1 ≈ₖ k2)
     : bind a k1 ≈ bind a k2 := by
-  simp [WBisim]
+  simp only [WBisim, dest_bind]
   refine ⟨
     fun a b => WBisim' E X a b ∨ ∃ k1 k2 v, k1 ≈ₖ k2
         ∧ bind_map k1 v = a
@@ -600,7 +600,6 @@ theorem bind_congr_cont
     | .refl ha hb => .refl ha hb
     | .ret ha hb => .ret ha hb
     | .vis ha hb h => .vis ha hb (.inl <| h ·)
-
   · refine .vis .vis .vis fun w => .inr ?_
     simp only [Function.comp_apply, dest_bind]
     exact ⟨_,_,_, h, rfl, rfl⟩

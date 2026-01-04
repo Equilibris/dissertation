@@ -250,7 +250,7 @@ instance : LawfulMvFunctor (HpLuM P) where
 theorem dest_map
     {α β : TypeVec.{u} n} (g : α ⟹ β) (x : HpLuM P α)
     : dest (g <$$> x) = (g ::: (g <$$> ·)) <$$> dest x := by
-  simp [MvFunctor.map, map]
+  simp only [MvFunctor.map, map, dest_corec']
   refine Sigma.ext (by rfl) <| heq_of_eq ?_
   funext i h
   rcases i with (_|_) <;> rfl
@@ -334,7 +334,7 @@ theorem ext_destE {α : TypeVec n} {x y : HpLuM P α} (h : x.destE = y.destE) : 
   rw [← destE_mkE (v := x), h, destE_mkE]
 
 @[ext 0]
-theorem ext_mkE {α : TypeVec n} {x y : F.app (α ::: HpLuM P α)} (h : mkE x= mkE y) : x = y := by
+theorem ext_mkE {α : TypeVec n} {x y : F.app (α ::: HpLuM P α)} (h : mkE x = mkE y) : x = y := by
   rw [← mkE_destE (v := x), h, mkE_destE]
 
 end equivP

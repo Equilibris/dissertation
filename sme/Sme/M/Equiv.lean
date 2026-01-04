@@ -97,7 +97,7 @@ theorem transform_dest
     {x : SM.{u, max u v} P α}
     : (equivXU.{u, v, w} x).dest = equivXU.transform (dest x) := by
   dsimp [equivXU, equivP]
-  simp [dest_corec]
+  simp only [dest_corec, Function.comp_apply, M.dest_corecU]
   refine Sigma.ext (by rfl) <| heq_of_eq ?_
   funext i h
   rcases i with (_|⟨s⟩)

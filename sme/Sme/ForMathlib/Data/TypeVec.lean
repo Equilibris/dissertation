@@ -133,7 +133,7 @@ theorem appendFun.get_fs {α β}
   : (a ::: v) (.fs i) = a i := rfl
 
 @[simp]
-theorem splitFun.get_fz {α α' : TypeVec (n + 1)} {f : drop α ⟹ drop α'} {g : last α → last α'} 
+theorem splitFun.get_fz {α α' : TypeVec (n + 1)} {f : drop α ⟹ drop α'} {g : last α → last α'}
     : splitFun f g .fz = g := rfl
 
 @[simp]

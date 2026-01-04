@@ -50,16 +50,16 @@ theorem map_inj
       : Function.Injective (Base.map (E := E) f g) := 
     fun
       | .ret _, .ret _, heq => by
-        simp [map] at heq
+        simp only [map, ret.injEq] at heq
         rw [ginj heq]
       | .vis _ _, .vis _ _, heq => by
-        simp [map] at heq
+        simp only [map, vis.injEq] at heq
         obtain ⟨rfl, rfl, h⟩ := heq
-        simp
+        simp only [vis.injEq, heq_eq_eq, true_and]
         funext i
         exact finj <| funext_iff.mp (eq_of_heq h) i
       | .tau _, .tau _, heq => by 
-        simp [map] at heq
+        simp only [map, tau.injEq] at heq
         rw [finj heq]
 
 end Base
@@ -89,7 +89,7 @@ instance equivB {E} : EquivP (1 + 1) (Base E) (PBase E) := ⟨{
   left_inv v := by
     rcases v with ⟨⟨_⟩|⟨_⟩|⟨A, e⟩, v⟩
     <;> refine Sigma.ext (by rfl) <| heq_of_eq ?_
-    <;> simp
+    <;> simp only [Nat.reduceAdd]
     <;> funext i h
     <;> rcases i with (_|_|_|_)
     <;> rcases h with ⟨h⟩
@@ -183,10 +183,12 @@ theorem dest_corec {β g} (gen : β → Base E β R)
   dsimp [corec, dest, HpLuM.destE]
   rw [HpLuM.dest_corec, ←corec]
   cases gen g
-  <;> simp [EquivP.equiv, Base.map, MvPFunctor.uLift_down]
   · rfl
   · rfl
-  · funext i
+  · simp only [Base.map, EquivP.equiv, Nat.reduceAdd, TypeVec.append1_get_fs, Vec.append1.get_fz,
+      TypeVec.append1_get_fz, MvPFunctor.uLift_down, MvPFunctor.map_fst, MvPFunctor.map_snd,
+      Equiv.coe_fn_mk, Function.id_comp, Base.vis.injEq, heq_eq_eq, true_and]
+    funext i
     rfl
 
 /- theorem corec_roll {α β v} -/

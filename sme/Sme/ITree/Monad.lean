@@ -18,7 +18,7 @@ def map (f : A → B) : ITree E A → ITree E B :=
 
 @[simp]
 theorem dest_map {i : ITree E A} {f : A → B} : dest (map f i) = i.dest.map (map f) f := by
-  simp [map, dest_corec]; rw [←map]; cases i.dest <;> rfl
+  simp only [map, dest_corec, Function.comp_apply]; rw [←map]; cases i.dest <;> rfl
 
 @[simp]
 theorem mk_map {i : Base E (ITree E A) A} {f : A → B} : (map f (mk i)) = mk (i.map (map f) f) := by
@@ -54,7 +54,7 @@ instance : LawfulFunctor (ITree E) where
       exact ⟨_, rfl, rfl⟩
     · exact .ret
     · refine .vis ?_
-      simp
+      simp only [Function.comp_apply, dest_map, Base.map_map]
       intro _
       refine ⟨_, rfl, rfl⟩
 
@@ -124,7 +124,7 @@ theorem dest_bind
     {i : ITree E A} {f : A → ITree E B}
     : dest (bind i f)
     = bind_map f i.dest := by
-  simp [bind, dest_corec, bind_map]
+  simp only [bind, dest_corec, Function.comp_apply, Sum.map_inl, bind_map]
   cases i.dest
   any_goals rfl
   simp [bind.body, Base.map_map]
@@ -141,8 +141,7 @@ instance : Monad (ITree E) where
 theorem pure_bind (x : A) (f : A → ITree E B)
     : (ret x).bind f = f x := by
   refine dest_eq ?_
-  rw [bind, dest_corec]
-  simp [bind.body]
+  simp [bind, dest_corec, bind.body]
 
 theorem bind_assoc {x : ITree E A} {f : A → ITree E B} {g : B → ITree E C}
     : (x.bind f).bind g = x.bind ((fun x ↦ x.bind g) ∘ f) := by
@@ -167,15 +166,14 @@ theorem bind_assoc {x : ITree E A} {f : A → ITree E B} {g : B → ITree E C}
     refine .inr ⟨_, rfl, rfl⟩
   case vis =>
     refine .vis ?_
-    simp [Function.comp_apply, dest_bind]
+    simp only [Function.comp_apply, dest_bind]
     refine fun _ => .inr ⟨_, rfl, rfl⟩
-  simp
+  simp only [Function.comp_apply, bind_map.ret, dest_bind]
   rcases (f t).dest with (r|t'|_)
   · refine .tau (.inl rfl)
   case vis =>
     refine .vis fun _ => (.inl rfl)
-  simp
-  conv => rhs; simp [Base.ret, bind_map]
+  simp only [bind_map.ret]
   rcases (g t').dest with (r|_|_)
   · refine .tau (.inl rfl)
   · exact .ret
