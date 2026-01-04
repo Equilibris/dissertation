@@ -167,9 +167,9 @@ theorem dest_inject {x : HpLuM P α}
           (fun _ => prj.mk Fin2.fz <| inject v)⟩
       ) <$$> x.dest) := by
   rw [inject, HpLuM.dest_corec', ←inject, comp.map_mk]
-  simp [MvFunctor.map_map, TypeVec.splitFun_comp']
+  simp only [Nat.succ_eq_add_one, Vec.append1.get_fz, MvFunctor.map_map, TypeVec.splitFun_comp']
   unfold Function.comp TypeVec.comp
-  simp
+  simp only
   conv =>
     lhs; arg 1; lhs; lhs; intro i x
     rw [prj.map_mk]
@@ -180,10 +180,10 @@ theorem dest_inject {x : HpLuM P α}
   change comp.mk ⟨_, _⟩ = _
   rw [TypeVec.splitFun_comp']
   congr 3
-  · simp
+  · simp only [Vec.append1.get_fs]
     funext i x
     rcases i with (_|_|_)
-    simp
+    simp only [TypeVec.comp.get, Vec.append1.get_fz, TypeVec.splitFun.get_fz, Function.comp_apply]
     exact x.elim
   · funext i
     change _ <$$> prj.mk _ _ = _
