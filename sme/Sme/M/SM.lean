@@ -45,11 +45,10 @@ variable {a b : SM P α}
 theorem bisim (h : Bisim a b) : a = b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
-
+  --
   apply Quot.sound
-
   change PreM.Bisim _ _
-
+  --
   rcases h with ⟨r, his, hhold⟩
   exact ⟨
     fun x y => r (.mk _ x) (.mk _ y),
@@ -59,7 +58,8 @@ theorem bisim (h : Bisim a b) : a = b := by
       have ⟨hx'₁, hx'₂⟩ := Sigma.ext_iff.mp hx
       have ⟨hy'₁, hy'₂⟩ := Sigma.ext_iff.mp hy
       dsimp [dest] at hx'₁ hy'₁
-      simp [dest] at hx'₂ hy'₂
+      simp only [dest, Quotient.lift_mk, Function.comp_apply, MvPFunctor.map_fst, 
+        MvPFunctor.map_snd] at hx'₂ hy'₂
       use hd
       use cast (by rw [hx'₁]) x.dest.snd
       use cast (by rw [hy'₁]) y.dest.snd
@@ -89,14 +89,12 @@ theorem bisim (h : Bisim a b) : a = b := by
               apply dcongr_heq (by rfl) _ fun v _ => hy'₂
               simp_all
           simp only [TypeVec.comp, TypeVec.appendFun, TypeVec.splitFun, heq_eq_eq] at hx hy
-          conv =>
-            lhs; rw! (castMode := .all) [←hx'₁]
-            change ⟦x.dest.snd Fin2.fz _⟧
-            rw [hx]
-          conv =>
-            rhs; rw! (castMode := .all) [←hy'₁]
-            change ⟦y.dest.snd Fin2.fz _⟧
-            rw [hy]
+          rw! (castMode := .all) [←hx'₁]
+          dsimp
+          rw [hx]
+          rw! (castMode := .all) [hx'₁, ←hy'₁]
+          dsimp
+          rw [hy]
           exact h .fz h'
         · change _ = _
           have hx : @HEq
@@ -202,14 +200,15 @@ def SM.uLift : SM.{u, v} P α → SM.{u, max v w} P α :=
             apply eq_of_heq <| eqRec_heq_iff.mpr <| cast_heq _ f₁
           rintro i ⟨j⟩
           rcases i with (_|i)
-          <;> simp [TypeVec.RelLast]
+          <;> simp only [exists_and_left, TypeVec.comp.get, TypeVec.append1_get_fz,
+            TypeVec.appendFun.get_fz, Function.comp_apply, exists_and_left, TypeVec.comp.get,
+            TypeVec.append1_get_fs, TypeVec.appendFun.get_fs, Function.comp_apply]
           · exact ⟨_, rfl, _, rfl, rst .fz ⟨j⟩⟩
           · apply ULift.down_inj.mp
             apply ULift.down_inj.mpr
             simp only [TypeVec.Arrow.transliterate, TypeVec.comp, TypeVec.Arrow.uLift_up,
               TypeVec.Arrow.uLift_down, ULift.up.injEq, ULift.down_inj]
             exact rst i.fs ⟨j⟩
-
           ,
         ⟨_,_,rfl,rfl,hr⟩
       ⟩

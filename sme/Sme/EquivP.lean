@@ -117,6 +117,7 @@ instance const {A n} : EquivP n (.const n A) (.const n A) := ⟨{
   right_inv _ := by
     dsimp [MvPFunctor.const.mk]
     rw! [cast_cast, cast_eq]
+    rfl
 }⟩
 
 instance comp

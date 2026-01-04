@@ -1,5 +1,5 @@
+import Batteries.Tactic.GeneralizeProofs
 import Mathlib.Logic.Equiv.Defs
-import Mathlib.Tactic.GeneralizeProofs
 import Mathlib.Tactic.DepRewrite
 import Mathlib.Tactic.CongrExclamation
 
@@ -254,6 +254,7 @@ theorem elimLog {motive : r.carry → Sort x}
      z : elim hLog hCheap eqA eqB (mkA z) = hLog z := by
   dsimp [elim, mkA]
   rw! [ABIRepr.elimLog r z]
+  rfl
 
 theorem elimCheap {motive : r.carry → Sort x}
      {hLog : (z : A) → motive (mkA z)}
@@ -263,6 +264,7 @@ theorem elimCheap {motive : r.carry → Sort x}
     z : elim hLog hCheap eqA eqB (mkB z) = hCheap z := by
   dsimp [elim, mkB]
   rw! [ABIRepr.elimCheap r z]
+  rfl
 
 -- Hide the impl
 attribute [irreducible] elim

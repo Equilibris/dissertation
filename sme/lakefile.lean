@@ -12,8 +12,8 @@ package "sme" where
     ⟨`weak.linter.mathlibStandardSet, true⟩,
   ]
 
-/- require "leanprover-community" / "mathlib" -/
-require mathlib from git "https://github.com/Equilibris/mathlib4" @ "289a8933c6c4ec9da33768253521116ed7527e48"
+require "leanprover-community" / "mathlib"
+/- require mathlib from git "https://github.com/Equilibris/mathlib4" @ "289a8933c6c4ec9da33768253521116ed7527e48" -/
 require CoinductivePredicates from git "https://github.com/Equilibris/CoinductivePredicates" @ "main"
 
 @[default_target]
