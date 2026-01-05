@@ -33,12 +33,7 @@ def numsHp : QStreamHp Nat :=
 def numsBig : QStreamBig Nat :=
   QStreamBig.corec (fun n => ⟨n, n + 1⟩) 0
 
-def time (f : Unit → IO Unit) : IO Nat := do
-  let pre ← IO.monoMsNow
-  f ()
-  let ante ← IO.monoMsNow
-  return ante - pre
-
+/- set_option trace.compiler.ir.result true -/
 def QStreamBig.getNth (x : QStreamBig Nat) : Nat → Nat
   | 0 => x.dest.fst
   | n+1 => x.dest.snd.getNth n
@@ -54,6 +49,12 @@ def QStreamHp.getNth (x : QStreamHp Nat) : Nat → Nat
     | ⟨.unit, v⟩ => v (.fs .fz) .unit
   | n+1 => match x.dest with
     | ⟨.unit, v⟩ => QStreamHp.getNth (v .fz .unit) n
+
+def time (f : Unit → IO Unit) : IO Nat := do
+  let pre ← IO.monoMsNow
+  f ()
+  let ante ← IO.monoMsNow
+  return ante - pre
 
 def runTests : IO Unit := do
   let testHp := fun n _ => do if (QStreamHp.getNth numsHp n) ≠ n then println! "NEQ!";
