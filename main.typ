@@ -39,5 +39,7 @@
 
 #include "content/05_Conclusions/main.typ"
 
+#bibliography("bib.bib", style : "apa")
+
 = Appendicies
 

@@ -315,5 +315,5 @@ Therefore I leave this as an extension.
 
 Access to the restricted side of the lab is needed for working with the greater team.
 
-#bibliography("proposal.bib")
+#bibliography("bib.bib")
 
