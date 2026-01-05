@@ -66,6 +66,7 @@ unsafe abbrev unsafeOut : unsafeCast B → B := unsafeCast
 
 end corruptionSurface
 
+@[inline]
 private unsafe def ABIImpl (A : Type u) (B : Type v) (eq : A ≃ B)
     : ABIRepr.{u, v, w} A B eq := {
   carry := unsafeCast B,
@@ -110,7 +111,7 @@ private unsafe def ABIImpl (A : Type u) (B : Type v) (eq : A ≃ B)
     rw [unsafeCastComp, unsafeCastNoop]
 }
 
-@[implemented_by ABIImpl]
+@[implemented_by ABIImpl, inline]
 opaque ABI (A : Type u) (B : Type v) (eq : A ≃ B)
     : ABIRepr.{u, v, w} A B eq := {
   carry := A,
@@ -133,7 +134,7 @@ opaque ABI (A : Type u) (B : Type v) (eq : A ≃ B)
 
 namespace ABIRepr
 
-attribute [elab_as_elim] ABIRepr.elim
+attribute [elab_as_elim, inline] ABIRepr.elim
 
 variable {eq : A ≃ B} {r : ABIRepr.{u, v, w} A B eq}
 
@@ -159,10 +160,10 @@ def equivB : B ≃ r.carry where
 
 namespace carry
 
-def mkB : B → r.carry := r.mkB
-def mkA : A → r.carry := r.mkA
-def destB : r.carry → B := r.destB
-def destA : r.carry → A := r.destA
+@[inline] def mkB : B → r.carry := r.mkB
+@[inline] def mkA : A → r.carry := r.mkA
+@[inline] def destB : r.carry → B := r.destB
+@[inline] def destA : r.carry → A := r.destA
 
 section eqs
 
@@ -221,6 +222,7 @@ end eqs
 
 variable {r : ABIRepr.{_, _, max w x} A B eq}
 
+@[inline]
 def elim {motive : r.carry → Sort x}
      (hLog : (z : A) → motive (mkA z))
      (hCheap : (z : B) → motive (mkB z))
@@ -350,7 +352,7 @@ end transliterate
 
 section freeelim
 
-@[elab_as_elim]
+@[elab_as_elim, inline]
 def rec {motive : ABI.{u, v, w} A B eq → Sort x}
      (hLog : (z : A) → motive (mkA z))
      (hCheap : (z : B) → motive (mkB z))
@@ -393,7 +395,7 @@ theorem recCheap {motive : ABI.{u, v, w} A B eq → Sort x}
   rw [transliterateB_mkB', carry.elimCheap]
   exact cast_heq _ _
 
-attribute [irreducible] rec
+attribute [irreducible, inline] rec
 
 end freeelim
 
@@ -409,10 +411,10 @@ open NonOmegaABI.ABIRepr.carry
 
 variable {eq : A ≃ B}
 
-def mkA : A → ABI A B eq := carry.mkA
-def mkB : B → ABI A B eq := carry.mkB
-def destA : ABI A B eq → A := carry.destA
-def destB : ABI A B eq → B := carry.destB
+@[inline] def mkA : A → ABI A B eq := carry.mkA
+@[inline] def mkB : B → ABI A B eq := carry.mkB
+@[inline] def destA : ABI A B eq → A := carry.destA
+@[inline] def destB : ABI A B eq → B := carry.destB
 
 section eqs
 
@@ -500,7 +502,7 @@ end eqs
 
 section
 
-@[elab_as_elim] def rec
+@[elab_as_elim, inline] def rec
     : {motive : ABI.{u, v} A B eq → Sort x}
     → (hLog : (z : A) → motive (mkA z))
     → (hCheap : (z : B) → motive (mkB z))

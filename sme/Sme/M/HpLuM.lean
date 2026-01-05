@@ -20,6 +20,7 @@ namespace HpLuM
 
 def equivM : HpLuM P α ≃ M P α := ABI.equivA.symm
 
+set_option trace.compiler.ir.result true in
 def corec
     {β : Type v}
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
@@ -27,6 +28,10 @@ def corec
     : HpLuM P α :=
   .mkB <| SM.equivXU <| SM.uLift.{u, v, max u v} <| .corec gen g
 
+/- attribute [macro_inline] TypeVec.splitFun -/
+
+set_option trace.compiler.ir.result true in
+@[inline, specialize n P α]
 def dest : HpLuM P α → P (α ::: HpLuM P α) :=
   ABI.rec
     ((TypeVec.id ::: ABI.mkA) <$$> M.dest P ·)

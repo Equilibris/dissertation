@@ -19,6 +19,7 @@ structure PreM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) where
 
 namespace PreM
 
+@[inline, specialize n P α]
 def dest (x : PreM.{u, v} P α)
     : MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::: PreM.{u, v} P α) :=
   map (TypeVec.id ::: (PreM.corec x.gen ·.down))
@@ -90,7 +91,7 @@ def setoid (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Setoid (PreM P α
   r := Bisim
   iseqv := ⟨Bisim.refl, Bisim.symm, Bisim.trans⟩
 
-@[pp_with_univ]
+@[pp_with_univ, inline]
 def uLift (a : PreM.{u, v} P α) : PreM.{u, max v w} P α :=
   .corec (fun x =>
     have v := a.gen x.down

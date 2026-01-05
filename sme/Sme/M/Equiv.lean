@@ -105,13 +105,14 @@ theorem transform_dest
   · rfl
 
 -- The soundness of this is extremely dubious
+@[inline]
 private unsafe def equivXUImpl : SM.{u, max u v} P α ≃ SM.{u, max u w} P α where
   toFun := unsafeCast
   invFun := unsafeCast
   left_inv _ := lcProof
   right_inv _ := lcProof
 
-attribute [irreducible, implemented_by equivXUImpl] equivXU
+attribute [irreducible, implemented_by equivXUImpl, inline] equivXU
 
 end
 

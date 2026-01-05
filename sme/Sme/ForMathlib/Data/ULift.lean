@@ -5,6 +5,7 @@ universe u v w
 
 variable {A : Type u}
 
+@[inline]
 def transliterate : ULift A → ULift A := ULift.up ∘ ULift.down
 
 @[simp]

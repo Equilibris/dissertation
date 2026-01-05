@@ -52,12 +52,12 @@ theorem uLift_append1_ULift_uLift
     : (TypeVec.uLift.{u, v} α ::: ULift.{v, u} β) = (α ::: β).uLift :=
   funext fun | .fz | .fs _ => rfl
 
-@[pp_with_univ]
+@[pp_with_univ, inline]
 def Arrow.uLift_up {α : TypeVec.{u} n} : α ⟹ α.uLift := fun _ => ULift.up
-@[pp_with_univ]
+@[pp_with_univ, inline]
 def Arrow.uLift_down {α : TypeVec.{u} n} : α.uLift ⟹ α :=
   fun _ => ULift.down
-@[pp_with_univ]
+@[pp_with_univ, inline]
 def Arrow.transliterate.{y,z} {α : TypeVec.{u} n} : (uLift.{_,y} α) ⟹ (uLift.{_,z} α) :=
   uLift_up ⊚ uLift_down
 

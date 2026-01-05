@@ -20,13 +20,15 @@ def SM.{args, ind}
 
 namespace SM
 
+set_option trace.compiler.ir.result true in
+@[inline, specialize n P α]
 def dest : SM.{u, v} P α → MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::: SM.{u, v} P α) :=
   Quotient.lift (map (TypeVec.id ::: (Quotient.mk (PreM.setoid P α) ·)) ∘ PreM.dest)
     fun | a, b, ⟨r, his, rab⟩ => (by
       have ⟨hd, ca, cb, ha, hb, h⟩ := (MvPFunctor.liftR_iff _ _ _).mp <| his _ _ rab
       dsimp
       rw [ha, hb]
-      refine Sigma.ext (by rfl) (heq_of_eq <| funext fun | .fz => ?_ | .fs s => ?_)
+      refine Sigma.ext rfl (heq_of_eq <| funext fun | .fz => ?_ | .fs s => ?_)
       <;> funext h'
       · change ⟦ca Fin2.fz h'⟧ = ⟦cb Fin2.fz h'⟧
         exact Quotient.sound <| ⟨r, his, h .fz h'⟩
@@ -158,7 +160,7 @@ def corec
   .mk _ (.corec gen g)
 
 @[simp]
-def dest_corec
+theorem dest_corec
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (g : β)
     : (corec gen g).dest
