@@ -59,6 +59,24 @@ theorem get_bij
     comp.get_mk,
   ⟩
 
+def uLift {α : TypeVec.{max u v} m}
+    : (P.comp Q).uLift α
+    ≃ P.uLift.comp (MvPFunctor.uLift ∘ Q) α where
+  toFun v := ⟨
+      ⟨.up v.1.down.1, fun i h => .up <| v.fst.down.snd i h.down⟩,
+      v.2 ⊚ fun _ h => ULift.up ⟨h.1, h.2.1.down, h.2.2.down⟩
+    ⟩
+  invFun v := ⟨
+      ⟨v.1.1.down, fun i h => (v.1.2 i (.up h)).down⟩,
+      v.2 ⊚ fun _ h => ⟨h.down.1, .up h.down.2.1, .up h.down.2.2⟩
+    ⟩
+  left_inv _ := rfl
+  right_inv _ := rfl
+
+theorem uLift_natural {α β : TypeVec.{max u v} m} {x : (P.comp Q).uLift α}
+    (f : α ⟹ β)
+    : f <$$> uLift x = uLift (f <$$> x) := rfl
+
 end comp
 
 end MvPFunctor

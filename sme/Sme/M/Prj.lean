@@ -1,4 +1,4 @@
-import Mathlib.Data.PFunctor.Multivariate.Basic
+import Sme.ForMathlib.Data.PFunctor.Multivariate.Basic
 import Sme.ForMathlib.Data.TypeVec
 import Sme.EquivP
 
@@ -20,6 +20,17 @@ def prj (i : Fin2 n) : MvPFunctor n where
 
 namespace prj
 
+@[simp]
+theorem fn_eq {n} : {i j : Fin2 n} → fn i j → i = j
+  | .fz, .fz, _ => rfl
+  | .fz, .fs _, h => by
+    simp [fn] at h
+    exact h.elim
+  | .fs i, .fs j, h => by
+    dsimp at h
+    obtain rfl := fn_eq h
+    rfl
+
 def mk.fn : {n : Nat} → {α : TypeVec n} → {i : Fin2 n} → α i → (prj.fn i) ⟹ α
   | _ + 1, _, .fz, v =>
     TypeVec.splitFun (fun _ h => (TypeVec.repeat.get.mp h).elim) fun _ => v
@@ -40,6 +51,12 @@ theorem fn_diff : {n : _} → {i j : Fin2 n} → (h : i ≠ j) → prj.fn i j = 
   | _, .fz, .fs _, _ => by simp
   | _, .fs i, .fs j, h =>
     fn_diff (i := i) (j := j) (h <| (Fin2.fs.injEq _ _).mpr ·)
+
+theorem fn_eq_v {n} : {i : Fin2 n} → (v : fn i i) → v = cast fn_same.symm PUnit.unit 
+  | .fz, _ => rfl
+  | .fs i, v =>by
+    obtain rfl := fn_eq_v (i := i) v
+    rfl
 
 @[simp]
 theorem mk.fn_same
@@ -111,6 +128,39 @@ theorem mk_get
     : prj.mk i (prj.get v) = v := by
   ext
   simp [mk, get]
+
+
+def uLift.{v, u} {α : TypeVec.{max u v} n} {i}
+    : MvPFunctor.uLift.{u, v} (prj i) α ≃ prj i α where
+  toFun v := prj.mk i
+    <| v.2 i (cast
+      (by simp [MvPFunctor.uLift, TypeVec.uLift, prj])
+      (ULift.up.{v} PUnit.unit.{u + 1}))
+  invFun v :=
+    ⟨.up .unit, mk.fn (prj.get v) ⊚ TypeVec.Arrow.uLift_down.{u, v}⟩
+  left_inv v := by
+    rcases v with ⟨(_|_), t⟩
+    refine Sigma.ext (by rfl) <| heq_of_eq ?_
+    funext j h
+    rcases h with (⟨h⟩)
+    change fn i j at h
+    obtain rfl := fn_eq h
+    obtain rfl := fn_eq_v h
+    simp only [TypeVec.comp, get_mk, mk.fn_same]
+    congr
+    apply eq_of_heq
+    apply HEq.trans (cast_heq _ _)
+    apply dcongr_heq
+    · exact (cast_heq _ PUnit.unit).symm
+    · rintro (_|_) h _
+      obtain rfl := fn_eq_v h
+      simp [prj]
+    · intro i h
+      rw [i]
+
+  right_inv v := by
+    apply ext
+    simp [mk, get, TypeVec.comp]
 
 end MvPFunctor.prj
 
