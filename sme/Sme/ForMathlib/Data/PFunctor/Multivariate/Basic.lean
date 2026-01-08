@@ -44,8 +44,12 @@ theorem map_mk {f : α ⟹ β}
     : f <$$> comp.mk mv = comp.mk ((fun _ v => f <$$> v) <$$> mv) := by
   rfl
 
+def equi : P (Q · α) ≃ P.comp Q α where
+  toFun := comp.mk
+  invFun := comp.get
+
 theorem mk_bij
-    : Function.Bijective (comp.mk : (P (Q · α)) → (P.comp Q) α) :=
+    : Function.Bijective (comp.mk : P (Q · α) → P.comp Q α) :=
   Function.bijective_iff_has_inverse.mpr ⟨
     comp.get,
     comp.get_mk,
@@ -76,6 +80,35 @@ def uLift {α : TypeVec.{max u v} m}
 theorem uLift_natural {α β : TypeVec.{max u v} m} {x : (P.comp Q).uLift α}
     (f : α ⟹ β)
     : f <$$> uLift x = uLift (f <$$> x) := rfl
+
+def equivTfn
+    {P' : MvPFunctor.{u} n}
+    (hP : ∀ α, P α ≃ P' α)
+    : P.comp Q α ≃ P'.comp Q α := calc
+  _ ≃ P (Q · α)     := equi.symm
+  _ ≃ P' (Q · α)    := hP _
+  _ ≃ P'.comp Q α   := equi
+
+def equivTarg
+    {Q' : Fin2 n → MvPFunctor.{u} m}
+    (hQ : ∀ i α, Q i α ≃ Q' i α)
+    : P.comp Q α ≃ P.comp Q' α := calc
+  _ ≃ P (Q · α)     := equi.symm
+  _ ≃ P (Q' · α)    := {
+      toFun v :=  (hQ · α) <$$> v
+      invFun v := (hQ · α |>.symm) <$$> v
+      left_inv v := by
+        dsimp only
+        rw [MvFunctor.map_map]
+        change (fun i x ↦ (hQ i α).symm ((hQ i α) x)) <$$> v = v
+        simp
+      right_inv v := by
+        dsimp only
+        rw [MvFunctor.map_map]
+        change (fun i x ↦ (hQ i α) ((hQ i α).symm x)) <$$> v = v
+        simp
+    }
+  _ ≃ P.comp Q' α   := equi
 
 end comp
 

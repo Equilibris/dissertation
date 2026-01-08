@@ -7,22 +7,27 @@ open MvPFunctor
 namespace Test
 
 def QStream.Base : MvPFunctor 2 := ⟨
-  Unit,
-  fun _ _ => Unit
+  PUnit,
+  fun _ _ => PUnit
 ⟩
 
 def QStreamSl α := M QStream.Base (fun _ => α)
 def QStreamHp α := HpLuM QStream.Base (fun _ => α)
 
-structure QStreamBig.{u} (α : Type _) where
+structure QStreamBig.{u} (α : Type u) where
   corec ::
     {t : Type u}
-    (functor : t → Nat × t)
+    (functor : t → QStream.Base !![α, t])
     (obj : t)
 
-def QStreamBig.dest (x : QStreamBig Nat) : Nat × QStreamBig Nat :=
-  have ⟨h, tl⟩ := x.functor x.obj
-  ⟨h, QStreamBig.corec x.functor tl⟩
+def QStreamBig.dest {α} (x : QStreamBig α) : QStream.Base !![QStreamBig α, PLift α] :=
+  have ⟨.unit, tl⟩ := x.functor x.obj
+  ⟨.unit, fun
+    | .fz, .unit => .up <| tl (.fs .fz) .unit
+    | .fs .fz, .unit => .corec x.functor <| tl .fz .unit⟩
+
+set_option trace.compiler.ir.result true in
+section
 
 def numsSl : QStreamSl Nat :=
   .corec _ (fun n => ⟨.unit, fun | .fz, .unit => n.succ | .fs .fz, .unit => n⟩) Nat.zero
@@ -31,12 +36,13 @@ def numsHp : QStreamHp Nat :=
   .corec' (fun n => ⟨.unit, fun | .fz, .unit => n.succ | .fs .fz, .unit => n⟩) Nat.zero
 
 def numsBig : QStreamBig Nat :=
-  QStreamBig.corec (fun n => ⟨n, n + 1⟩) 0
+  QStreamBig.corec (fun n => ⟨.unit, fun | .fz, .unit => n.succ | .fs .fz, .unit => n⟩) 0
 
-/- set_option trace.compiler.ir.result true -/
 def QStreamBig.getNth (x : QStreamBig Nat) : Nat → Nat
-  | 0 => x.dest.fst
-  | n+1 => x.dest.snd.getNth n
+  | 0 => match x.dest with
+    | ⟨.unit, v⟩ => (v .fz .unit).down
+  | n+1 => match x.dest with
+    | ⟨.unit, v⟩ => QStreamBig.getNth (v (.fs .fz) .unit) n
 
 def QStreamSl.getNth (x : QStreamSl Nat) : Nat → Nat
   | 0 => match x.dest with
@@ -49,6 +55,8 @@ def QStreamHp.getNth (x : QStreamHp Nat) : Nat → Nat
     | ⟨.unit, v⟩ => v (.fs .fz) .unit
   | n+1 => match x.dest with
     | ⟨.unit, v⟩ => QStreamHp.getNth (v .fz .unit) n
+
+end
 
 def time (f : Unit → IO Unit) : IO Nat := do
   let pre ← IO.monoMsNow
@@ -105,6 +113,12 @@ def runTestsHp : IO Unit := do
   println! res
 
   return ()
+
+
+#time #eval  (QStreamHp.getNth  numsHp  1000000)
+#time #eval  (QStreamBig.getNth numsBig 1000000)
+#time #eval! (QStreamHp.getNth  numsHp  1000000)
+#time #eval! (QStreamBig.getNth numsBig 1000000)
 
 /- #eval runTests -/
 /- #eval runTestsHp -/

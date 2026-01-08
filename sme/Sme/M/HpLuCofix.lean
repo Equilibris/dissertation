@@ -476,7 +476,7 @@ theorem Cofix.dest_corec₁ {α : TypeVec n} {β : Type u}
 -- TODO: Fix
 instance mvqpfCofix : MvQPF (Cofix F) where
   P         := q.P.mp
-  abs       := Quot.mk Mcongr
+  abs {α}   := Quot.mk (Mcongr)
   repr      := Cofix.repr
   abs_repr  := Cofix.abs_repr
   abs_map   := by intros; rfl

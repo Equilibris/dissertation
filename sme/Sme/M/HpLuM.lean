@@ -21,6 +21,7 @@ namespace HpLuM
 def equivM : HpLuM P α ≃ M P α := ABI.equivA.symm
 
 set_option trace.compiler.ir.result true in
+@[inline]
 def corec
     {β : Type v}
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
@@ -31,7 +32,7 @@ def corec
 /- attribute [macro_inline] TypeVec.splitFun -/
 
 set_option trace.compiler.ir.result true in
-@[inline, specialize n P α]
+@[specialize n P α]
 def dest : HpLuM P α → P (α ::: HpLuM P α) :=
   ABI.rec
     ((TypeVec.id ::: ABI.mkA) <$$> M.dest P ·)
@@ -143,6 +144,7 @@ theorem bisim
 
 end bisim
 
+@[inline]
 def corec'
     {β : Type u}
     (gen : β → P (α ::: β))
@@ -163,6 +165,7 @@ theorem dest_corec'
   funext i h
   rcases i with (_|i) <;> rfl
 
+@[specialize n P α]
 def mk : P (α ::: HpLuM P α) → HpLuM P α :=
   corec' ((TypeVec.id ::: dest) <$$> ·)
 
@@ -213,6 +216,7 @@ theorem mk.sur : Function.Surjective    (mk (P := P) (α := α))   := mk.bij.sur
 theorem dest.inj : Function.Injective   (dest (P := P) (α := α)) := dest.bij.injective
 theorem dest.sur : Function.Surjective  (dest (P := P) (α := α)) := dest.bij.surjective
 
+@[specialize n P α β]
 def map {α β : TypeVec.{u} n} (m : α ⟹ β) : HpLuM P α → HpLuM P β :=
   corec' ((m ::: id) <$$> ·.dest)
 
@@ -353,7 +357,6 @@ def uLift_down : HpLuM (MvPFunctor.uLift.{u, v} P) α.uLift → HpLuM P α :=
 
 -- TODO: do this
 def uLift_up_down {x : HpLuM P.uLift α.uLift} : uLift_up (uLift_down x) = x := by
-  stop
   apply HpLuM.bisim (fun x y => x = y.uLift_down.uLift_up) rfl
   rintro _ x rfl
   simp only [uLift_down, uLift_up]
@@ -361,13 +364,44 @@ def uLift_up_down {x : HpLuM P.uLift α.uLift} : uLift_up (uLift_down x) = x := 
     rhs; intro x; rhs; intro y; rhs; intro z
     simp only [Function.comp_apply, dest_corec', dest_corec, map_fst]
     repeat rw [←uLift_down]
-    skip
   refine ⟨x.uLift_down.uLift_up.dest.fst, ?_, ?_, ⟨?_, ?_⟩, ⟨?_, ?_⟩, ?_⟩
+  <;> dsimp
   · sorry
   · sorry
   · sorry
   · sorry
   · sorry
+  · sorry
+  · sorry
+
+def transpEquiv.tf
+    {P' : MvPFunctor.{u} (n + 1)}
+    (h : ∀ α, P α ≃ P' α)
+    {α : TypeVec n}
+    : HpLuM P α → P' (α ::: HpLuM P α) :=
+  (h _ ·.dest)
+def transpEquiv.ti
+    {P' : MvPFunctor.{u} (n + 1)}
+    (h : ∀ α, P α ≃ P' α)
+    {α : TypeVec n}
+    : HpLuM P' α → P (α ::: HpLuM P' α) :=
+  ((h _).symm ·.dest)
+
+open transpEquiv in
+def transpEquiv
+    {P' : MvPFunctor.{u} (n + 1)}
+    (h : ∀ α, P α ≃ P' α)
+    {α : TypeVec n}
+    : HpLuM P α ≃ HpLuM P' α where
+  toFun := .corec' (tf h)
+  invFun := .corec' (ti h)
+  left_inv x :=
+    by
+    apply bisim (fun x y => x = corec' (ti h) (corec' (tf h) y)) rfl
+    rintro s t rfl
+    simp only [dest_corec', ti, tf, map_fst]
+    sorry
+  right_inv := sorry
 
 end Sme.HpLuM
 

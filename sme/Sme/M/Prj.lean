@@ -109,6 +109,7 @@ theorem eta
   apply congr rfl
     <| eq_cast_iff_heq.mpr (heq_const_of_unique.mpr fn_same.symm).symm
 
+@[simp]
 theorem map_mk
     {n : Nat} {α β : TypeVec n} {i : Fin2 n} {v : α i}
     {f : α ⟹ β}
@@ -129,13 +130,12 @@ theorem mk_get
   ext
   simp [mk, get]
 
-
 def uLift.{v, u} {α : TypeVec.{max u v} n} {i}
     : MvPFunctor.uLift.{u, v} (prj i) α ≃ prj i α where
   toFun v := prj.mk i
     <| v.2 i (cast
       (by simp [MvPFunctor.uLift, TypeVec.uLift, prj])
-      (ULift.up.{v} PUnit.unit.{u + 1}))
+      (ULift.up.{v, u} PUnit.unit))
   invFun v :=
     ⟨.up .unit, mk.fn (prj.get v) ⊚ TypeVec.Arrow.uLift_down.{u, v}⟩
   left_inv v := by
@@ -161,6 +161,16 @@ def uLift.{v, u} {α : TypeVec.{max u v} n} {i}
   right_inv v := by
     apply ext
     simp [mk, get, TypeVec.comp]
+
+theorem uLift_natural.{u, v}
+    {i : Fin2 n} {α β : TypeVec.{max u v} n}
+    {f : α ⟹ β}
+    {x : MvPFunctor.uLift.{u, v} (prj i) α}
+    : f <$$> uLift x = uLift (f <$$> x) := by
+  dsimp [uLift]
+  ext
+  change prj.get _ = prj.get _
+  simp [TypeVec.comp]
 
 end MvPFunctor.prj
 

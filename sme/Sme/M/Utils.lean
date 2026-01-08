@@ -11,6 +11,7 @@ open scoped MvFunctor
 
 variable {n : Nat} {P : MvPFunctor.{u} (n + 1)} {α : TypeVec.{u} n} {β : Type v}
 
+@[inline]
 def transliterateMap {γ β}
     (f : β → γ)
     (x : MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: β))
@@ -20,12 +21,14 @@ def transliterateMap {γ β}
   snd := (.transliterate ::: f) ⊚ x.snd ⊚ .transliterate
 
 -- TODO: Try to remove one or both of these and replace them with a kind of mapping
+@[inline]
 def transliterate
     : MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β) 
     → MvPFunctor.uLift.{u, max v w} P
         (TypeVec.uLift.{u, max v w} α ::: ULift.{max u w, v} β) := 
   transliterateMap ULift.transliterate
 
+@[inline]
 def liftAppend {β} (x : P (α ::: β))
     : (uLift.{u, v} P) (TypeVec.uLift.{u, v} α ::: ULift.{u, max u v} (ULift β)) :=
   ((TypeVec.id ::: ULift.up) ⊚ .mpr TypeVec.uLift_append1_ULift_uLift)

@@ -131,14 +131,14 @@ theorem _root_.ULift.up_down' {A : Type u} : (ULift.up ∘ ULift.down (α := A))
 theorem _root_.ULift.down_up' {A : Type u} : (ULift.down (α := A) ∘ ULift.up) = id := 
   funext fun v => by simp
 
-@[simp] theorem dest_mk {v : ITree E R} : mk (dest v) = v := by 
+@[simp] theorem dest_mk {v : ITree E R} : mk (dest v) = v := by
   dsimp [mk, dest]
   rw [Base.map_map, ULift.up_down', Function.comp_id, Base.map_id, HpLuM.destE_mkE ]
 @[simp] theorem mk_dest {v : Base E (ITree E R) R} : dest (mk v) = v := by 
   dsimp [mk, dest]
   rw [HpLuM.mkE_destE, Base.map_map, ULift.down_up', Function.comp_id, Base.map_id]
 
-theorem dest.bij : Function.Bijective (dest : ITree E R → _) := 
+theorem dest.bij : Function.Bijective (dest : ITree E R → _) :=
   Function.bijective_iff_has_inverse.mpr ⟨
     mk,
     fun _ => dest_mk,
@@ -148,7 +148,7 @@ theorem dest.inj_eq {a b : ITree E R} : dest a = dest b ↔ a = b where
   mp v := dest.bij.injective v
   mpr v := v ▸ rfl
 
-theorem mk.bij : Function.Bijective (mk : _ → ITree E R) := 
+theorem mk.bij : Function.Bijective (mk : _ → ITree E R) :=
   Function.bijective_iff_has_inverse.mpr ⟨
     dest,
     fun _ => mk_dest,

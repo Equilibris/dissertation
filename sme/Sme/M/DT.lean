@@ -21,7 +21,7 @@ def DTSum : MvPFunctor 2 where
     | .up .true   => !![PUnit, PEmpty]
     | .up .false  => !![PEmpty, PUnit]
 
-instance : EquivP 2 Sum DTSum where
+instance DTSum.eqSum : EquivP 2 Sum DTSum where
   equiv := {
     toFun
       | ⟨.up .true, v⟩ => .inr (v (.fs .fz) .unit)
@@ -41,7 +41,7 @@ instance : EquivP 2 Sum DTSum where
   }
 
 -- TODO: Is this some categorical object
-instance : EquivP 2 Sum DTSum.uLift where
+instance DTSum.uEqSum : EquivP 2 Sum DTSum.uLift where
   equiv := {
     toFun
       | ⟨.up <| .up .true, v⟩ => .inr (v (.fs .fz) (.up .unit))
@@ -99,6 +99,10 @@ def equiv' {α β} : DTSum !![α, β] ≃ α ⊕ β where
     <;> cases h
     <;> simp [cont, recall]
   right_inv := fun | .inl _ | .inr _ => rfl
+
+def lift (α : TypeVec.{max v u} 2) : uLift.{u, v} DTSum α ≃ DTSum α := calc
+  _ ≃ _ := uEqSum.equiv
+  _ ≃ _ := eqSum.equiv.symm
 
 end DTSum
 
@@ -291,13 +295,15 @@ def flat (v : DeepThunk P (α ::: HpLuM P α)) : HpLuM P α :=
     | .inr v => (TypeVec.id ::: .inr) <$$> v.dest)
     (Sum.inl (β := HpLuM P α) v)
 
-def ulift_NatTrans α : uLift.{u, v} (NatTrans P) α ≃ NatTrans (uLift.{u, v} (P)) α where
-  toFun x := comp.mk sorry
-  invFun y := sorry
-  left_inv := sorry
-  right_inv := sorry
+def ulift_NatTrans α : uLift.{u, v} (NatTrans P) α ≃ NatTrans (uLift.{u, v} P) α :=
+  comp.uLift.trans <| comp.equivTarg (fun i α => i.cases' (calc
+    _ ≃ _ := comp.uLift
+    _ ≃ _ := comp.equivTfn DTSum.lift
+    _ ≃ _ := comp.equivTarg fun | .fz, α | .fs .fz, α => by exact prj.uLift
+  ) (fun _ => by exact prj.uLift))
 
-def ULift_down {x : Type u} : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x)
+def ULift_down {x : Type u}
+    : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x)
     → DeepThunk P (α ::: x) :=
   HpLuM.corec fun x => by
     have := (.mp TypeVec.uLift_append1_ULift_uLift ::: id) <$$> x.dest
