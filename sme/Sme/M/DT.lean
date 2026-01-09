@@ -1,10 +1,10 @@
 import Mathlib.Data.QPF.Multivariate.Constructions.Comp
 import Mathlib.Data.QPF.Multivariate.Constructions.Prj
 import Mathlib.Data.QPF.Multivariate.Constructions.Cofix
-import Sme.M.Prj
+import Sme.PFunctor.EquivP
+import Sme.PFunctor.Prj
 import Sme.M.HpLuM
 import Sme.Vec
-import Sme.EquivP
 
 namespace Sme
 
@@ -100,9 +100,17 @@ def equiv' {α β} : DTSum !![α, β] ≃ α ⊕ β where
     <;> simp [cont, recall]
   right_inv := fun | .inl _ | .inr _ => rfl
 
-def lift (α : TypeVec.{max v u} 2) : uLift.{u, v} DTSum α ≃ DTSum α := calc
-  _ ≃ _ := uEqSum.equiv
-  _ ≃ _ := eqSum.equiv.symm
+def lift : NatIso (uLift.{u, v} DTSum) DTSum where
+  equiv := (calc
+    _ ≃ _ := uEqSum.equiv
+    _ ≃ _ := eqSum.equiv.symm)
+  nat' x := by
+    rcases x with ⟨_|_, x⟩
+    <;> refine Sigma.ext (by rfl) <| heq_of_eq ?_
+    <;> funext i h
+    <;> rcases i with (_|_|_|_)
+    <;> rcases h with (_|_)
+    <;> rfl
 
 end DTSum
 

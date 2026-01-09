@@ -1,6 +1,7 @@
 import Sme.ForMathlib.Data.PFunctor.Multivariate.Basic
 import Sme.ForMathlib.Data.TypeVec
-import Sme.EquivP
+import Sme.PFunctor.EquivP
+import Sme.PFunctor.NatIso
 
 namespace MvPFunctor
 open scoped MvFunctor
@@ -130,8 +131,10 @@ theorem mk_get
   ext
   simp [mk, get]
 
-def uLift.{v, u} {α : TypeVec.{max u v} n} {i}
-    : MvPFunctor.uLift.{u, v} (prj i) α ≃ prj i α where
+universe u v
+
+def uLift_eq {α : TypeVec.{max u v} n} {i}
+    : uLift.{u, v} (prj i) α ≃ prj i α where
   toFun v := prj.mk i
     <| v.2 i (cast
       (by simp [MvPFunctor.uLift, TypeVec.uLift, prj])
@@ -162,15 +165,19 @@ def uLift.{v, u} {α : TypeVec.{max u v} n} {i}
     apply ext
     simp [mk, get, TypeVec.comp]
 
-theorem uLift_natural.{u, v}
+theorem uLift_natural
     {i : Fin2 n} {α β : TypeVec.{max u v} n}
     {f : α ⟹ β}
-    {x : MvPFunctor.uLift.{u, v} (prj i) α}
-    : f <$$> uLift x = uLift (f <$$> x) := by
-  dsimp [uLift]
+    {x : uLift.{u, v} (prj i) α}
+    : f <$$> uLift_eq x = uLift_eq (f <$$> x) := by
+  dsimp [uLift_eq]
   ext
   change prj.get _ = prj.get _
   simp [TypeVec.comp]
+
+def uLift {i : Fin2 n} : NatIso (MvPFunctor.uLift.{u, v} (prj i)) (prj i) where
+  equiv := uLift_eq
+  nat' _ := uLift_natural
 
 end MvPFunctor.prj
 

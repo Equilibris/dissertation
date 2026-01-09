@@ -1,6 +1,4 @@
-import Sme.EquivP
 import Sme.M.HpLuM
-/- import Sme.M.DT -/
 
 universe u v
 

@@ -1,7 +1,7 @@
 import Mathlib.Data.Quot
 import Mathlib.Tactic.DepRewrite
 import Sme.ForMathlib.Data.PFunctor.Multivariate.M
-import Sme.M.Utils
+import Sme.PFunctor.Utils
 import Sme.M.PreM
 import Mathlib.Control.Functor.Multivariate
 

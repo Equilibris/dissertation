@@ -1,6 +1,6 @@
 import Sme.ABI
 import Sme.M.SM
-import Sme.M.Utils
+import Sme.PFunctor.Utils
 import Mathlib.Logic.Small.Defs
 
 open scoped MvFunctor

@@ -1,5 +1,5 @@
 import Sme.ForMathlib.Data.PFunctor.Multivariate.M
-import Sme.M.Utils
+import Sme.PFunctor.Utils
 import Mathlib.Control.Functor.Multivariate
 
 open MvFunctor

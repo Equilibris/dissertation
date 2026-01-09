@@ -26,11 +26,33 @@ def uLift (P : MvPFunctor.{u} n) : MvPFunctor.{max u v} n where
 
 variable {P : MvPFunctor.{u} n}
 
-def uLift_down {α : TypeVec.{u} n} (h : (uLift.{u, v} P) (TypeVec.uLift.{u, v} α)) : P α :=
+def uLift_down {α : TypeVec.{u} n} (h : uLift.{u, v} P (TypeVec.uLift.{u, v} α)) : P α :=
   ⟨h.fst.down, h.snd.uLift_arrow⟩
 
-def uLift_up {α : TypeVec.{u} n} (h : P α) : (uLift.{u, v} P) (TypeVec.uLift.{u, v} α) :=
+def uLift_up {α : TypeVec.{u} n} (h : P α) : uLift.{u, v} P (TypeVec.uLift.{u, v} α) :=
   ⟨.up h.fst, h.snd.arrow_uLift⟩
+
+@[simp]
+theorem uLift_up_fst (h : P α) : (uLift_up h).fst = .up h.fst := rfl
+
+@[simp]
+theorem uLift_up_snd (h : P α) : (uLift_up h).snd = h.snd.arrow_uLift := rfl
+
+@[simp]
+theorem uLift_down_fst (h : uLift.{u, v} P (TypeVec.uLift.{u, v} α))
+    : (uLift_down h).fst = h.fst.down := rfl
+
+@[simp]
+theorem uLift_down_snd (h : uLift.{u, v} P (TypeVec.uLift.{u, v} α))
+    : (uLift_down h).snd = h.snd.uLift_arrow := rfl
+
+theorem uLift_down_nat (h : uLift.{u, v} P (TypeVec.uLift.{u, v} α))
+    {β} {f : α ⟹ β}
+    : f <$$> uLift_down h = uLift_down (.arrow_uLift f <$$> h) := rfl
+
+theorem uLift_up_nat (h : P α)
+    {β} {f : α ⟹ β}
+    : .arrow_uLift f <$$> uLift_up h = uLift_up (f <$$> h) := rfl
 
 namespace comp
 
