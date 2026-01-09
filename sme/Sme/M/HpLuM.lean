@@ -527,7 +527,6 @@ def transpNatIso
         TypeVec.appendFun.get_fs, Function.comp_apply]
       rw! [←h.nat']
       simp
-      rfl
 
 end Sme.HpLuM
 

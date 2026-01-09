@@ -28,6 +28,10 @@ theorem symm' : f <$$> natiso.equiv.symm q = natiso.equiv.symm (f <$$> q) := cal
   _ = natiso.equiv.symm (f <$$> natiso.equiv (natiso.equiv.symm q))   := by rw [nat']
   _ = natiso.equiv.symm (f <$$> q)                                    := by simp
 
+def refl : NatIso P P where
+  equiv := .refl _
+  nat' _ := rfl
+
 def symm : NatIso Q P where
   equiv := natiso.equiv.symm
   nat' _ := symm' natiso

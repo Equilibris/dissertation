@@ -137,6 +137,8 @@ end DeepThunk
 
 def DeepThunk {n} (P : MvPFunctor n) := HpLuM (DeepThunk.NatTrans P)
 
+instance {P : MvPFunctor n} : MvFunctor <| DeepThunk P := HpLuM.instMvFunctor
+
 namespace DeepThunk
 
 -- TODO: Change this to use ⊕ instead of DTSum
@@ -255,7 +257,10 @@ def corec {β : Type v}
     ) ∘ gen
 
 theorem inject_corec {x : HpLuM (P.uLift) α} {v : β}
-    : corec (fun _ => inject x.uLift_up) v = x := sorry
+    : corec (fun _ => inject x.uLift_up) v = x := by
+  apply HpLuM.bisim (fun a b => ∃ v, a = corec (fun _ => inject b.uLift_up) v) ⟨_, rfl⟩
+  rintro _ a ⟨w, rfl⟩
+  sorry
 
 def bind {β γ : Type v} {α : TypeVec.{u} n}
     (v : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
@@ -303,31 +308,51 @@ def flat (v : DeepThunk P (α ::: HpLuM P α)) : HpLuM P α :=
     | .inr v => (TypeVec.id ::: .inr) <$$> v.dest)
     (Sum.inl (β := HpLuM P α) v)
 
-def ulift_NatTrans α : uLift.{u, v} (NatTrans P) α ≃ NatTrans (uLift.{u, v} P) α :=
-  comp.uLift.trans <| comp.equivTarg (fun i α => i.cases' (calc
-    _ ≃ _ := comp.uLift
-    _ ≃ _ := comp.equivTfn DTSum.lift
-    _ ≃ _ := comp.equivTarg fun | .fz, α | .fs .fz, α => by exact prj.uLift
-  ) (fun _ => by exact prj.uLift))
+def ulift_NatTrans.args
+    : (i : Fin2 n.succ)
+    → NatIso (uLift.{u, v} <| innerMapper i) (innerMapper i)
+  | .fz => comp.uLift.trans <| comp.niLift DTSum.lift <| fun
+    | .fz => prj.uLift
+    | .fs .fz => prj.uLift
+  | .fs _ => prj.uLift
 
-def ULift_down {x : Type u}
-    : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x)
-    → DeepThunk P (α ::: x) :=
-  HpLuM.corec fun x => by
-    have := (.mp TypeVec.uLift_append1_ULift_uLift ::: id) <$$> x.dest
-    have := comp.get this
-    sorry
-    /- transliterateMap sorry  -/
+def ulift_NatTrans : NatIso (uLift.{u, v} (NatTrans P)) (NatTrans (uLift.{u, v} P)) :=
+  comp.uLift.trans <| comp.niLift .refl ulift_NatTrans.args
 
-instance : MvFunctor <| DeepThunk P := HpLuM.instMvFunctor
+def uLift_up {x : Type u}
+    (v : DeepThunk P (α ::: x))
+    : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x) :=
+  .mpr TypeVec.uLift_append1_ULift_uLift <$$>
+    (HpLuM.transpNatIso ulift_NatTrans <| HpLuM.uLift_up v)
+
+def uLift_down {x : Type u}
+    (v : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x))
+    : DeepThunk P (α ::: x) :=
+  HpLuM.uLift_down <| HpLuM.transpNatIso ulift_NatTrans.symm <|
+    .mp TypeVec.uLift_append1_ULift_uLift <$$> v
+
+@[simp]
+theorem uLift_down_up {x} (v : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x))
+    : uLift_up (uLift_down v) = v := by
+  simp only [Nat.succ_eq_add_one, uLift_up, uLift_down, HpLuM.uLift_up_down]
+  change _ <$$> (HpLuM.transpNatIso _ ((HpLuM.transpNatIso _).equiv.symm _)) = _
+  simp [MvFunctor.map_map]
+
+@[simp]
+theorem uLift_up_down {x} (v : DeepThunk P (α ::: x))
+    : uLift_down (uLift_up v) = v := by
+  simp only [Nat.succ_eq_add_one, uLift_down, uLift_up, TypeVec.mpr_eq_mp, MvFunctor.map_map,
+    TypeVec.mp_mp, TypeVec.mp_rfl, MvFunctor.id_map]
+  change HpLuM.uLift_down ((HpLuM.transpNatIso _).equiv.symm _) = _
+  simp
 
 -- Proof should be very similar to `Combinators.lean:29 / iter_eq`
 theorem corec_eq {β : Type v}
     (gen : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
     {v}
     : corec gen v
-    = flat ((TypeVec.id ::: ULift.up ∘ corec gen ∘ ULift.down) <$$> (gen v)).ULift_down := by
-  apply HpLuM.bisim (fun a b => a = b ∨ 
+    = flat ((TypeVec.id ::: ULift.up ∘ corec gen ∘ ULift.down) <$$> (gen v)).uLift_down := by
+  apply HpLuM.bisim (fun a b => a = b ∨
     ∃ im, a = corec gen im ∧ b = sorry
   )
   · right

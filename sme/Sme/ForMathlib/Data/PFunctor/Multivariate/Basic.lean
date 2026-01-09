@@ -1,5 +1,6 @@
 import Mathlib.Data.PFunctor.Multivariate.Basic
 import Sme.ForMathlib.Data.TypeVec
+import Sme.PFunctor.NatIso
 
 universe u v
 
@@ -85,23 +86,21 @@ theorem get_bij
     comp.get_mk,
   ⟩
 
-def uLift {α : TypeVec.{max u v} m}
-    : (P.comp Q).uLift α
-    ≃ P.uLift.comp (MvPFunctor.uLift ∘ Q) α where
-  toFun v := ⟨
-      ⟨.up v.1.down.1, fun i h => .up <| v.fst.down.snd i h.down⟩,
-      v.2 ⊚ fun _ h => ULift.up ⟨h.1, h.2.1.down, h.2.2.down⟩
-    ⟩
-  invFun v := ⟨
-      ⟨v.1.1.down, fun i h => (v.1.2 i (.up h)).down⟩,
-      v.2 ⊚ fun _ h => ⟨h.down.1, .up h.down.2.1, .up h.down.2.2⟩
-    ⟩
-  left_inv _ := rfl
-  right_inv _ := rfl
-
-theorem uLift_natural {α β : TypeVec.{max u v} m} {x : (P.comp Q).uLift α}
-    (f : α ⟹ β)
-    : f <$$> uLift x = uLift (f <$$> x) := rfl
+def uLift
+    : NatIso (P.comp Q).uLift (P.uLift.comp (MvPFunctor.uLift ∘ Q)) where
+  equiv := {
+    toFun v := ⟨
+        ⟨.up v.1.down.1, fun i h => .up <| v.fst.down.snd i h.down⟩,
+        v.2 ⊚ fun _ h => ULift.up ⟨h.1, h.2.1.down, h.2.2.down⟩
+      ⟩
+    invFun v := ⟨
+        ⟨v.1.1.down, fun i h => (v.1.2 i (.up h)).down⟩,
+        v.2 ⊚ fun _ h => ⟨h.down.1, .up h.down.2.1, .up h.down.2.2⟩
+      ⟩
+    left_inv _ := rfl
+    right_inv _ := rfl
+  }
+  nat' _ := rfl
 
 def equivTfn
     {P' : MvPFunctor.{u} n}
@@ -131,6 +130,22 @@ def equivTarg
         simp
     }
   _ ≃ P.comp Q' α   := equi
+
+def niLift
+    {P' : MvPFunctor.{u} n}
+    {Q' : Fin2 n → MvPFunctor.{u} m}
+    (hP : NatIso P P')
+    (hQ : ∀ i, NatIso (Q i) (Q' i))
+    : NatIso (P.comp Q) (P'.comp Q') where
+  equiv := calc
+    _ ≃ _ := equivTfn (fun α => hP.equiv)
+    _ ≃ _ := equivTarg fun i α => (hQ i).equiv
+  nat' x := by
+    simp only [equivTfn, equi, Equiv.trans_def, equivTarg, Equiv.trans_apply, Equiv.coe_fn_symm_mk,
+      Equiv.coe_fn_mk, get_mk, hP.nat, map_mk, MvFunctor.map_map, get_map]
+    congr 3
+    funext i h
+    simp [(hQ i).nat]
 
 end comp
 

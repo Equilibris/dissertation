@@ -93,6 +93,10 @@ theorem uLift_down_up {α : TypeVec.{u} n}
 theorem transliterate_idempotent
     : transliterate ⊚ transliterate = transliterate (α := α) := rfl
 
+@[simp]
+theorem transliterate_noop
+    : transliterate (α := α) = TypeVec.id := rfl
+
 theorem uLift_arrow_splitFun
     {α : TypeVec n.succ}
     {β : TypeVec n.succ}
@@ -100,6 +104,8 @@ theorem uLift_arrow_splitFun
     (g : α.uLift.last → β.uLift.last)
     : (splitFun f g).uLift_arrow = (splitFun f.uLift_arrow (ULift.down ∘ g ∘ .up)) :=
   funext fun | .fz | .fs _ => rfl
+
+end Arrow
 
 theorem splitFun_comp'
     {α α' β : TypeVec (n + 1)}
@@ -109,13 +115,14 @@ theorem splitFun_comp'
     : h ⊚ TypeVec.splitFun f g = TypeVec.splitFun ((h ·.fs) ⊚ f) (h .fz ∘ g) :=
   funext fun | .fz | .fs _ => rfl
 
-end Arrow
-
 end ULift
 
 @[simp]
+theorem id.get {i} : TypeVec.id (α := α) i = _root_.id := rfl
+
+@[simp]
 theorem comp.get
-  {A B C : TypeVec (n + 1)}
+  {A B C : TypeVec n}
   {b : TypeVec.Arrow B C}
   {a : TypeVec.Arrow A B}
   {i}
@@ -123,7 +130,7 @@ theorem comp.get
 
 @[simp]
 theorem appendFun.get_fz {α β}
-  {A B : TypeVec (n)}
+  {A B : TypeVec n}
   {a : TypeVec.Arrow A B}
   {v : α → β}
   : (a ::: v) .fz = v := rfl
@@ -152,6 +159,37 @@ theorem uLift_down.get
 theorem uLift_up.get
     {α : TypeVec (n + 1)} {i}
     : Arrow.uLift_up (α := α) i = ULift.up := rfl
+
+@[simp]
+theorem mp.get {p : α = β} {i} : Arrow.mp p i = cast (funext_iff.mp p i) := rfl
+@[simp]
+theorem mpr.get {p : α = β} {i} : Arrow.mpr p i = cast (funext_iff.mp p.symm i) := rfl
+
+@[simp]
+theorem mp_rfl :  Arrow.mp  (Eq.refl α) = id := rfl
+@[simp]
+theorem mpr_rfl : Arrow.mpr (Eq.refl α) = id := rfl
+
+@[simp]
+theorem mpr_eq_mp {p : α = β} : .mpr p = Arrow.mp p.symm := rfl
+
+@[simp]
+theorem mp_mp {p : α = β} {q : β = γ} : .mp q ⊚ .mp p = .mp (p.trans q) := by
+  funext i h
+  simp
+
+@[simp]
+theorem mp_mpr {p : α = β} {q : γ = β} : .mpr q ⊚ .mp p = .mp (p.trans q.symm) := by
+  simp
+
+@[simp]
+theorem mpr_mp {p : β = α} {q : β = γ} : .mp q ⊚ .mpr p = .mp (p.symm.trans q) := by
+  simp
+
+@[simp]
+theorem mp_mpr' {p : α = β} : Arrow.mp p ⊚ Arrow.mpr p = TypeVec.id := by simp
+@[simp]
+theorem mpr_mp' {p : α = β} : Arrow.mpr p ⊚ Arrow.mp p = id := by simp
 
 @[simp]
 theorem repeat.get {X} : {n i : _} → TypeVec.repeat n X i = X
