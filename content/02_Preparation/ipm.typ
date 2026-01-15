@@ -15,7 +15,7 @@ but one has a few drawbacks that can be summarised as:
 it has to emit exacly one 'layer' of the final structure.
 The end goal would be to allow it to emit anything from layer 1 to the entire structure.
 One can think of this as taking the most general choice of $beta$.
-The structure that solves this is $bold("PT" P) accent(alpha, macron) beta eq.delta bold("M")_xi bold(P) accent(alpha, macron) (beta plus.circle xi)$.
+The structure that solves this is $bold("PT" P) accent(alpha, macron) beta eq.delta bold("M")_xi bold(P) accent(alpha, macron) (beta plus.o xi)$.
 From here we construct two unique functions, inject and dtcorec:
 
 $ "inject" : { beta } arrow.r bold("M" P) accent(alpha, macron) arrow.r bold("PT" P) accent(alpha, macron) beta 

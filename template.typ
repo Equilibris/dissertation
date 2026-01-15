@@ -18,6 +18,7 @@
   set text(font: "New Computer Modern", lang: "en")
   show math.equation: set text(weight: 400)
   set heading(numbering: "1.1")
+  set math.equation(numbering: "1.1")
   set par(justify: true)
   show: codly-init.with()
   codly(languages: codly-languages)
@@ -36,7 +37,7 @@
   date: none,
   logo: none,
   college: "<Insert college>",
-  course: "Computer Science Tripos, Part III",
+  course: "Computer Science Tripos, Part II",
   body,
 ) = {
   body = common(title: title, author: author, abstract: abstract, acknowledgements: acknowledgements, date : date, logo : logo, college : college, course : course, body)

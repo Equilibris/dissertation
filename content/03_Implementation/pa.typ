@@ -31,7 +31,7 @@ If we do not add the ability to lift $P$,
 the unifier will force $cal(U) = cal(V)$,
 thereby invalidating all the work we did in the previous section.
 Luckily lifting a PFunctor is relatively easy.
-We define it as $"ULift" P eq.delta angle.l "ULift" P.1, lambda x mapsto "ULift" (P.2 x) angle.r$.
+We define it as $"ULift" P eq.delta chevron.l "ULift" P.1, lambda x mapsto "ULift" (P.2 x) chevron.r$.
 This works and now we can move on to our goal
 #footnote([
   TODO: Speak with JV / W to see if this might be done in the lit,
