@@ -64,7 +64,7 @@ variable
     {mv : P (Q · α)}
 
 theorem map_mk {f : α ⟹ β}
-    : f <$$> comp.mk mv = comp.mk ((fun _ v => f <$$> v) <$$> mv) := by
+    : f <$$> comp.mk mv = comp.mk ((fun _ v => f <$$> v) <$$> mv) :=
   rfl
 
 def equi : P (Q · α) ≃ P.comp Q α where
@@ -146,6 +146,19 @@ def niLift
     congr 3
     funext i h
     simp [(hQ i).nat]
+
+theorem get_fst (x : P.comp Q α) : (comp.get x).fst = x.fst.fst := rfl
+theorem mk_fst (x : P (Q · α)) : (comp.mk x).fst = ⟨x.fst, (x.snd · · |>.fst)⟩ := rfl
+theorem get_snd (x : P.comp Q α)
+    : (comp.get x).snd = (fun i a ↦ ⟨x.fst.snd i a, fun j b ↦ x.snd j ⟨i, ⟨a, b⟩⟩⟩) :=
+  rfl
+theorem mk_snd (x : P (Q · α)) 
+    : (comp.mk x).snd = (fun i a ↦ (x.snd a.fst a.snd.fst).snd i a.snd.snd) :=
+  rfl
+
+@[simp]
+theorem B_eq {α i} : (comp P Q).B α i = ((j : Fin2 n) × (b : P.B α.fst j) × (Q j).B (α.snd j b) i) :=
+  rfl
 
 end comp
 

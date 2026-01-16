@@ -18,7 +18,7 @@ def transliterateMap {γ β}
     : MvPFunctor.uLift.{u, w} P
         (TypeVec.uLift.{u, w} α ::: γ) where
   fst := .transliterate x.fst
-  snd := (.transliterate ::: f) ⊚ x.snd ⊚ .transliterate
+  snd := (TypeVec.appendFun .transliterate f) ⊚ x.snd ⊚ .transliterate
 
 @[simp]
 theorem transliterateMap_fst

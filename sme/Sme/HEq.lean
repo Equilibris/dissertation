@@ -29,3 +29,17 @@ theorem dcastFn
   · exact fun _ _ heq => (eq₃ _ _ (HEq.symm heq)).symm
   intro _ _
   exact cast_heq eq v
+
+theorem cast_sigma_congr {α α' : Type u} {β : α → Type u} {γ : α' → Type u} (fst : α) (snd : β fst)
+    (pa : α = α')
+    (pb : β ≍ γ)
+    : cast (by subst pa pb; rfl) (Sigma.mk fst snd)
+    = Sigma.mk (cast pa fst) (cast (by subst pa pb; rfl : β fst = γ (cast pa fst)) snd) := by
+  subst pa pb
+  rfl
+theorem cast_sigma_snd {α : Type _} {β γ : α → Type _} (fst : α) (snd : β fst)
+    {p : β = γ}
+    : cast (congr rfl p) (Sigma.mk fst snd) = Sigma.mk fst (cast (congr p rfl) snd) := by
+  subst p
+  rfl
+

@@ -1,4 +1,5 @@
 import Mathlib.Data.TypeVec
+import Sme.ForMathlib.Data.ULift
 
 universe u v w x
 
@@ -161,6 +162,11 @@ theorem uLift_up.get
     : Arrow.uLift_up (α := α) i = ULift.up := rfl
 
 @[simp]
+theorem transliterate.get
+    {α : TypeVec (n + 1)} {i}
+    : Arrow.transliterate (α := α) i = ULift.transliterate := rfl
+
+@[simp]
 theorem mp.get {p : α = β} {i} : Arrow.mp p i = cast (funext_iff.mp p i) := rfl
 @[simp]
 theorem mpr.get {p : α = β} {i} : Arrow.mpr p i = cast (funext_iff.mp p.symm i) := rfl
@@ -198,5 +204,13 @@ theorem repeat.get {X} : {n i : _} → TypeVec.repeat n X i = X
 
 def repeat_out {X} (f : ∀ i, X → β i) : TypeVec.repeat n X ⟹ β :=
   fun i h => f i (repeat.get.mp h)
+
+@[simp]
+theorem last_eq {α : TypeVec (n + 1)} : TypeVec.last α = α .fz := rfl
+
+attribute [simp] last_append1
+
+@[simp]
+theorem drop_append1_simp {α : TypeVec n} {β : Type _} : (α ::: β).drop = α := rfl
 
 end TypeVec

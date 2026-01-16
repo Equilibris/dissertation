@@ -260,6 +260,7 @@ instance : LawfulMvFunctor (HpLuM P) where
   id_map := id_map
   comp_map := comp_map
 
+@[simp]
 theorem dest_map
     {α β : TypeVec.{u} n} (g : α ⟹ β) (x : HpLuM P α)
     : dest (g <$$> x) = (g ::: (g <$$> ·)) <$$> dest x := by
@@ -392,9 +393,29 @@ theorem map_corec' {γ : Type u} {β : TypeVec n} {f : α ⟹ β}
 def uLift_up : HpLuM P α → HpLuM (MvPFunctor.uLift.{u, v} P) α.uLift :=
   .corec' (.mpr TypeVec.uLift_append1_ULift_uLift <$$> MvPFunctor.uLift_up ·.down.dest)
     ∘ .up
-
 def uLift_down : HpLuM (MvPFunctor.uLift.{u, v} P) α.uLift → HpLuM P α :=
   .corec (transliterateMap ULift.up ·.dest)
+
+@[simp]
+theorem dest_uLift_up (x : HpLuM P α)
+    : (uLift_up x).dest
+    = ((TypeVec.id ::: uLift_up ∘ ULift.down) ⊚ .mpr TypeVec.uLift_append1_ULift_uLift)
+    <$$> MvPFunctor.uLift_up x.dest := by
+  simp [uLift_up, MvFunctor.map_map]
+  rfl
+
+@[simp]
+theorem dest_uLift_down (x : HpLuM (MvPFunctor.uLift.{u, v} P) α.uLift)
+    : (uLift_down x).dest
+    = MvPFunctor.uLift_down
+      ((.mp TypeVec.uLift_append1_ULift_uLift ⊚ (TypeVec.id ::: ULift.up.{v, u} ∘ uLift_down))
+        <$$> x.dest) := by
+  rw [uLift_down, dest_corec, MvPFunctor.uLift_down]
+  refine Sigma.ext rfl <| heq_of_eq ?_
+  simp only [map_fst, transliterateMap_fst, ULift.transliterate_down, map_snd,
+    TypeVec.Arrow.uLift_arrow, uLift_down_snd]
+  funext i h
+  rcases i with (_|i) <;> rfl
 
 -- It seems I've developed the simp theory enough that these just prove lol
 @[simp]
@@ -485,6 +506,16 @@ def transpEquiv
     rintro (_|i) h
     <;> rfl
 
+@[simp]
+theorem dest_transpEquiv
+    {P' : MvPFunctor.{u} (n + 1)}
+    (h : NatIso P P')
+    {α : TypeVec n}
+    {v : HpLuM P α}
+    : (transpEquiv h v).dest = h ((TypeVec.id ::: transpEquiv h) <$$> v.dest) := by
+  simp [transpEquiv, ←h.nat]
+  rfl
+
 end transpNatIso
 
 open transpNatIso in
@@ -527,6 +558,17 @@ def transpNatIso
         TypeVec.appendFun.get_fs, Function.comp_apply]
       rw! [←h.nat']
       simp
+
+open transpNatIso in
+@[simp]
+theorem dest_transpNatIso
+    {P' : MvPFunctor.{u} (n + 1)}
+    (h : NatIso P P')
+    {α : TypeVec n}
+    {v : HpLuM P α}
+    : ((transpNatIso h).equiv v).dest
+    = h ((TypeVec.id ::: (transpNatIso h).equiv) <$$> v.dest) := by
+  simp [transpNatIso, dest_transpEquiv]
 
 end Sme.HpLuM
 
