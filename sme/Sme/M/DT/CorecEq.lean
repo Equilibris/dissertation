@@ -18,6 +18,50 @@ theorem corec_eq {β : Type v}
     : corec gen v
     = flat ((TypeVec.id ::: ULift.up ∘ corec gen ∘ ULift.down) <$$> (gen v)).uLift_down := by
   change HpLuM.corec _ _ = _
+  apply HpLuM.bisim_map (fun a b => a = b ∨
+    ∃ im : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β),
+      a = HpLuM.corec (corec.body gen) im ∧
+      b = flat ((TypeVec.id ::: ULift.up ∘ corec gen ∘ ULift.down) <$$> im).uLift_down
+  )
+  · exact .inr ⟨_, rfl, rfl⟩
+  rintro s _ (rfl|⟨w, rfl, rfl⟩)
+  · simp
+  simp only [Nat.succ_eq_add_one, map_fst, HpLuM.dest_corec, MvQPF.comp_map, dest_flat,
+    TypeVec.last_eq, TypeVec.append1_get_fz, Vec.append1.get_fz]
+  -- lhs
+  rw! [MvFunctor.map_map]
+  rw! [MvFunctor.map_map]
+  rw! [TypeVec.appendFun_comp_splitFun]
+  simp only [MvQPF.comp_map, TypeVec.drop_append1_simp, TypeVec.id_comp, TypeVec.last_eq,
+    TypeVec.append1_get_fz, Function.const_comp]
+  rw! [MvPFunctor.uLift_down_nat]
+  rw! [MvFunctor.map_map]
+  rw! [MvFunctor.map_map]
+  rw! [TypeVec.Arrow.arrow_uLift_appendFun]
+  rw! [TypeVec.comp_assoc, TypeVec.comp_assoc, TypeVec.comp_assoc, ]
+  rw! [←TypeVec.comp_assoc (h := TypeVec.Arrow.mpr _)]
+  rw! [TypeVec.mp_mpr, TypeVec.mp_rfl, TypeVec.id_comp]
+  rw! [TypeVec.appendFun_comp']
+  simp only [TypeVec.Arrow.arrow_uLift_id, TypeVec.comp_id, Function.const_comp,
+    Function.comp_const]
+  -- rhs
+  rw! [dest_uLift_down]
+  rw! [HpLuM.dest_map]
+  rw! [MvFunctor.map_map]
+  rw! [MvFunctor.map_map]
+  rw! [TypeVec.comp_assoc]
+  rw! [TypeVec.appendFun_comp']
+  unfold Function.comp
+  rw! [←ulift_NatTrans.symm.nat']
+  /- rw! [MvPFunctor.uLift_down_nat'] -/
+  rw! [comp.get_map]
+  stop
+  constructor
+  case w =>
+    sorry
+  · intro v
+    sorry
+  stop
   apply HpLuM.bisim (fun a b => a = b ∨
     ∃ im : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β),
       a = HpLuM.corec (corec.body gen) im ∧
@@ -47,6 +91,8 @@ theorem corec_eq {β : Type v}
   simp only [map_fst, true_and]
   rintro (_|i) h
   · change _ ∨ _
+    -- TODO: Do the computation here
+    left
     simp only [TypeVec.Arrow.uLift_arrow, TypeVec.comp.get, TypeVec.append1_get_fz,
       TypeVec.uLift_down.get, TypeVec.mp.get, TypeVec.appendFun.get_fz, TypeVec.uLift_up.get,
       Function.comp_apply, cast_eq]
@@ -73,6 +119,7 @@ theorem corec_eq {β : Type v}
     sorry
 
   · -- it works
+    stop
     change _ = _
     rw! [HpLuM.dest_corec']
     simp only [TypeVec.append1_get_fs, map_fst, flat.body_fst_inl, Nat.succ_eq_add_one,

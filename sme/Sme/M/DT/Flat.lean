@@ -47,5 +47,36 @@ theorem flat.body_fst_inr (v : HpLuM P α)
 theorem flat.body_fst_inl (v : DeepThunk P (α ::: HpLuM P α))
     : (flat.body (.inl v)).fst = (comp.get (HpLuM.dest v)).fst := rfl
 
+@[simp]
+theorem flat.body_inr {v : HpLuM P α} : HpLuM.corec' flat.body (Sum.inr v) = v := by
+  apply HpLuM.bisim_map (fun a b => a = HpLuM.corec' flat.body (Sum.inr b)) rfl
+  rintro _ t rfl
+  simp only [Nat.succ_eq_add_one, map_fst, HpLuM.dest_corec', body]
+  rw! [MvFunctor.map_map, MvFunctor.map_map]
+  simp only [TypeVec.appendFun_comp', TypeVec.comp_id, Function.const_comp, exists_true_left]
+  rw! [HpLuM.dest_corec']
+  simp [body]
+
+@[simp]
+theorem dest_flat (v : DeepThunk P (α ::: HpLuM P α)) : (flat v).dest
+    = TypeVec.splitFun
+        (fun i => by exact (have := prj.get ·; this))
+        (by exact fun v => DTSum.elim (flat ∘ prj.get) prj.get (comp.get v))
+      <$$> comp.get (HpLuM.dest v) := by
+  simp only [flat, Nat.succ_eq_add_one, HpLuM.dest_corec']
+  rw [flat.body]
+  simp only [Nat.succ_eq_add_one, TypeVec.last_eq, TypeVec.append1_get_fz, Vec.append1.get_fz,
+    Vec.append1.get_fs]
+  rw [MvFunctor.map_map, TypeVec.appendFun_comp_splitFun]
+  simp only [TypeVec.drop_append1_simp, TypeVec.id_comp, TypeVec.last_eq, TypeVec.append1_get_fz]
+  congr 2
+  funext v
+  dsimp only [Function.comp_apply]
+  rw [DTSum.elim_comp (f := HpLuM.corec' flat.body)]
+  congr 1
+  funext i
+  dsimp
+  rw [flat.body_inr]
+
 end Sme.DeepThunk
 

@@ -51,9 +51,17 @@ theorem uLift_down_nat (h : uLift.{u, v} P (TypeVec.uLift.{u, v} α))
     {β} {f : α ⟹ β}
     : f <$$> uLift_down h = uLift_down (.arrow_uLift f <$$> h) := rfl
 
+theorem uLift_down_nat' (h : uLift.{u, v} P (TypeVec.uLift.{u, v} α))
+    {β : TypeVec _} {f : α.uLift ⟹ β.uLift}
+    : f.uLift_arrow <$$> uLift_down h = uLift_down (f <$$> h) := rfl
+
 theorem uLift_up_nat (h : P α)
     {β} {f : α ⟹ β}
     : .arrow_uLift f <$$> uLift_up h = uLift_up (f <$$> h) := rfl
+
+theorem uLift_up_nat' (h : P α)
+    {β : TypeVec _} {f : α.uLift ⟹ β.uLift}
+    : f <$$> uLift_up h = uLift_up (f.uLift_arrow <$$> h) := rfl
 
 namespace comp
 

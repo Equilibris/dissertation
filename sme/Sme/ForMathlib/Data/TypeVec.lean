@@ -74,6 +74,21 @@ def arrow_uLift
     : TypeVec.uLift.{u, v} α ⟹ TypeVec.uLift.{w, x} β := 
   uLift_up ⊚ h ⊚ uLift_down
 
+theorem arrow_uLift_appendFun {α' β'} {g : α' → β'}
+    : arrow_uLift (appendFun f g)
+    = .mp TypeVec.uLift_append1_ULift_uLift
+    ⊚ appendFun (arrow_uLift f) (.up ∘ g ∘ ULift.down)
+    ⊚ .mpr TypeVec.uLift_append1_ULift_uLift := funext fun
+  | .fz | .fs _ => rfl
+
+@[simp]
+theorem arrow_uLift_id
+    : arrow_uLift (TypeVec.id (α := α)) = TypeVec.id := rfl
+
+@[simp]
+theorem ulift_arrow_id
+    : uLift_arrow (TypeVec.id (α := α.uLift)) = TypeVec.id := rfl
+
 theorem uLift_up_splitFun {α : TypeVec.{u} n.succ}
     : .uLift_up (α := α) = splitFun uLift_up ULift.up :=
   funext fun | .fz | .fs _ => rfl

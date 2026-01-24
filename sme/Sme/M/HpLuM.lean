@@ -144,6 +144,56 @@ theorem bisim
     x
   ⟩
 
+theorem bisim_map
+    {a b : HpLuM.{u} P α}
+    (R : HpLuM.{u} P α → HpLuM.{u} P α → Prop)
+    (x : R a b)
+    (h : ∀ s t, R s t →
+      ∃ (x : (TypeVec.id ::: Function.const _ PUnit.unit) <$$> s.dest
+        = (TypeVec.id ::: Function.const _ PUnit.unit) <$$> t.dest),
+        ∀ v, R
+          (s.dest.snd .fz v)
+          <| t.dest.snd .fz
+          <| cast (congr (congr rfl (Sigma.ext_iff.mp x).1) rfl) v)
+    : a = b := by
+  apply bisim R x
+  intro s t r
+  have ⟨hf, hl⟩ := h s t r; clear h
+  have fstEq : s.dest.fst = t.dest.fst := (Sigma.ext_iff.mp hf).1
+  have sndEq := (Sigma.ext_iff.mp hf).2
+  dsimp at sndEq
+  use s.dest.fst
+  use s.dest.snd
+  use cast (by rw [fstEq]) t.dest.snd
+  simp only [fstEq, heq_eq_eq, and_self, heq_cast_iff_heq, true_and]
+  rintro (_|i) h
+  · change R _ _
+    rw [castFn]
+    case eq₂ =>
+      intro z
+      rw [fstEq]
+    rw [dcastFn_push_arg]
+    case eq₂ =>
+      rw [fstEq]
+    exact hl h
+  · change _ = _
+    have := sndEq
+    rw [castFn]
+    case eq₂ =>
+      intro z
+      rw [fstEq]
+    rw [dcastFn_push_arg]
+    case eq₂ =>
+      rw [fstEq]
+    have := (hfunext_iff rfl
+        (fun _ _ => by rintro rfl; rw [fstEq])).mpr this i.fs i.fs (.refl _)
+    dsimp at this
+    rw! [←this]
+    rw [dcastFn_push_arg]
+    case eq₂ =>
+      rw [fstEq]
+    simp
+
 end bisim
 
 @[inline]
