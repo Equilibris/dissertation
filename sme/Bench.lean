@@ -73,30 +73,14 @@ def runTests : IO Unit := do
   let s := 10
 
   let sl := (List.range n).map (time ∘ testSl)
-  let hp := (List.range n).map (time ∘ testHp)
-  let big := (List.range n).map (time ∘ testBig)
 
   let runs := fun io => (List.replicate s io).mapM id
 
-  println! "sl runs"
+  println! "slRuns = "
   let res ← runs <| sl.mapM id
   println! res
 
-  println! "hp runs"
-  let res ← runs <| hp.mapM id
-  println! res
-
-  println! "big runs"
-  let res ← runs <| big.mapM id
-  println! res
-
-  return ()
-
-def runTestsHp : IO Unit := do
-  let testHp := fun n _ => do if (QStreamHp.getNth numsHp n) ≠ n then println! "NEQ!";
-  let testBig   := fun n _ => do if (numsBig.getNth n) ≠ n then println! "NEQ!";
-
-  let n := 1000
+  let n := 5000
   let s := 3
 
   let hp := (List.range n).map (time ∘ testHp)
@@ -104,21 +88,46 @@ def runTestsHp : IO Unit := do
 
   let runs := fun io => (List.replicate s io).mapM id
 
-  println! "hp runs"
+  println! "hpRruns = "
   let res ← runs <| hp.mapM id
   println! res
-
-  println! "big runs"
+  
+  println! "bigRuns = "
   let res ← runs <| big.mapM id
   println! res
 
   return ()
 
 
-#time #eval  (QStreamHp.getNth  numsHp  1000000)
-#time #eval  (QStreamBig.getNth numsBig 1000000)
-#time #eval! (QStreamHp.getNth  numsHp  1000000)
-#time #eval! (QStreamBig.getNth numsBig 1000000)
+
+/- def runTestsHp : IO Unit := do -/
+/-   let testHp := fun n _ => do if (QStreamHp.getNth numsHp n) ≠ n then println! "NEQ!"; -/
+/-   let testBig   := fun n _ => do if (numsBig.getNth n) ≠ n then println! "NEQ!"; -/
+/-  -/
+/-   let n := 1000 -/
+/-   let s := 3 -/
+/-  -/
+/-   let hp := (List.range n).map (time ∘ testHp) -/
+/-   let big := (List.range n).map (time ∘ testBig) -/
+/-  -/
+/-   let runs := fun io => (List.replicate s io).mapM id -/
+/-  -/
+/-   println! "hp runs" -/
+/-   let res ← runs <| hp.mapM id -/
+/-   println! res -/
+/-  -/
+/-   println! "big runs" -/
+/-   let res ← runs <| big.mapM id -/
+/-   println! res -/
+/-  -/
+/-   return () -/
+/-  -/
+/-  -/
+/-  -/
+/- #time #eval  (QStreamHp.getNth  numsHp  1000000) -/
+/- #time #eval  (QStreamBig.getNth numsBig 1000000) -/
+/- #time #eval! (QStreamHp.getNth  numsHp  1000000) -/
+/- #time #eval! (QStreamBig.getNth numsBig 1000000) -/
 
 /- #eval runTests -/
 /- #eval runTestsHp -/
