@@ -60,30 +60,43 @@ instance : LawfulFunctor (ITree E) where
 
 end functor
 
+def _root_.PSum.map {α α' β β' : Type _} (f : α → α') (g : β → β') 
+    : α ⊕' β → α' ⊕' β' 
+  | .inl v => .inl (f v)
+  | .inr v => .inr (g v)
+
+@[simp]
+theorem _root_.PSum.map_inl {α α' β β' : Type _} {f : α → α'} {g : β → β'} {v}
+    : PSum.map f g (.inl v) = .inl (f v) := rfl
+@[simp]
+theorem _root_.PSum.map_inr {α α' β β' : Type _} {f : α → α'} {g : β → β'} {v}
+    : PSum.map f g (.inr v) = .inr (g v) := rfl
+
+
 def bind (it : ITree E A) (f : A → ITree E B) : ITree E B :=
   .corec
-    (body ∘ Sum.map ITree.dest ITree.dest)
-    (.inl it : ITree E A ⊕ ITree E B)
+    (body ∘ PSum.map ITree.dest ITree.dest)
+    (.inl it : ITree E A ⊕' ITree E B)
 where
   body
     | .inl (.tau v) => .tau (.inl v)
     | .inr (.tau v) => .tau (.inr v)
-    | .inl (.ret v) => (f v).dest.map Sum.inr id
+    | .inl (.ret v) => (f v).dest.map .inr id
     | .inr (.ret v) => .ret v
-    | .inr (.vis e f) => .vis e (Sum.inr ∘ f)
-    | .inl (.vis e f) => .vis e (Sum.inl ∘ f)
+    | .inr (.vis e f) => .vis e (.inr ∘ f)
+    | .inl (.vis e f) => .vis e (.inl ∘ f)
 
 abbrev subst (f : A → ITree E B) (it : ITree E A) : ITree E B := bind it f
 
 @[simp]
 theorem corec_bind
     {f : A → ITree E B} {r}
-    : corec (bind.body f ∘ Sum.map dest dest) (Sum.inr r) = r := by
+    : corec (bind.body f ∘ PSum.map dest dest) (.inr r) = r := by
   ext
   dsimp [Bisim]
-  simp only [dest_corec, Function.comp_apply, Sum.map_inr]
+  simp only [dest_corec, Function.comp_apply, PSum.map_inr]
   refine ⟨
-    (· = (Base.map (corec (bind.body f ∘ Sum.map dest dest)) id ∘ bind.body f ∘ Sum.inr) ·),
+    (· = (Base.map (corec (bind.body f ∘ PSum.map dest dest)) id ∘ bind.body f ∘ PSum.inr) ·),
     ?_,
     rfl
   ⟩
@@ -97,7 +110,7 @@ theorem corec_bind
 
 @[simp]
 theorem corec_bind' {f : A → ITree E B}
-    : corec (bind.body f ∘ Sum.map dest dest) ∘ Sum.inr  = id := by
+    : corec (bind.body f ∘ PSum.map dest dest) ∘ PSum.inr  = id := by
   funext x
   simp
 
@@ -124,7 +137,7 @@ theorem dest_bind
     {i : ITree E A} {f : A → ITree E B}
     : dest (bind i f)
     = bind_map f i.dest := by
-  simp only [bind, dest_corec, Function.comp_apply, Sum.map_inl, bind_map]
+  simp only [bind, dest_corec, Function.comp_apply, PSum.map_inl, bind_map]
   cases i.dest
   any_goals rfl
   simp [bind.body, Base.map_map]

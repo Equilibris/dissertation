@@ -84,7 +84,10 @@ theorem no_middle (V : Base E _ A)
 
 end Step
 
-/-- EStep (tau (tau (r))) (tau r) -/
+/--
+  A collection of tau's between two values.
+  EStep (tau (tau r)) (tau r)
+-/
 inductive EStep : Base E (ITree E A) A → Base E (ITree E A) A → Type _
   | tau {a b} : EStep a.dest b → EStep (.tau a) b
   | refl a : EStep a a
@@ -191,6 +194,10 @@ theorem toRetStep {v} {a : Base E _ A}
     exact ⟨p⟩
   · cases meet h p
 
+noncomputable def toRetStep' {v} {a : Base E _ A}
+    (h : EStep a (.ret v)) : Step a (.ret v) :=
+  Classical.choice <| toRetStep h
+
 theorem toVisStep {X e k} {a : Base E _ A}
     (h : EStep a (.vis (e : E X) k)) : Nonempty (Step a (.vis e k)) := by 
   rcases Step.no_middle a with (rfl|⟨w,⟨p⟩⟩|⟨_,_,_,⟨p⟩⟩)
@@ -200,6 +207,10 @@ theorem toVisStep {X e k} {a : Base E _ A}
   · cases meet h p
     exact ⟨p⟩
 
+noncomputable def toVisStep' {X e k} {a : Base E _ A}
+    (h : EStep a (.vis (e : E X) k)) : Step a (.vis e k) :=
+  Classical.choice <| toVisStep h
+
 def transp_bind_map
     (f : A → ITree E B) {a b : Base E _ A}
     : EStep a b
@@ -207,9 +218,14 @@ def transp_bind_map
   | .tau h => .tau <| dest_bind ▸ transp_bind_map f h
   | .refl _ => .refl _
 
+def tau' {a : Base E _ A} {b}
+    (h : EStep a (.tau b))
+    : EStep a b.dest :=
+  .trans h <| .tau <| .refl _
+
 end EStep
 
-coinductive WBisim' (E : Type u → Type u) (A : Type (u + 1))
+coinductive WBisim' (E : Type u → Type u) (A : Type v)
     : Base E (ITree E A) A → Base E (ITree E A) A → Prop where
   -- This case only exists for refl spin spin,
   -- in fact it could be this,
@@ -290,11 +306,11 @@ theorem shrink
   · have ha := ha.maxl x.toEStep
     have hb := hb.maxl y.toEStep
     simp at ha hb
-    exact .ret (Classical.choice ha.toRetStep) (Classical.choice hb.toRetStep)
+    exact .ret ha.toRetStep' hb.toRetStep'
   · have ha := ha.maxl x.toEStep
     have hb := hb.maxl y.toEStep
     simp at ha hb
-    exact .vis (Classical.choice ha.toVisStep) (Classical.choice hb.toVisStep) h
+    exact .vis ha.toVisStep' hb.toVisStep' h
 
 end Invariant
 
@@ -430,12 +446,12 @@ theorem ofEStep {a b} : EStep a b → WBisim' E A a b
 
 end WBisim'
 
-def WBisim {E : Type u → Type u} {A : Type (u + 1)} (a b : ITree E A) : Prop :=
+def WBisim {E : Type u → Type u} {A : Type v} (a b : ITree E A) : Prop :=
   WBisim' E A a.dest b.dest
 
 end ITree
 
-infix:100 " ≈ " => ITree.WBisim
+instance : HasEquiv (ITree E A) := ⟨ITree.WBisim⟩
 
 namespace ITree
 
@@ -455,21 +471,51 @@ instance : Equivalence (· ≈ · : ITree E A → _ → _) where
 theorem eqSpin (h : a ≈ spin) : a = spin :=
   dest.inj_eq.mp <| WBisim'.eqSpin h
 
+inductive WBisimAlt : ITree E A → ITree E A → Prop
+  | spin : WBisimAlt spin spin
+  | ret {v a b} : Step a.dest (.ret v) → Step b.dest (.ret v) → WBisimAlt a b
+  | vis {e a' b' a b} :
+      (∀ v, WBisim (a' v) (b' v))
+      → Step a.dest (.vis e a') → Step b.dest (.vis e b')
+      → WBisimAlt a b
 -- TODO:
-@[elab_as_elim]
-theorem cases {motive : ITree E A → ITree E A → Prop}
-    (h : WBisim a b)
-    (hRefl : motive (.tau spin) (.tau spin))
-    (hRet : {v : _} → Step a.dest (.ret v) → Step b.dest (.ret v) → motive a b)
-    (hVis : {V e f g : _}
-      → Step a.dest (.vis e f)
-      → Step b.dest (.vis e g)
-      → (∀ v : V, WBisim (f v) (g v)) → motive a b)
-    : motive a b := by
-  sorry
+
+theorem unfold' {a b : ITree E A} (h : WBisim a b) : WBisimAlt a b := by
+  cases h.unfold
+  case refl c ha hb => 
+    rcases Step.no_middle c with (rfl|⟨_, ⟨h⟩⟩|⟨_,_,_,⟨h⟩⟩)
+    · have ha := ha.spinEq
+      have hb := hb.spinEq
+      rw [←spin.dest_eq] at ha hb
+      cases ITree.dest_eq_iff.mpr ha
+      cases ITree.dest_eq_iff.mpr hb
+      exact .spin
+    · refine .ret (ha.step_comp h) (hb.step_comp h)
+    · refine .vis (fun _ => .refl) (ha.step_comp h) (hb.step_comp h)
+  case ret ha hb => exact .ret ha hb
+  case vis h ha hb => exact .vis h ha hb
+
+/- @[elab_as_elim] -/
+/- theorem cases {a b} {motive : ITree E A → ITree E A → Prop} -/
+/-     (h : WBisim a b) -/
+/-     (taul : ∀ a b, motive a b → motive (.tau a) b) -/
+/-     (taur : ∀ a b, motive a b → motive a (.tau b)) -/
+/-     (hRefl : motive (.tau spin) (.tau spin)) -/
+/-     (hRet : {v : _} → Step a.dest (.ret v) → Step b.dest (.ret v) → motive (.ret v) (.ret v)) -/
+/-     (hVis : {V e f g : _} -/
+/-       → Step a.dest (.vis e f) -/
+/-       → Step b.dest (.vis e g) -/
+/-       → (∀ v : V, WBisim (f v) (g v)) → motive (.vis e f) (.vis e g)) -/
+/-     : motive a b := by -/
+/-   have := h.unfold -/
+/-   cases this -/
+/-   · sorry -/
+/-   · sorry -/
+/-   · sorry -/
 
 theorem tau : .tau a ≈ a := by
-  rw [WBisim, dest_tau]
+  change WBisim' _ _ _ _
+  rw [dest_tau]
   exact WBisim'.tau
 
 @[simp]
@@ -525,7 +571,7 @@ end ITree.WBisim'
 
 namespace ITree.WBisim
 
-variable {A B : Type (u + 1)} {X : Type u}
+variable {A B : Type _} {X : Type u}
 
 variable {a b : ITree E A}
 
@@ -545,7 +591,8 @@ theorem bind_congr_arg
     {X} {k1 : KTree E A X}
     (h : a ≈ b)
     : bind a k1 ≈ bind b k1 := by
-  simp only [WBisim, dest_bind]
+  change WBisim' _ _ _ _
+  simp only [dest_bind]
   refine ⟨
     fun a b => ∃ c d , WBisim' E A c d
         ∧ bind_map k1 c = a
@@ -574,7 +621,8 @@ theorem bind_congr_cont
     {X} {k1 k2 : KTree E A X}
     (h : k1 ≈ₖ k2)
     : bind a k1 ≈ bind a k2 := by
-  simp only [WBisim, dest_bind]
+  change WBisim' _ _ _ _
+  simp only [dest_bind]
   refine ⟨
     fun a b => WBisim' E X a b ∨ ∃ k1 k2 v, k1 ≈ₖ k2
         ∧ bind_map k1 v = a
@@ -616,6 +664,94 @@ theorem iter_bisim {it : A → ITree E (A ⊕ B)} {v}
     : iter it v ≈ (it v).bind (Sum.elim (iter it) ITree.ret) := by
   rw [iter_eq]
   exact bind_congr_cont fun | .inr _ => .refl | .inl _ => tau
+
+instance : Trans (WBisim (E := E) (A := A)) WBisim WBisim := ⟨WBisim.trans⟩
+instance : Trans (WBisim (E := E) (A := A)) Eq WBisim where
+  trans a b := b ▸ a
+instance : Trans Eq (WBisim (E := E) (A := A)) WBisim where
+  trans a b := a ▸ b
+
+theorem iter_congr_cont {it it' : A → ITree E (A ⊕ B)} {v}
+    (h : it ≈ₖ it')
+    : iter it v ≈ iter it' v := by
+  change WBisim' _ _ _ _
+  simp only [iter_eq, dest_bind]
+  refine ⟨
+    fun a b => ∃ k1 k2 : ITree _ _, k1 ≈ k2
+        ∧ (bind_map (Sum.elim (ITree.tau ∘ iter it) ITree.ret) k1.dest) = a
+        ∧ (bind_map (Sum.elim (ITree.tau ∘ iter it') ITree.ret) k2.dest) = b,
+    ?_,
+    ⟨_,_, h _, rfl, rfl⟩
+  ⟩
+  rintro _ _ ⟨k1, k2, h, rfl, rfl⟩
+  cases h.unfold'
+  · simp only [spin.dest_eq, bind_map.tau, spin.bind_eq]
+    exact .refl'
+  · 
+    
+    sorry
+  case vis h h1 h2 =>
+    have h1' := Classical.choice (h1.toEStep.transp_bind_map (Sum.elim (ITree.tau ∘ iter it) ITree.ret)).toVisStep
+    have h2' := Classical.choice (h2.toEStep.transp_bind_map (Sum.elim (ITree.tau ∘ iter it') ITree.ret)).toVisStep
+    refine .vis h1' h2' ?_
+    intro v
+    simp only [Function.comp_apply, dest_bind]
+    refine ⟨_, _, h v, rfl, rfl⟩
+  stop
+  /- apply h.cases -/
+  /- induction h using WBisim.cases -/
+  have := h.unfold
+  generalize k1.dest = x1, k2.dest = x2 at this ⊢
+  rcases this with (⟨h1, h2⟩|⟨h1, h2⟩|_)
+  · sorry
+  · sorry
+  · sorry
+  stop
+  refine ⟨
+    fun a b => WBisim' E _ a b ∨ ∃ V : Type _, ∃ k1 k2 : KTree E V _, ∃ v, k1 ≈ₖ k2
+        ∧ (bind_map (Sum.elim (ITree.tau ∘ iter it) ITree.ret) (k1 v).dest) = a
+        ∧ (bind_map (Sum.elim (ITree.tau ∘ iter it') ITree.ret) (k2 v).dest) = b,
+    ?_,
+    .inr ⟨_,_, _, _, h, rfl, rfl⟩
+  ⟩
+  rintro a b (h|h)
+  · exact match h.unfold with
+    | .refl ha hb => .refl ha hb
+    | .ret ha hb => .ret ha hb
+    | .vis ha hb h => .vis ha hb (.inl <| h ·)
+  rcases h with ⟨V, k1, k2, v, h, rfl, rfl⟩
+  have := h v
+  generalize k1 v = x1, k2 v = x2 at this ⊢
+  rcases this.unfold with (⟨h1, h2⟩|⟨h1, h2⟩|_)
+  · have h1' := h1.transp_bind_map (Sum.elim (ITree.tau ∘ iter k1) ITree.ret)
+    have h2' := h2.transp_bind_map (Sum.elim (ITree.tau ∘ iter k2) ITree.ret)
+    refine .refl h1' <| .trans h2' ?_
+    sorry
+  · stop
+    rename_i v
+    have h1' := h1.toEStep.transp_bind_map (Sum.elim (ITree.tau ∘ iter k1) ITree.ret)
+    have h2' := h2.toEStep.transp_bind_map (Sum.elim (ITree.tau ∘ iter k2) ITree.ret)
+    rcases v with (v|v)
+    <;> simp? at h1' h2'
+    · refine .skip h1'.tau' h2'.tau' ?_
+      clear h1' h2' h1 h2
+      simp only [iter_eq, dest_bind]
+      sorry
+    · exact .ret (Classical.choice h1'.toRetStep) (Classical.choice h2'.toRetStep)
+  · rename_i h h1 h2
+    have h1' := Classical.choice (h1.toEStep.transp_bind_map (Sum.elim (ITree.tau ∘ iter it) ITree.ret)).toVisStep
+    have h2' := Classical.choice (h2.toEStep.transp_bind_map (Sum.elim (ITree.tau ∘ iter it') ITree.ret)).toVisStep
+    refine .vis h1' h2' ?_
+    clear h1' h2' h1 h2
+    intro v
+    right
+    rename_i a' b'
+    change KTree _ _ _ at a' b'
+    simp only [Function.comp_apply, dest_bind]
+    refine ⟨v, a', ?_⟩
+    sorry
+
+-- br2 (br2 a b, br2 c d) = br4 a b c d
 
 end ITree.WBisim
 
