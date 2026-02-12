@@ -161,16 +161,16 @@ coinductive ITree
 #no-codly[
 #text(8pt)[```
 ❯ nix-shell -p cloc --run "cloc . --exclude-dir=.lake"
-      95 text files.
-      87 unique files.
+     100 text files.
+      92 unique files.                              
       14 files ignored.
 
-github.com/AlDanial/cloc v 2.06  T=0.09 s (925.5 files/s, 99584.0 lines/s)
+github.com/AlDanial/cloc v 2.06  T=0.08 s (1110.8 files/s, 124656.0 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Lean                            54           1174            232           5869
-Typst                           20            304            119            994
+Lean                            59           1229            252           6621
+Typst                           20            332            122           1099
 SVG                              1              0              0            171
 JSON                             3              0              0            125
 TeX                              1              4              0             76
@@ -179,7 +179,7 @@ Markdown                         2             27              0             68
 Python                           2             22             18             57
 Nix                              1              2              0             15
 -------------------------------------------------------------------------------
-SUM:                            87           1541            376           7444
+SUM:                            92           1624            399           8301
 -------------------------------------------------------------------------------
 ```]]
 

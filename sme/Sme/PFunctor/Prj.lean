@@ -72,12 +72,6 @@ theorem mk.fn_same
 def get {n : Nat} {α : TypeVec n} {i : Fin2 n} (v : prj i α) : α i := 
   v.snd i (cast fn_same.symm .unit: fn i i)
 
-def succ {n β} {i : Fin2 n} {α : TypeVec n} : prj (.fs i) (α ::: β) ≃ prj i α where
-  toFun := sorry
-  invFun := sorry
-  left_inv := sorry
-  right_inv := sorry
-
 theorem heq_const_of_unique {U T} [Subsingleton U] {u : U} {t : T} : u ≍ t ↔ U = T where
   mp h := type_eq_of_heq h
   mpr := fun h => Subsingleton.helim h u t
@@ -116,7 +110,7 @@ theorem map_mk
     {f : α ⟹ β}
     : f <$$> mk i v = mk i (f i v) := by
   ext
-  simp [mk, MvFunctor.map, prj, map, TypeVec.comp_get]
+  simp [mk, MvFunctor.map, prj, map]
 
 @[simp]
 theorem get_mk
@@ -130,6 +124,12 @@ theorem mk_get
     : prj.mk i (prj.get v) = v := by
   ext
   simp [mk, get]
+
+def succ {n β} {i : Fin2 n} {α : TypeVec n} : prj (.fs i) (α ::: β) ≃ prj i α where
+  toFun v := prj.mk i (show (α ::: β) i.fs from prj.get v)
+  invFun v := prj.mk _ (show α i from prj.get v)
+  left_inv v := by simp
+  right_inv v := by simp
 
 universe u v
 
@@ -173,7 +173,7 @@ theorem uLift_natural
   dsimp [uLift_eq]
   ext
   change prj.get _ = prj.get _
-  simp [TypeVec.comp]
+  simp
 
 def uLift {i : Fin2 n} : NatIso (MvPFunctor.uLift.{u, v} (prj i)) (prj i) where
   equiv := uLift_eq
