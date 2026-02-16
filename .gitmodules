@@ -1,0 +1,3 @@
+[submodule "veir"]
+	path = veir
+	url = https://github.com/Equilibris/veir
