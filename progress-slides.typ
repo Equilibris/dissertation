@@ -193,15 +193,38 @@ SUM:                            92           1624            399           8301
 
 == Futumorphic productivity (extention)
 
-- A futomorphism is a morphism `(c -> f (Free f c)) -> c -> cofix f`.
--
+- A futomorphism is a morphism `(c -> f (Free f c)) -> c -> cofix f`,
+- a terminating function in the futumorphism is exacly a productive one,
+- futomorphisms have a unfold lemma which is very hard to prove.
 
 #v(1fr)
 
 See @fantomorph
 
+== LLVM semantics (extention)
+
+- Tobias Grosser's project VeIR wants formalized semantics,
+- for this they want to use an ITree interpreter,
+- semantics are detailed in @itree-llvm.
+
 == CTree (extention)
 
-CTree
+- Another coinductive datastructe,
+- has visible and silent non-determinisim,
+
+```lean
+coinductive
+    (E B : Type u -> Type u) (R : Type v) :=
+  | ret : R -> ITree E R
+  | step  : ITree E R -> ITree E R
+  | guard : ITree E R -> ITree E R
+  | vis {A : Type u} (e : E A) (k : A -> ITree E R)
+  | br  {A : Type u} (e : B A) (k : A -> ITree E R)
+  | stuck
+```
+
+#v(1fr)
+
+See @ctrees_paper
 
 
