@@ -1,3 +1,4 @@
+/- import Mathlib.Data.QPF.Multivariate.Constructions.Comp -/
 import Sme.PFunctor.EquivP
 import Sme.PFunctor.Prj
 import Sme.M.HpLuM
@@ -92,26 +93,24 @@ theorem dest_uLift_down
     {α : TypeVec.{u} _}
     {x : Type u}
     (v : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x))
-    : (HpLuM.dest (uLift_down v)) 
+    : (HpLuM.dest (uLift_down v))
     = MvPFunctor.uLift_down
       (ulift_NatTrans.symm.equiv
         (TypeVec.Arrow.mp TypeVec.uLift_append1_ULift_uLift <$$>
           (TypeVec.Arrow.mp TypeVec.uLift_append1_ULift_uLift ::: fun x_1 ↦
-              {
-                down :=
-                  ((HpLuM.transpNatIso ulift_NatTrans.symm).equiv
-                      (TypeVec.Arrow.mp TypeVec.uLift_append1_ULift_uLift <$$> x_1)).uLift_down }) <$$>
+              .up <| ((HpLuM.transpNatIso ulift_NatTrans.symm).equiv
+                (TypeVec.Arrow.mp TypeVec.uLift_append1_ULift_uLift <$$> x_1)).uLift_down ) <$$>
             HpLuM.dest v)) := by
   simp only [Nat.succ_eq_add_one, uLift_down, HpLuM.dest_uLift_down, HpLuM.dest_transpNatIso,
-    HpLuM.dest_map, MvQPF.comp_map]
-  rw [MvFunctor.map_map, MvFunctor.map_map, TypeVec.appendFun_comp']
-  simp only [TypeVec.id_comp, MvQPF.comp_map]
+    HpLuM.dest_map, MvFunctor.map_map]
+  rw [TypeVec.appendFun_comp']
+  simp only [TypeVec.id_comp, ←MvFunctor.map_map]
   rw [ulift_NatTrans.symm_nat, ulift_NatTrans.symm_nat,
     MvFunctor.map_map, MvFunctor.map_map,
     TypeVec.comp_assoc, TypeVec.appendFun_comp']
-  simp only [Nat.succ_eq_add_one, TypeVec.id_comp, MvQPF.comp_map]
+  simp only [Nat.succ_eq_add_one, TypeVec.id_comp]
   unfold Function.comp
-  simp
+  simp [MvFunctor.map_map]
 
 end Sme.DeepThunk
 

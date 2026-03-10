@@ -131,6 +131,14 @@ theorem splitFun_comp'
     : h ⊚ TypeVec.splitFun f g = TypeVec.splitFun ((h ·.fs) ⊚ f) (h .fz ∘ g) :=
   funext fun | .fz | .fs _ => rfl
 
+theorem comp_splitFun'
+    {α α' β : TypeVec (n + 1)}
+    (f : α.drop ⟹ α'.drop)
+    (g : α.last → α'.last)
+    (h : β ⟹ α)
+    : TypeVec.splitFun f g ⊚ h = TypeVec.splitFun (f ⊚ (h ·.fs)) (g ∘ h .fz ) :=
+  funext fun | .fz | .fs _ => rfl
+
 end ULift
 
 @[simp]
@@ -180,6 +188,20 @@ theorem uLift_up.get
 theorem transliterate.get
     {α : TypeVec (n + 1)} {i}
     : Arrow.transliterate (α := α) i = ULift.transliterate := rfl
+
+@[simp]
+theorem appendFun_splitFun {β β' : Type*} (f : α ⟹ α') (g : β → β')
+    : splitFun (α := append1 α β) (α' := append1 α' β') f g = appendFun f g  := rfl
+
+theorem appendFun_splitFun' {α α' : TypeVec (n + 1)} (f : α.drop ⟹ α'.drop) (g : α.last → α'.last)
+    : splitFun f g = cast (congr (congr rfl (append1_drop_last _)) (append1_drop_last _))
+        (appendFun f g) :=
+  Eq.symm <| cast_eq_iff_heq.mpr <| Function.hfunext rfl <| by
+  rintro (_|_) _ rfl
+  <;> simp
+
+@[simp]
+theorem id_eq : (fun x ↦ _root_.id) = TypeVec.id (α := α) := rfl
 
 @[simp]
 theorem mp.get {p : α = β} {i} : Arrow.mp p i = cast (funext_iff.mp p i) := rfl

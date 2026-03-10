@@ -1,6 +1,3 @@
-import Mathlib.Data.QPF.Multivariate.Constructions.Comp
-import Mathlib.Data.QPF.Multivariate.Constructions.Prj
-import Mathlib.Data.QPF.Multivariate.Constructions.Cofix
 import Sme.PFunctor.EquivP
 import Sme.PFunctor.Prj
 import Sme.M.HpLuM
@@ -21,6 +18,16 @@ namespace DeepThunk
 abbrev innerMapper {n} : Vec (MvPFunctor n.succ) n
   | .fz => .comp DTSum !![.prj <| .fs .fz, .prj .fz]
   | .fs n => .prj (n.add 2)
+
+@[simp]
+theorem innerMapper_fz
+    : innerMapper (n := n.succ) Fin2.fz
+    = .comp DTSum !![.prj <| .fs .fz, .prj .fz] := rfl
+
+@[simp]
+theorem innerMapper_fs {i : Fin2 n}
+    : innerMapper (.fs i)
+    = .prj (i.add 2) := rfl
 
 abbrev innerMapperC {n} : Vec (CurriedTypeFun n.succ) n
   | .fz => .comp (show CurriedTypeFun 2 from Sum) !![.prj <| .fs .fz, .prj .fz]

@@ -1,6 +1,3 @@
-import Mathlib.Data.QPF.Multivariate.Constructions.Comp
-import Mathlib.Data.QPF.Multivariate.Constructions.Prj
-import Mathlib.Data.QPF.Multivariate.Constructions.Cofix
 import Sme.PFunctor.EquivP
 import Sme.PFunctor.Prj
 import Sme.M.DT.CorecEq

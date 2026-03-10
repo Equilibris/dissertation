@@ -344,7 +344,7 @@ theorem corec_roll
 theorem ext_dest {α : TypeVec n} {x y : HpLuM P α} (h : x.dest = y.dest) : x = y := by
   rw [← dest_mk (v := x), h, dest_mk]
 
-@[ext 0]
+/- @[ext 0] -/
 theorem ext_mk {α : TypeVec n}
     {x y : P (α ::: HpLuM P α)}
     (h : mk x = mk y)
@@ -397,7 +397,7 @@ theorem mkE_destE
 theorem ext_destE {α : TypeVec n} {x y : HpLuM P α} (h : x.destE = y.destE) : x = y := by
   rw [← destE_mkE (v := x), h, destE_mkE]
 
-@[ext 0]
+/- @[ext 0] -/
 theorem ext_mkE {α : TypeVec n} {x y : F.app (α ::: HpLuM P α)} (h : mkE x = mkE y) : x = y := by
   rw [← mkE_destE (v := x), h, mkE_destE]
 

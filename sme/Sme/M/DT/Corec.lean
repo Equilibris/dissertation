@@ -1,6 +1,3 @@
-import Mathlib.Data.QPF.Multivariate.Constructions.Comp
-import Mathlib.Data.QPF.Multivariate.Constructions.Prj
-import Mathlib.Data.QPF.Multivariate.Constructions.Cofix
 import Sme.PFunctor.EquivP
 import Sme.PFunctor.Prj
 import Sme.M.HpLuM
@@ -69,6 +66,19 @@ theorem corec.body_snd {β : Type v}
 /-   dsimp [corec.body] -/
 /-   stop -/
 /-   rfl -/
+
+def corec' {β : Type u}
+    (gen : β → DeepThunk P (α ::: β))
+    : β → HpLuM P α :=
+  .corec' body ∘ gen
+where
+  body v : P (α ::: DeepThunk P (α ::: β)) := by
+    refine TypeVec.splitFun
+      (fun i h => ?_)
+      (fun h => ?_) <$$> comp.get v.dest
+    · have := prj.get h
+      exact this
+    exact DTSum.elim prj.get (gen <| prj.get ·) <| MvPFunctor.comp.get h
 
 end Sme.DeepThunk
 

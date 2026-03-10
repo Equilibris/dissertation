@@ -12,6 +12,26 @@ universe u v w
 variable {β : Type u} {n : Nat}
   {P : MvPFunctor n.succ} {α : TypeVec n}
 
+
+/- theorem h2 {Q : Vec _ _} {α : TypeVec n} -/
+/-     {i : Fin2 n} {x : (comp P Q).uLift <| TypeVec.uLift α} -/
+/-     : comp.get (MvPFunctor.uLift_down x) = MvPFunctor.uLift_down sorry := by  -/
+/-   dsimp [comp.get, MvPFunctor.uLift_down ] -/
+/-   change MvPFunctor.uLift_down _ = _ -/
+/-   sorry -/
+
+theorem helper {α} {x : (NatTrans (uLift.{u, v} P)) (TypeVec.uLift α)}
+    : comp.get (MvPFunctor.uLift_down (ulift_NatTrans.symm.equiv x)) = sorry := by
+  /- dsimp [MvPFunctor.uLift_down] -/
+  have := comp.get x
+  dsimp [NatTrans, innerMapper] at x
+  have := comp.niLift .refl (fun i => (ulift_NatTrans.args.{u,v} i).symm) x
+  have := MvPFunctor.uLift_down <| comp.uLift.symm this
+  dsimp [MvPFunctor.uLift_down, comp.get, ulift_NatTrans.args ]
+  sorry
+
+/- #exit -/
+
 theorem corec_eq {β : Type v}
     (gen : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
     {v}
@@ -29,6 +49,13 @@ theorem corec_eq {β : Type v}
   simp only [Nat.succ_eq_add_one, map_fst, HpLuM.dest_corec, MvQPF.comp_map, dest_flat,
     TypeVec.last_eq, TypeVec.append1_get_fz, Vec.append1.get_fz]
   -- lhs
+  constructor
+  · sorry
+  · rw [MvFunctor.map_map, MvFunctor.map_map]
+    rw [TypeVec.]
+    rw []
+    sorry
+  stop
   rw! [MvFunctor.map_map]
   rw! [MvFunctor.map_map]
   rw! [TypeVec.appendFun_comp_splitFun]
@@ -52,8 +79,10 @@ theorem corec_eq {β : Type v}
   rw! [TypeVec.comp_assoc]
   rw! [TypeVec.appendFun_comp']
   unfold Function.comp
+  /- rw! [helper] -/
   rw! [←ulift_NatTrans.symm.nat']
-  /- rw! [MvPFunctor.uLift_down_nat'] -/
+  stop
+  rw! [←MvPFunctor.uLift_down_nat']
   rw! [comp.get_map]
   stop
   constructor

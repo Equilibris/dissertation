@@ -171,5 +171,9 @@ def lift : NatIso (uLift.{u, v} DTSum) DTSum where
     <;> rcases h with (_|_)
     <;> rfl
 
+theorem cases' {α} (v : DTSum α) : (∃ x, v = cont x) ∨ (∃ x, v = recall x) := by
+  induction v using cases
+  <;> simp
+
 end Sme.DTSum
 
