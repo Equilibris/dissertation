@@ -175,5 +175,55 @@ theorem cases' {α} (v : DTSum α) : (∃ x, v = cont x) ∨ (∃ x, v = recall 
   induction v using cases
   <;> simp
 
+@[simp]
+theorem noconf {α : TypeVec 2} {x : α .fz} {y : α <| .fs .fz} : (recall y = cont x) = False := by
+  simp only [recall, cont, eq_iff_iff, iff_false]
+  intro x
+  have := (Sigma.ext_iff.mp x).left
+  cases this
+
+@[simp]
+theorem noconf' {α : TypeVec 2} {x : α .fz} {y : α <| .fs .fz} : (cont x = recall y) = False := by
+  simp only [eq_iff_iff, iff_false]
+  intro h
+  exact noconf.mp h.symm
+
+@[simp]
+theorem not_ex_cont {α β}
+    (v : DTSum !![α, β]) : (¬∃ x : β, v = cont x) = (∃ x : α, v = recall x) := propext {
+  mp := by
+    rcases cases' v with (⟨x, rfl⟩|⟨x,rfl⟩) <;> simp
+  mpr := by
+    rintro ⟨x, rfl⟩
+    simp
+}
+@[simp]
+theorem not_ex_recall
+    (v : DTSum !![α, β]) : (¬∃ x : α, v = recall x) = (∃ x : β, v = cont x) := propext {
+  mp := by
+    rcases cases' v with (⟨x, rfl⟩|⟨x,rfl⟩) <;> simp
+  mpr := by
+    rintro ⟨x, rfl⟩
+    simp
+}
+
+theorem cont.inj {α} : Function.Injective (DTSum.cont (α := α)) := fun _ _ h =>
+  funext_iff.mp (funext_iff.mp (eq_of_heq (Sigma.ext_iff.mp h).right) .fz) .unit
+
+theorem recall.inj {α} : Function.Injective (DTSum.recall (α := α)) := fun _ _ h =>
+  funext_iff.mp (funext_iff.mp (eq_of_heq (Sigma.ext_iff.mp h).right) Fin2.fz.fs) .unit
+
+@[simp]
+theorem recall.inj_iff {α a b} : (recall (α := α) a = recall b) = (a = b) := propext {
+  mp h := recall.inj h
+  mpr h := h ▸ rfl
+}
+
+@[simp]
+theorem cont.inj_iff {α a b} : (cont (α := α) a = cont b) = (a = b) := propext {
+  mp h := cont.inj h
+  mpr h := h ▸ rfl
+}
+
 end Sme.DTSum
 
