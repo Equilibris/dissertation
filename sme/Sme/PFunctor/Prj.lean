@@ -126,11 +126,13 @@ theorem mk.bij : Function.Bijective (prj.mk (α := α) i) :=
 theorem get.bij : Function.Bijective (prj.get (α := α) (i := i)) :=
   Function.bijective_iff_has_inverse.mpr ⟨prj.mk i, fun _ => mk_get, fun _ => get_mk⟩
 
+@[simp]
 theorem mk.bij_iff : (prj.mk i u = prj.mk i v) = (u = v) := propext {
   mp h := mk.bij.injective h
   mpr h := h ▸ rfl
 }
 
+@[simp]
 theorem get.bij_iff : (prj.get (i := i) x = prj.get y) = (x = y) := propext {
   mp h := get.bij.injective h
   mpr h := h ▸ rfl
