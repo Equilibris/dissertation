@@ -45,7 +45,7 @@ See @nlab:polynomial_functor and @atfp
 - Have a corecursion principle rather than an recursion principle,
   - instead of `rec : (f a -> a) -> fix f -> a`,
   - we have `corec : (a -> f a) -> a -> cofix f`.
-- On our examples and their correspondencens,
+- On our examples and their correspondences,
   - `cofix NatF`, natural numbers union infinity,
   - `cofix ListF(A)`, lists of `A`s with arbitrary length union streams of `A`,
   - `cofix StreamF(A)`, infinite streams of `A`s.
@@ -54,7 +54,7 @@ See @nlab:polynomial_functor and @atfp
 
 See @avigad_et_al
 
-== Perfomance of coinductives (core)
+== Performance of coinductives (core)
 
 - Previous work has demonstrated implementation of coinductives.
 - Computational behaviour was not a concern.
@@ -64,17 +64,17 @@ See @avigad_et_al
     "./data/plot.png",
     height: 160pt
   ),
-  caption: "Perfomance of the old, new, and a perfect implementation"
+  caption: "Performance of the old, new, and a perfect implementation"
 )
 
-== ABI Type (extention)
+== ABI Type (extension)
 
 #columns(2)[
 - Given $alpha:"Type"_cal(U)$, $beta:"Type"_cal(V)$ and $"eq" : alpha tilde.eq beta$.
 - Univalence gives uniqueness.
 - Adds a form of "weak-univalence".
 - Allows for a zero cost universe transliteration.
-- Symetric form of `Shrink`.
+- Symmetric form of `Shrink`.
 
 #v(1fr)
 
@@ -138,7 +138,7 @@ See @avigad_et_al
 )
 ]
 
-== Interaction Trees (extention)
+== Interaction Trees (extension)
 
 - Free monad with non-termination as an effect.
 
@@ -153,7 +153,7 @@ coinductive ITree
 - $"ITerm" E$ forms a monad,
   - With a method $"trigger" : E V → "ITree" E" "V$,
   - and $"iter" : (A -> "ITree" E (A + B)) -> A -> "ITree" E" "B$.
-- And an equivelence relation $A approx B$,
+- And an equivalence relation $A approx B$,
   - satisfying $A approx B <-> #raw("tau") A approx B$.
 
 == Project statistics
@@ -181,9 +181,21 @@ Nix                              1              2              0             15
 -------------------------------------------------------------------------------
 SUM:                            92           1624            399           8301
 -------------------------------------------------------------------------------
-```]]
+```]
+]
 
 (excluding mathlib PRs)
+
+== Conclusion
+
+- Lean now has usable coinductive datastructures,
+  - core completed,
+  - success criteria met.
+- Lean now has an ITree implementation.
+- Further work is being done on topics such as:
+  - LLVM (VeIR) semantics,
+  - productivity,
+  - and CTrees.
 
 == Bibliography
 
@@ -191,26 +203,26 @@ SUM:                            92           1624            399           8301
 
 = Further work
 
-== Futumorphic productivity (extention)
+== Futumorphic productivity (extension)
 
-- A futomorphism is a morphism `(c -> f (Free f c)) -> c -> cofix f`,
-- a terminating function in the futumorphism is exacly a productive one,
-- futomorphisms have a unfold lemma which is very hard to prove.
+- A futumorphism is a morphism `(c -> f (Free f c)) -> c -> cofix f`,
+- a terminating function in the futumorphism is exactly a productive one,
+- futumorphisms have a unfold lemma which is very hard to prove.
 
 #v(1fr)
 
 See @fantomorph
 
-== LLVM semantics (extention)
+== LLVM semantics (extension)
 
-- Tobias Grosser's project VeIR wants formalized semantics,
+- Tobias Grosser's project VeIR wants formalised semantics,
 - for this they want to use an ITree interpreter,
 - semantics are detailed in @itree-llvm.
 
-== CTree (extention)
+== CTree (extension)
 
 - Another coinductive datastructe,
-- has visible and silent non-determinisim,
+- has visible and silent non-determinism,
 
 ```lean
 coinductive
