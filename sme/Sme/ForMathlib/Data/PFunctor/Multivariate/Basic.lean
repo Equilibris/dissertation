@@ -9,7 +9,7 @@ namespace MvPFunctor
 open MvFunctor (LiftP LiftR)
 open scoped MvFunctor
 
-variable {n m : ℕ} {P : MvPFunctor.{u} n} {α : TypeVec n} {β : TypeVec n} {arr : α ⟹ β} {z : P α}
+variable {n m : ℕ} {P : MvPFunctor n} {α : TypeVec n} {β : TypeVec n} {arr : α ⟹ β} {z : P α}
 
 @[simp]
 theorem map_fst : (arr <$$> z).fst = z.fst := rfl
@@ -27,9 +27,11 @@ def uLift (P : MvPFunctor.{u} n) : MvPFunctor.{max u v} n where
 
 variable {P : MvPFunctor.{u} n}
 
+@[pp_with_univ]
 def uLift_down {α : TypeVec.{u} n} (h : uLift.{u, v} P (TypeVec.uLift.{u, v} α)) : P α :=
   ⟨h.fst.down, h.snd.uLift_arrow⟩
 
+@[pp_with_univ]
 def uLift_up {α : TypeVec.{u} n} (h : P α) : uLift.{u, v} P (TypeVec.uLift.{u, v} α) :=
   ⟨.up h.fst, h.snd.arrow_uLift⟩
 
@@ -62,6 +64,32 @@ theorem uLift_up_nat (h : P α)
 theorem uLift_up_nat' (h : P α)
     {β : TypeVec _} {f : α.uLift ⟹ β.uLift}
     : f <$$> uLift_up h = uLift_up (f.uLift_arrow <$$> h) := rfl
+
+@[simp]
+theorem uLift_up_down_eq
+    {x : (uLift.{u, v} P) (TypeVec.uLift.{u, v} α)}
+    : uLift_up (uLift_down x) = x := rfl
+
+@[simp]
+theorem uLift_down_up_eq {y : P α}
+    : uLift_down (uLift_up y) = y := rfl
+
+theorem uLift_down_eq_iff
+    {α : TypeVec.{u} n}
+    {x : uLift.{u, v} P (TypeVec.uLift.{u, v} α)}
+    {y}
+    : (uLift_down x = y) = (x = uLift_up y) := by
+  ext
+  constructor
+  <;> rintro rfl
+  · exact Eq.symm uLift_up_down_eq
+  · exact uLift_down_up_eq
+
+theorem uLift_up_bij : Function.Bijective (uLift_up (P := P) (α := α)) := 
+    Function.bijective_iff_has_inverse.mpr ⟨uLift_down, fun _ => rfl, fun _ => rfl⟩
+
+theorem uLift_down_bij : Function.Bijective (uLift_down (P := P) (α := α)) := 
+    Function.bijective_iff_has_inverse.mpr ⟨uLift_up, fun _ => rfl, fun _ => rfl⟩
 
 namespace comp
 
@@ -109,6 +137,22 @@ def uLift
     right_inv _ := rfl
   }
   nat' _ := rfl
+
+theorem uLift_push_get
+    {x : P.comp Q α}
+    : MvPFunctor.uLift_up (comp.get x)
+    = (fun _ h => .up (MvPFunctor.uLift_down h))
+    <$$> (comp.get (uLift.equiv (MvPFunctor.uLift_up.{u, v} x))) :=
+  rfl
+
+theorem uLift_pull_get
+    {x : (MvPFunctor.uLift.{u, v} (P.comp Q)) (TypeVec.uLift.{u, v} α)}
+    : comp.get (MvPFunctor.uLift_down x)
+    = MvPFunctor.uLift_down
+      ((fun i h => ULift.up (MvPFunctor.uLift_down h : Q i α))
+        <$$> comp.get (uLift.equiv x))
+    :=
+  rfl
 
 def equivTfn
     {P' : MvPFunctor.{u} n}
@@ -163,6 +207,12 @@ theorem get_snd (x : P.comp Q α)
 theorem mk_snd (x : P (Q · α)) 
     : (comp.mk x).snd = (fun i a ↦ (x.snd a.fst a.snd.fst).snd i a.snd.snd) :=
   rfl
+
+@[ext]
+theorem get_ext {x y : P.comp Q α} : comp.get x = comp.get y → x = y := by
+  intro h
+  have := mk_bij.injective.eq_iff.mpr h
+  rwa [mk_get, mk_get] at this
 
 @[simp]
 theorem B_eq {α i} : (comp P Q).B α i = ((j : Fin2 n) × (b : P.B α.fst j) × (Q j).B (α.snd j b) i) :=

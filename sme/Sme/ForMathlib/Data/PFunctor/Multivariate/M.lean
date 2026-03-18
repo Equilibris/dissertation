@@ -128,7 +128,7 @@ theorem M.dest_corecU_gen_fn {α : TypeVec n} {β : Type u} (g : β → P (α.ap
       intro a b heq
       change ULift.down _ ≍ ULift.down _
       congr!
-      dsimp
+      dsimp only [Function.comp_apply, append1_get_fs]
       apply congr_heq
       case h₂ => congr!
       apply dcongr_heq (heq_of_eq rfl)

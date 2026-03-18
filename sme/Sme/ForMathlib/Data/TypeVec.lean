@@ -190,6 +190,20 @@ theorem transliterate.get
     : Arrow.transliterate (α := α) i = ULift.transliterate := rfl
 
 @[simp]
+theorem uLift_arrow.get
+    {α β : TypeVec n}
+    (h : TypeVec.uLift.{u, v} α ⟹ TypeVec.uLift.{w, x} β)
+    {i : Fin2 _}
+    : h.uLift_arrow i = ULift.down ∘ h i ∘ .up := rfl
+
+@[simp]
+theorem arrow_uLift.get
+    {α β : TypeVec n}
+    (h : α ⟹ β)
+    {i : Fin2 _}
+    : h.arrow_uLift i = .up ∘ h i ∘ ULift.down := rfl
+
+@[simp]
 theorem appendFun_splitFun {β β' : Type*} (f : α ⟹ α') (g : β → β')
     : splitFun (α := append1 α β) (α' := append1 α' β') f g = appendFun f g  := rfl
 
