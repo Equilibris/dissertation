@@ -104,28 +104,43 @@ theorem eta
   apply congr rfl
     <| eq_cast_iff_heq.mpr (heq_const_of_unique.mpr fn_same.symm).symm
 
+variable {n : Nat} {α β : TypeVec n} {i : Fin2 n} {u v : α i} {x y : prj i α} {f : α ⟹ β}
+
 @[simp]
-theorem map_mk
-    {n : Nat} {α β : TypeVec n} {i : Fin2 n} {v : α i}
-    {f : α ⟹ β}
-    : f <$$> mk i v = mk i (f i v) := by
+theorem map_mk : f <$$> mk i v = mk i (f i v) := by
   ext
   simp [mk, MvFunctor.map, prj, map]
 
 @[simp]
-theorem get_mk
-    {n : Nat} {α : TypeVec n} {i : Fin2 n} {v : α i}
-    : prj.get (prj.mk i v) = v := by
+theorem get_mk : prj.get (prj.mk i v) = v := by
   simp [mk, get]
 
 @[simp]
-theorem mk_get
-    {n : Nat} {α : TypeVec n} {i : Fin2 n} {v : prj i α}
-    : prj.mk i (prj.get v) = v := by
+theorem mk_get : prj.mk i (prj.get x) = x := by
   ext
   simp [mk, get]
 
-def succ {n β} {i : Fin2 n} {α : TypeVec n} : prj (.fs i) (α ::: β) ≃ prj i α where
+theorem mk.bij : Function.Bijective (prj.mk (α := α) i) :=
+  Function.bijective_iff_has_inverse.mpr ⟨prj.get, fun _ => get_mk, fun _ => mk_get⟩
+
+theorem get.bij : Function.Bijective (prj.get (α := α) (i := i)) :=
+  Function.bijective_iff_has_inverse.mpr ⟨prj.mk i, fun _ => mk_get, fun _ => get_mk⟩
+
+theorem mk.bij_iff : (prj.mk i u = prj.mk i v) = (u = v) := propext {
+  mp h := mk.bij.injective h
+  mpr h := h ▸ rfl
+}
+
+theorem get.bij_iff : (prj.get (i := i) x = prj.get y) = (x = y) := propext {
+  mp h := get.bij.injective h
+  mpr h := h ▸ rfl
+}
+
+@[simp]
+theorem get_map : prj.get (f <$$> x) = f i (prj.get x) := by
+  rw [←mk_get (x := x), map_mk, get_mk, mk_get]
+
+def succ {β} : prj (.fs i) (α ::: β) ≃ prj i α where
   toFun v := prj.mk i (show (α ::: β) i.fs from prj.get v)
   invFun v := prj.mk _ (show α i from prj.get v)
   left_inv v := by simp
