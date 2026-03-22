@@ -144,6 +144,19 @@ theorem elim_comp {α : TypeVec _} {β γ} {f : β → γ} (l : α .fz → β) (
   · simp
   · simp
 
+def cocont {α} (v : DTSum α) (h : ∀ k, ¬v = recall k) : α .fz :=
+  eqCases v (fun x _ => x) (fun _ h' => False.elim (h _ h'))
+
+def corecall {α} (v : DTSum α) (h : ∀ k, ¬v = cont k) : α (.fs .fz) :=
+  eqCases v (fun _ h' => False.elim (h _ h')) (fun x _ => x)
+
+@[simp]
+theorem cocont_cont {α} (z : α .fz) (h : ∀ k, ¬cont z = recall k)
+    : cocont (α := α) (cont z) h = z := rfl
+@[simp]
+theorem corecall_recall {α} (z : α (.fs .fz)) (h : ∀ k, ¬recall z = cont k)
+    : corecall (α := α) (recall z) h = z := rfl
+
 def equiv {α : TypeVec 2} : DTSum α ≃ (α <| .fs .fz) ⊕ (α <| .fz) where
   toFun := fun
     | ⟨.up .true,  v⟩ => .inl (v (.fs .fz) .unit)

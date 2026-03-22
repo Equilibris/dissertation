@@ -36,8 +36,7 @@ private theorem getNext.helper {y} (h : x = y) z
 
 def getNext (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fin2.fz)
     : DeepThunk P (α ::: β) :=
-  DTSum.eqCases (comp.get ((comp.get (HpLuM.dest x)).snd .fz v))
-    (fun x _ => prj.get x)
+  prj.get <| DTSum.cocont (comp.get ((comp.get (HpLuM.dest x)).snd .fz v))
     fun x h' => False.elim <| by
       have h := getNext.helper _ hC (cast (by rw [HpLuM.dest_map, comp.get_map]; rfl) v)
       simp only [Nat.succ_eq_add_one, cast_cast] at h -- Removing this line crashes my computer
@@ -63,30 +62,37 @@ theorem getNext_eq (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fin2.f
       simp only [Nat.succ_eq_add_one, getNext, Vec.append1.get_fz, Vec.append1.get_fs,
         DTSum.cont.inj_iff]
       rw! [h]
-      simp [DTSum.eqCases])
+      simp)
     (fun _ h => by
       rw! [getNext, h]
-      dsimp [DTSum.eqCases]
       generalize_proofs p
-      exact p.elim)
+      exact (p _ rfl).elim)
 
-def getNext_closed (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fin2.fz)
-    : Closed (getNext x hC v) := by
-  have h := getNext.helper _ hC (cast (by rw [HpLuM.dest_map, comp.get_map]; rfl) v)
-  simp only [Nat.succ_eq_add_one, cast_cast] at h
-  repeat rewrite! [HpLuM.dest_map, cast_eq] at h
-  rewrite! (castMode := .all) [comp.get_map] at h
-  simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at h
-  rewrite! (castMode := .all) [comp.get_map] at h
-  simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at h
-  rw [
-    comp.get_ext_iff,
-    comp.get_map, comp.get_map] at h
-  simp at h
-  dsimp [Closed]
-  dsimp [Closed] at hC
-  dsimp [getNext]
-  sorry
+theorem getNext_closed (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fin2.fz)
+    : Closed (getNext x hC v) :=
+  DTSum.eqCases
+    (comp.get ((comp.get (HpLuM.dest x)).snd Fin2.fz v))
+    (fun i h' => by
+      have h := getNext.helper _ hC (cast (by rw [HpLuM.dest_map, comp.get_map]; rfl) v)
+      simp only [Nat.succ_eq_add_one, cast_cast] at h
+      repeat rewrite! [HpLuM.dest_map, cast_eq] at h
+      rewrite! (castMode := .all) [comp.get_map] at h
+      simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at h
+      rewrite! (castMode := .all) [comp.get_map] at h
+      simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at h
+      rw [
+        comp.get_ext_iff,
+        comp.get_map, comp.get_map,
+        h'
+        ] at h
+      simp only [Nat.succ_eq_add_one, DTSum.map_cont, Vec.append1.get_fz, DTSum.cont.inj_iff] at h
+      simp [getNext, Nat.succ_eq_add_one, h', DTSum.cocont_cont, Closed]
+      rw [←prj.mk_get (x := i) , prj.map_mk, prj.map_mk] at h
+      simpa using h)
+    <| fun i h => by
+      dsimp [getNext]
+      generalize_proofs h'
+      exact False.elim (h' _ h)
 
 def change {γ} (x : DeepThunk P (α ::: β)) (h : Closed x) : DeepThunk P (α ::: γ) :=
   HpLuM.corec' (sorry ∘ HpLuM.dest) x
