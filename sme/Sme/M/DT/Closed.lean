@@ -26,7 +26,7 @@ namespace Closed
 
 variable (x : DeepThunk P (α ::: β))
 
-private theorem closed_univ.helper {y} (h : x = y) z
+private theorem getNext.helper {y} (h : x = y) z
     : (comp.get (HpLuM.dest x)).snd .fz z
     = (comp.get (HpLuM.dest y)).snd .fz (cast (h ▸ rfl) z) := by
   subst h
@@ -34,30 +34,59 @@ private theorem closed_univ.helper {y} (h : x = y) z
 
 -- Really strange rw! doesnt work here
 
-theorem closed_univ (hC : Closed x) {v}
-    : ∃ k : DeepThunk _ _,
-      comp.get ((comp.get (HpLuM.dest x)).snd .fz v) = DTSum.cont (prj.mk _ k) := by
-  -- Rewrite assumption
-  have this := closed_univ.helper _ hC (cast (by rw [HpLuM.dest_map, comp.get_map]; rfl) v)
-  simp only [Nat.succ_eq_add_one, cast_cast] at this -- Removing this line crashes my computer
-  repeat rewrite! [HpLuM.dest_map, cast_eq] at this
-  rewrite! (castMode := .all) [comp.get_map] at this
-  simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at this
-  rewrite! (castMode := .all) [comp.get_map] at this
-  simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at this
-  have h := comp.get_ext_iff.mp this; clear this
-  rw [comp.get_map, comp.get_map] at h
-  -- Proceed by contradiction
-  by_contra hGoal
-  obtain ⟨w, h'⟩ : ∃ k, comp.get ((comp.get (HpLuM.dest x)).snd Fin2.fz v) = DTSum.recall k := by
-    rcases DTSum.cases' (comp.get ((comp.get (HpLuM.dest x)).snd Fin2.fz v)) with (⟨w, h⟩ | h)
-    · exact (hGoal ⟨prj.get w, by simp [h]⟩).elim
-    · exact h
-  rw [h'] at h
-  simp only [Nat.succ_eq_add_one, DTSum.map_recall, Vec.append1.get_fs, Vec.append1.get_fz,
-    DTSum.recall.inj_iff] at h
-  rw [←prj.mk_get (x := w), prj.map_mk, prj.map_mk] at h
+def getNext (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fin2.fz)
+    : DeepThunk P (α ::: β) :=
+  DTSum.eqCases (comp.get ((comp.get (HpLuM.dest x)).snd .fz v))
+    (fun x _ => prj.get x)
+    fun x h' => False.elim <| by
+      have h := getNext.helper _ hC (cast (by rw [HpLuM.dest_map, comp.get_map]; rfl) v)
+      simp only [Nat.succ_eq_add_one, cast_cast] at h -- Removing this line crashes my computer
+      repeat rewrite! [HpLuM.dest_map, cast_eq] at h
+      rewrite! (castMode := .all) [comp.get_map] at h
+      simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at h
+      rewrite! (castMode := .all) [comp.get_map] at h
+      simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at h
+      rw [
+        comp.get_ext_iff,
+        comp.get_map, comp.get_map,
+        h',
+        DTSum.map_recall, DTSum.map_recall,
+        ←prj.mk_get (x := x), prj.map_mk, prj.map_mk] at h
+      simp at h
+
+theorem getNext_eq (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fin2.fz)
+    : comp.get ((comp.get (HpLuM.dest x)).snd .fz v)
+    = DTSum.cont (prj.mk .fz (getNext x hC v)) :=
+  DTSum.eqCases
+    (comp.get ((comp.get (HpLuM.dest x)).snd Fin2.fz v))
+    (fun _ h => by
+      simp only [Nat.succ_eq_add_one, getNext, Vec.append1.get_fz, Vec.append1.get_fs,
+        DTSum.cont.inj_iff]
+      rw! [h]
+      simp [DTSum.eqCases])
+    (fun _ h => by
+      rw! [getNext, h]
+      dsimp [DTSum.eqCases]
+      generalize_proofs p
+      exact p.elim)
+
+def getNext_closed (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fin2.fz)
+    : Closed (getNext x hC v) := by
+  have h := getNext.helper _ hC (cast (by rw [HpLuM.dest_map, comp.get_map]; rfl) v)
+  simp only [Nat.succ_eq_add_one, cast_cast] at h
+  repeat rewrite! [HpLuM.dest_map, cast_eq] at h
+  rewrite! (castMode := .all) [comp.get_map] at h
+  simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at h
+  rewrite! (castMode := .all) [comp.get_map] at h
+  simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at h
+  rw [
+    comp.get_ext_iff,
+    comp.get_map, comp.get_map] at h
   simp at h
+  dsimp [Closed]
+  dsimp [Closed] at hC
+  dsimp [getNext]
+  sorry
 
 def change {γ} (x : DeepThunk P (α ::: β)) (h : Closed x) : DeepThunk P (α ::: γ) :=
   HpLuM.corec' (sorry ∘ HpLuM.dest) x
