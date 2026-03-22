@@ -110,6 +110,14 @@ def cases {α} {motive : DTSum α → Sort _}
       | .fz  => funext fun v => v.elim
     exact cast (by rw [eq]) this
 
+@[elab_as_elim]
+def eqCases {α} {motive : DTSum α → Sort _} (v : _)
+    (hCont : ∀ x, v = cont x → motive (cont x)) (hRecall : ∀ x, v = recall x → motive (recall x))
+    : motive v := by
+  cases v using cases
+  · exact hCont _ rfl
+  · exact hRecall _ rfl
+
 def elim {α β} (l : α .fz → β) (r : α (.fs .fz) → β) : DTSum α → β
   | ⟨.up .false, f⟩ => l <| f .fz .unit
   | ⟨.up .true, f⟩ =>  r <| f (.fs .fz) .unit

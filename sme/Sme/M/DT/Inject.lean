@@ -1,6 +1,3 @@
-import Mathlib.Data.QPF.Multivariate.Constructions.Comp
-import Mathlib.Data.QPF.Multivariate.Constructions.Prj
-import Mathlib.Data.QPF.Multivariate.Constructions.Cofix
 import Sme.PFunctor.EquivP
 import Sme.PFunctor.Prj
 import Sme.M.HpLuM
@@ -53,6 +50,8 @@ theorem dest_inject {x : HpLuM P α}
   congr
   funext v
   simp [comp.map_mk]
+
+#exit
 
 theorem inject_map_fst {γ} {v : HpLuM P α} {f : β → γ}
     : (TypeVec.id ::: f) <$$> inject v = inject v := by

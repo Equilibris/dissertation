@@ -27,7 +27,7 @@ def corec {β : Type v}
     : β → HpLuM P α :=
   .corec body ∘ gen
 where
-  body v := by
+  body v : uLift P (α.uLift ::: ULift (DeepThunk (uLift P) (.uLift α ::: ULift β))) := by
     -- TODO: This should just call comp.get, then transliterate
     have := comp.get v.dest
     refine ⟨

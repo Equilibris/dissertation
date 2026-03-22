@@ -33,15 +33,14 @@ private theorem closed_univ.helper {y} (h : x = y) z
   rfl
 
 -- Really strange rw! doesnt work here
+
 theorem closed_univ (hC : Closed x) {v}
     : ∃ k : DeepThunk _ _,
       comp.get ((comp.get (HpLuM.dest x)).snd .fz v) = DTSum.cont (prj.mk _ k) := by
   -- Rewrite assumption
-  have := closed_univ.helper _ hC (cast (by
-    rw [HpLuM.dest_map, comp.get_map]
-    rfl) v)
-  simp only [Nat.succ_eq_add_one, cast_cast] at this
-  repeat rewrite! [HpLuM.dest_map, cast_eq, ] at this
+  have this := closed_univ.helper _ hC (cast (by rw [HpLuM.dest_map, comp.get_map]; rfl) v)
+  simp only [Nat.succ_eq_add_one, cast_cast] at this -- Removing this line crashes my computer
+  repeat rewrite! [HpLuM.dest_map, cast_eq] at this
   rewrite! (castMode := .all) [comp.get_map] at this
   simp only [map_snd, TypeVec.comp.get, Function.comp_apply] at this
   rewrite! (castMode := .all) [comp.get_map] at this
