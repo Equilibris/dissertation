@@ -95,6 +95,18 @@ theorem getNext_closed (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fi
       exact False.elim (h' _ h)
 
 def change {γ} (x : DeepThunk P (α ::: β)) (h : Closed x) : DeepThunk P (α ::: γ) :=
-  HpLuM.corec' (sorry ∘ HpLuM.dest) x
+  HpLuM.corec' step ⟨x, h⟩
+where
+  step (x : { x : DeepThunk P _ // Closed x}) :=
+    have ⟨x, h⟩ := x
+    letI := comp.get (HpLuM.dest x)
+    comp.mk ⟨
+      this.fst, fun
+      | .fz, i =>
+        comp.mk (DTSum.cont (prj.mk .fz ⟨getNext x h i, getNext_closed x h i⟩))
+      | .fs s, i =>
+        prj.mk (s.add 2) <| show α s from
+          prj.get (i := s.add 2) <| this.snd (.fs s) i
+    ⟩
 
 end Sme.DeepThunk.Closed
