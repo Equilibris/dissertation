@@ -248,6 +248,19 @@ theorem mp_mpr' {p : α = β} : Arrow.mp p ⊚ Arrow.mpr p = TypeVec.id := by si
 @[simp]
 theorem mpr_mp' {p : α = β} : Arrow.mpr p ⊚ Arrow.mp p = id := by simp
 
+theorem heq_of_mp_mpr {δ} {f : α ⟹ β} {g : γ ⟹ δ} h1 h2
+    : (f ≍ g)
+    = (f = Arrow.mp h1 ⊚ g ⊚ Arrow.mp h2) := propext {
+  mp := by
+    subst h1 h2
+    rintro rfl
+    rfl
+  mpr := by
+    subst h1 h2
+    rintro rfl
+    rfl
+}
+
 @[simp]
 theorem repeat.get {X} : {n i : _} → TypeVec.repeat n X i = X
   | _, .fz => rfl
