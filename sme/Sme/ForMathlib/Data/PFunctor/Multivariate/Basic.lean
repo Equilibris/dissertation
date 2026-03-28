@@ -214,7 +214,7 @@ theorem get_ext {x y : P.comp Q α} : comp.get x = comp.get y → x = y := by
   have := mk_bij.injective.eq_iff.mpr h
   rwa [mk_get, mk_get] at this
 
-@[simp]
+/- @[simp] -/
 theorem B_eq {α i} : (comp P Q).B α i = ((j : Fin2 n) × (b : P.B α.fst j) × (Q j).B (α.snd j b) i) :=
   rfl
 
