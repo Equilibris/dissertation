@@ -1,7 +1,6 @@
 #import "@preview/codly:1.3.0": *
 #import "@preview/codly-languages:0.1.8": *
 
-
 #let common(
   title: "My Dissertation",
   author: "<Insert name>",
@@ -21,7 +20,8 @@
   set math.equation(numbering: "1.1")
   set par(justify: true)
   show: codly-init.with()
-  codly(languages: codly-languages)
+  show raw: set text(font : "FiraCode Nerd Font")
+  codly(languages: codly-languages, number-format : none, display-name: false)
 
   body
 }

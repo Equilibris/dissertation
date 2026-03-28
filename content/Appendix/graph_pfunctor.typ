@@ -3,28 +3,10 @@
 
 #pagebreak()
 
-== Polynomial functors
+== Graphical p-functors<a:gpfunctors>
 
-A (multivariate) polynomial functor on set is:
-a head-type,
-along with a (collection of) child family(ies) parameterised by the head.
-An object of a polynomial functor is a select head type,
-and the corresponding child(ren) parameterised by the head as seen in @pfunc-math
-(this shows only the monovariate version)
-#footnote([
-  More can be read on the ncatlab article @nlab:polynomial_functor,
-  we restrict ourselves to Set,
-  so I recommend skipping to that section.
-]).
-// Equally this is the justification for why it is called a polynomial.
-Moraly polynomial functors can be thought of as types generic in some set of arguments,
-with a collection of constructors (the head type),
-where the children correspond to how many of the polymorphic argument are wanted.
-
-$ (h : H) times c_h arrow.r alpha eq.triple sum_(h : H) alpha^(c_h) $ <pfunc-math>
-
-I find this notation a bit difficult to read,
-so for a multivariate polynomial functor $P alpha_0 dots alpha_i$,
+An alternative notation for @pfunc-math can be given as:
+for a multivariate polynomial functor $P alpha_0 dots alpha_i$,
 with head types as variants $h_0 dots h_j$,
 and children $c_(i,h_j)$,
 it would conventionally be written as @p-too-big,
@@ -161,8 +143,3 @@ with an inverse $"get"_alpha : "prj"_n alpha_0 dots alpha_i arrow.r alpha_n$.
 //   )
 // )
 
-=== Lean formalization <pfunctorlean>
-
-#lorem(100)
-
-=== F-(co)algebras<pfunctofalg>

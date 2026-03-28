@@ -46,5 +46,8 @@
 
 #bibliography("bib.bib", style : "apa")
 
+#set heading(numbering: "1.A")
+
 = Appendicies
 
+#include "content/Appendix/graph_pfunctor.typ"
