@@ -2,6 +2,7 @@ import Sme.PFunctor.EquivP
 import Sme.PFunctor.Prj
 import Sme.M.HpLuM
 import Sme.M.DT.Defs
+import Sme.M.DT.Inject
 import Sme.Vec
 import Sme.HEq
 
@@ -25,6 +26,34 @@ def Closed (x : DeepThunk P (α ::: β)) : Prop :=
 variable (x : DeepThunk P (α ::: β))
 
 namespace Closed
+
+theorem inject_Closed {β} {x : HpLuM P α} : Closed (inject β x) := by
+  dsimp [Closed, inject]
+  apply HpLuM.bisim_map (fun a b => 
+    ∃ x, a = (TypeVec.id ::: fun x ↦ { down := true }) <$$> HpLuM.corec' (inject.step β) x
+    ∧ b = (TypeVec.id ::: fun x ↦ { down := false }) <$$> HpLuM.corec' (inject.step β) x
+  ) ⟨_, rfl, rfl⟩
+  clear *-
+  rintro _ _ ⟨x, rfl, rfl⟩
+  simp only [Nat.succ_eq_add_one, map_fst, HpLuM.dest_map, HpLuM.dest_corec']
+  rw! [MvFunctor.map_map, MvFunctor.map_map, TypeVec.appendFun_comp', TypeVec.appendFun_comp']
+  simp only [TypeVec.id_comp, TypeVec.comp_id, Function.const_comp]
+  rw! [MvFunctor.map_map, MvFunctor.map_map, TypeVec.appendFun_comp', TypeVec.appendFun_comp']
+  simp only [TypeVec.id_comp, TypeVec.comp_id, Function.const_comp]
+  rw! [←inject]
+  dsimp [inject.step]
+  rw! [comp.map_mk, comp.map_mk, comp.mk_bij.injective.eq_iff]
+  refine ⟨Sigma.ext rfl <| heq_of_eq ?_, ?_⟩
+  · funext i h
+    rcases i with (_|_)
+    <;> simp [comp.map_mk, Fin2.add]
+  intro v
+  rw! (castMode := .all) [HpLuM.dest_map, inject, HpLuM.dest_corec']
+  simp only [Nat.succ_eq_add_one, eqRec_eq_cast, map_fst, map_snd, TypeVec.comp.get,
+    TypeVec.append1_get_fz, TypeVec.appendFun.get_fz, Function.comp_apply, cast_cast]
+  refine ⟨_, rfl, ?_⟩
+  rw! [HpLuM.dest_map, HpLuM.dest_corec']
+  rfl
 
 private theorem snd_fz_h_Closed_of_Closed.helper {y} (h : x = y) z
     : (HpLuM.dest x).snd .fz z
@@ -158,6 +187,7 @@ theorem change_step_fz_h_eq
 
 theorem noop {x : DeepThunk P (α ::: β)} (h : Closed x) : change β x h = x := by
   apply HpLuM.bisim (fun a b => ∃ h, change β b h = a) ⟨h, rfl⟩
+  clear *-
   rintro _ t ⟨h, rfl⟩
   use t.dest.fst
   dsimp only [change]

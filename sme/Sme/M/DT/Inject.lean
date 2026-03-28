@@ -22,8 +22,10 @@ variable {P : MvPFunctor n.succ} {α : TypeVec n}
     it occurs by taking the right step at every point co-recursively.
 
     The instances of the hof will have this defined as a coercion. -/
-def inject : HpLuM P α → DeepThunk P (α ::: β) :=
-  .corec' fun v =>  by
+def inject β : HpLuM P α → DeepThunk P (α ::: β) :=
+  .corec' step
+where
+  step v :=  by
     refine comp.mk <|
       (TypeVec.splitFun
         ?_
@@ -33,12 +35,12 @@ def inject : HpLuM P α → DeepThunk P (α ::: β) :=
     exact fun h => comp.mk <| DTSum.cont (prj.mk _ h)
 
 theorem dest_inject {x : HpLuM P α}
-    : (inject x : DeepThunk P (α ::: β)).dest
+    : (inject _ x : DeepThunk P (α ::: β)).dest
     = comp.mk (TypeVec.splitFun
         (fun (i : Fin2 n) v => (by apply prj.mk (i.add 2) v))
-        (fun v => by exact comp.mk <| DTSum.cont (prj.mk _ <| inject v)
+        (fun v => by exact comp.mk <| DTSum.cont (prj.mk _ <| inject _ v)
       ) <$$> x.dest) := by
-  rw [inject, HpLuM.dest_corec', ←inject, comp.map_mk]
+  rw [inject, HpLuM.dest_corec', ←inject, inject.step, comp.map_mk]
   simp only [Nat.succ_eq_add_one, TypeVec.drop_append1_simp, TypeVec.last_eq,
     TypeVec.append1_get_fz, MvFunctor.map_map, TypeVec.splitFun_comp']
   unfold Function.comp TypeVec.comp
