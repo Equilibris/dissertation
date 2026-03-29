@@ -44,7 +44,7 @@
 
 #include "content/05_Conclusions/main.typ"
 
-#bibliography("bib.bib", style : "apa")
+#bibliography("bib.bib", style : "ieee")
 
 #set heading(numbering: "1.A")
 

@@ -5,7 +5,7 @@ in the current formalised theory of polynomials,
 the statement wouldn't even type-check.
 This stemmed from a problem with the corecursive principle for the M type in the old implementation.
 $"corec" : {alpha : "TypeVec".{cal(U)} n} arrow {beta : "Type" cal(U)} arrow (g : beta → P (alpha ::: beta)) arrow beta arrow M alpha$
-#footnote(link("https://github.com/leanprover-community/mathlib4/blob/7a60b315c7441b56020c4948c4be7b54c222247b/Mathlib/Data/PFunctor/Multivariate/M.lean#L152-L154")).
+#footnote(link("https://github.com/leanprover-community/mathlib4/blob/7a60b315c7441b56020c4948c4be7b54c222247b/Mathlib/Data/PFunctor/Multivariate/M.lean#L152-L154")) @cite:mathlib.
 The problem here is that both $alpha$ and $beta$ have to both reside in $cal(U)$.
 Solving this is done through the next two sections.
 

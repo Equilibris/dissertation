@@ -1,9 +1,8 @@
-== Dependent type theory
+#include "dtt.typ"
 
 #include "pfunctor.typ"
 
 #include "corec.typ"
 
-#include "ipm.typ"
-
+#include "planning.typ"
 
