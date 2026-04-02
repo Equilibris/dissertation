@@ -1,6 +1,6 @@
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
 
-== The ABI Type
+== The ABI Type<sec:abi>
 
 The problem the ABI type tries to tackle is one of abstracting the runtime datatype through functions.
 Given an isomorphism $"eq" : alpha tilde.equiv beta$ for some types $alpha$ and $beta$,

@@ -4,7 +4,7 @@
 #let common(
   title: "My Dissertation",
   author: "<Insert name>",
-  abstract: [],
+  proforma: [],
   acknowledgements: [],
   date: none,
   logo: none,
@@ -13,7 +13,7 @@
   body,
 ) = {
   set document(author: author, title: title)
-  set page(numbering: "1", number-align: center)
+  set page(numbering: "1", number-align: center, )
   set text(font: "New Computer Modern", lang: "en")
   show math.equation: set text(weight: 400)
   set heading(numbering: "1.1")
@@ -32,7 +32,7 @@
 #let project(
   title: "My Dissertation",
   author: "<Insert name>",
-  abstract: [],
+  proforma: [],
   acknowledgements: [],
   date: none,
   logo: none,
@@ -40,7 +40,7 @@
   course: "Computer Science Tripos, Part II",
   body,
 ) = {
-  body = common(title: title, author: author, abstract: abstract, acknowledgements: acknowledgements, date : date, logo : logo, college : college, course : course, body)
+  body = common(title: title, author: author, proforma: proforma, acknowledgements: acknowledgements, date : date, logo : logo, college : college, course : course, body)
   let chapternum = loc => {
     str(query(heading.where(level: 1, numbering: "1.1").before(loc), ).len())
   }
@@ -52,13 +52,14 @@
       set text(size: 25pt)
       if it.numbering == "1.1" {
         "Chapter "; chapternum(it.location())
-        v(0.5em)
+        [: ]
+
         it.body
       }
       else {
         it
       }
-      v(2em)
+      v(.5em)
     }
     else if it.level < 4 {
       v(1em)
@@ -116,9 +117,9 @@
   heading(
     outlined: false,
     numbering: none,
-    "Abstract"
+    "Proforma"
   )
-  abstract
+  proforma
 
   // Acknowledgements page.
   heading(

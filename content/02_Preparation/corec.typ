@@ -1,4 +1,4 @@
-== Recursion and Inductives
+== Recursion and Inductives<sec:coind>
 
 We are all familiar with algebraic datatypes from OCaml.
 These are structures freely generated from a set of constructurs.
@@ -38,7 +38,7 @@ let rec fold bh ih = function | Nil -> bh | Cons(h, t) -> ih h (fold bh ih t)
 Given the family of endofunctors on $Set$.
 Consider the polynomial given by $L_A = 1 plus.o (underline(A) times.o id)$,
 or in its expanded form in @cr:m:list.
-Now recall the definition of the category of $L_A$-algebras#footnote([TODO: Cite algebra definition]).
+Now recall the definition of the category of #box[$L_A$-algebras]#footnote([TODO: Cite algebra definition]).
 The lists we are used to are exactly the initial object in this category.
 The initial map takes an algebra $f : L_A (B) -> B$ and yields a map $"fold" : mu L_A -> B$#footnote([TODO: Cite Neel]).
 This is exactly what we want,

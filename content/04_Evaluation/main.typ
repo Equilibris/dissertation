@@ -7,15 +7,15 @@ we now have the ability to compare the performance between 3 representations:
 The SME encoding (high performance, hpRuns),
 the PA encoding (slow, slRuns),
 and a hand made big implementation (bigRuns).
-We compare these 3 in @perf.
-In @perf we see the 3 representations specalised to infinite streams, 
+We compare these 3 in @ev:fg:perf.
+In @ev:fg:perf we see the 3 representations specalised to infinite streams, 
 the code for which can be seen in @perfcode
 // TODO: Combine these to one plot
 
 #figure(
   image("../../data/plot.png", width: 500pt),
   caption: [Performance of SME, PA, and Big representation]
-)<perf>
+)<ev:fg:perf>
 
 #figure(
   ```lean

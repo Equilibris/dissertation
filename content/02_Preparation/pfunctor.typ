@@ -5,8 +5,6 @@
 #let mpf(a, b) = $chevron.l #a, #b chevron.r$
 #let Type = $"Type"$
 
-#pagebreak()
-
 == Polynomial functors
 
 A (multivariate) polynomial functor on set#footnote([
@@ -32,7 +30,7 @@ $ (h : H) times c_h arrow.r alpha eq.triple sum_(h : H) alpha^(c_h) $ <pfunc-mat
 
 Polynomial functors have all finite products and coproducts.
 Polynomial functors are also closed under (co)fixed points so I will write them using a notation a la inductives,
-I will use notation provided in @c:alex_masters.
+I will use notation provided in @cite:keizer.
 For an explanation of the notation see @a:gpfunctors.
 
 === Common pfunctors
@@ -107,4 +105,3 @@ inductive Sum (A B : Type) where
 
 === F-(co)algebras<pfunctofalg>
 
-== TODO: get alex's masters <c:alex_masters>

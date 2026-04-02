@@ -9,7 +9,7 @@ $"corec" : {alpha : "TypeVec".{cal(U)} n} arrow {beta : "Type" cal(U)} arrow (g 
 The problem here is that both $alpha$ and $beta$ have to both reside in $cal(U)$.
 Solving this is done through the next two sections.
 
-=== Universe lifting of polynomial functors.
+=== Universe lifting of polynomial functors.<sec:ulift_p>
 
 The main problem caused here comes from the fact that lean isnt cummulative.
 This means it is impossible to express a universe hetrogouns typevector.

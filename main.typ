@@ -10,19 +10,25 @@
   author: "William Sørensen",
   // Insert your abstract after the colon, wrapped in brackets.
   // Example: `abstract: [This is my abstract...]`
-  abstract: lorem(59),
+  proforma: [
+*Word count:* #total-words
+
+  ],
   acknowledgements: lorem(59),
-  date: "May 22, 2025",
+  date: "May 15, 2026",
   college: "Gonville & Caius College",
   logo: "cst_logo.svg")
 
 // #todo[Abtract]
 
-#show: word-count
+#show: word-count.with(exclude: (
+  "bibliography", "cite", "display", "equation", "h", "hide", "image", "line", "linebreak", "locate", "metadata", "pagebreak", "parbreak", "path", "polygon", "ref", "repeat", "smartquote", "space", "style", "update", "v",
+  "figure",
+  "caption",
+  <aix>,
+))
 
 #show-todos()
-
-*Word count:* #total-words
 
 = Introduction
 
@@ -48,6 +54,22 @@
 
 #set heading(numbering: "1.A")
 
+#[
 = Appendicies
 
+#lorem(1000)
+
 #include "content/Appendix/graph_pfunctor.typ"
+
+= Proposal
+
+See proposal overleaf
+
+#set page(numbering: none, margin: (top: 0cm, bottom:0cm, x:0cm, y:0cm))
+
+#for i in range(1, 6) {
+  image("./proposal.pdf", page: i)
+}
+]<aix>
+// #include "./proposal.typ"
+
