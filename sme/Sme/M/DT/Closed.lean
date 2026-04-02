@@ -107,8 +107,7 @@ theorem getNext_eq (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fin2.f
   DTSum.eqCases
     (comp.get ((comp.get (HpLuM.dest x)).snd Fin2.fz v))
     (fun _ h => by
-      simp only [Nat.succ_eq_add_one, getNext, Vec.append1.get_fz, Vec.append1.get_fs,
-        DTSum.cont.inj_iff]
+      simp only [Nat.succ_eq_add_one, getNext, Vec.append1.get_fz, DTSum.cont.inj_iff]
       rw! [h]
       simp)
     (fun _ h => by
@@ -141,6 +140,57 @@ theorem getNext_closed (hC : Closed x) (v : P.B (comp.get (HpLuM.dest x)).fst Fi
       dsimp [getNext]
       generalize_proofs h'
       exact False.elim (h' _ h)
+
+def extract (x : DeepThunk P (α ::: β)) (h : Closed x) : HpLuM P α :=
+  .corec' step ⟨x, h⟩
+where
+  step (x : { x : DeepThunk P _ // Closed x}) :=
+    letI := comp.get (HpLuM.dest x.1)
+    ⟨
+      this.fst,
+      fun
+      | .fz => fun i => ⟨getNext x.1 x.2 i, getNext_closed x.1 x.2 i⟩
+      | .fs s => (prj.get (i := s.add 2) <| this.snd (.fs s) ·)
+    ⟩
+
+namespace extract
+
+theorem extract_inject β {x : HpLuM P α} : extract (inject β x) inject_Closed = x := by
+  apply HpLuM.bisim (fun a b => a = extract (inject β b) inject_Closed) rfl
+  clear *-
+  rintro _ x rfl
+  dsimp [extract]
+  rw! (castMode := .all) [HpLuM.dest_corec']
+  simp only [map_fst, map_snd, exists_and_left]
+  use (step ⟨inject β x, inject_Closed⟩).fst
+  use (TypeVec.id ::: HpLuM.corec' step) ⊚ (step ⟨inject β x, inject_Closed⟩).snd
+  refine ⟨⟨rfl, .refl _⟩, ?_⟩
+  have : x.dest.fst = (step ⟨inject β x, inject_Closed⟩).fst := by
+    simp [step, inject, comp.get_map, inject.step]
+  use x.dest.snd ⊚ TypeVec.Arrow.mp (by rw [this])
+  refine ⟨⟨this, ?_⟩, ?_⟩
+  · rw [TypeVec.heq_of_mp_mpr rfl (by rw [this]), TypeVec.comp_assoc, TypeVec.mp_mp]
+    rfl
+  rintro (_|_) h
+  <;> change _ = _
+  <;> dsimp
+  · congr
+    simp only [inject, Nat.succ_eq_add_one, step, getNext, Subtype.mk.injEq]
+    rw! (castMode := .all) [HpLuM.dest_corec']
+    dsimp [inject.step]
+    rw! (castMode := .all) [comp.map_mk, comp.get_mk]
+    dsimp
+    rw! (castMode := .all) [comp.map_mk, comp.get_mk]
+    simp
+  · simp only [inject, Nat.succ_eq_add_one, step]
+    rw! (castMode := .all) [HpLuM.dest_corec']
+    dsimp
+    simp only [inject.step, Nat.succ_eq_add_one, TypeVec.drop_append1_simp, TypeVec.last_eq,
+      TypeVec.append1_get_fz, comp.map_mk]
+    rw! (castMode := .all) [comp.get_mk, ]
+    simp [Fin2.add]
+
+end extract
 
 def change γ (x : DeepThunk P (α ::: β)) (h : Closed x) : DeepThunk P (α ::: γ) :=
   HpLuM.corec' step ⟨x, h⟩
