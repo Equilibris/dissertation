@@ -264,6 +264,10 @@ $<cr:list>
 
 == Corecursion and coinductives
 
+// TODO: Write about how they are just state-machine ish
+// TODO: What that means is ... sayind dual is useless  
+// Step 1: finish this section
+
 Coinductives are the duals of inductives,
 they have an operation `unfold` which is the dual of the operation `fold`.
 
@@ -313,7 +317,10 @@ As one might expect there cant exist any inductive of this form#footnote[
 ].
 Though this is a perfectly well-defined coinductive.
 Streams are also common in general purpose programming,
-Java Streams are very similar
+Java has Stream,
+Rust and Python have Iterator.
+From this we can see the use of them.
+We will give concrete implementations of them for each of the encodings as follows.
 
 === The conaturals
 
@@ -403,7 +410,24 @@ This is really easy to implement in lean.
 
 ===== In lean
 
-In lean we 
+In Lean, this encoding is very easy to set up.
+It can be seen in @m:ls:pa.
+The main component which is hard to define is a coinduction theorem (@sec:coindp),
+Marcelo Fiore has written on this exact topic and is a very insightful read @cite:bisim
+(I recommend reading up to Section 6).
+Luckily for us we dont need to worry about implementing and proving this as @cite:mathlib already provides an implementation of this.
+This was ported to Lean4 as part of @cite:keizer.
+
+A major problem with this implementation is the complexity of access.
+As you can see in @m:ls:pa in the definition of `corec.o`,
+we have to regenerate the entire tree to get a corecursor to the next depth.
+There are a few different approches to solve this that we will compare and contrast in @sec:smevpa
+
+#let streamf = read("./Stream.lean")
+#figure(
+  raw(streamf, lang: "lean", block: true),
+  caption: [PA Stream in lean]
+)<m:ls:pa>
 
 === State-machine encoding <sec:m:sme>
 
@@ -412,10 +436,15 @@ Given some polynomial functor $F$, the state-machine encoding is given by:
 some type $alpha : "Type"$,
 a function $f : alpha arrow.r F alpha$,
 and some witness $a : alpha$.
-Then you quotient over bisimilarity,
-thereby only allowing direct usage of $"dest" : "Sme" F arrow.r F ("Sme" F)$.
+Once this is done there are 3 key problems:
+1) The object constructed is only weakly terminal,
+2) the object created has no coinduction principle,
+3) the object resides in a higher universe.
+Let us first focus on the first two problems,
+both of these are solved by quotienting over bisimilarity.
+The reason this works has to do with how bisimilarity 'hides' the generating type,
+making the only operation you really can do to access the data a destructure.
 
-////////////////////////////////////////////////////////////////////////////////
 
 == Inductive predicate
 
@@ -467,7 +496,7 @@ This means we ned to define it as a coinductive predicate rather than an inducti
 Then the proof principal for this will be giving a relation,
 showing it is a bisimilary and that it holds on our values.
 
-=== Coinduction principle
+=== Coinduction principle<sec:coindp>
 
 A coinductive type has a conduction principle is bisimilarites implies equality.
 For the SME this will be harder to show.

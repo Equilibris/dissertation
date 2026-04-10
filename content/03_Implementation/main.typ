@@ -252,7 +252,7 @@ $"Type" max cal(U) (cal(V) + 1)$.
 This is a problem as one loses most closure results as you will be lifting more and more.
 The main beinifit from this is the performance aspect.
 Going from reading to a depth $n$, to a depth $n+1$ is not $cal(O)(1)$ instead of $cal(O)(n)$.
-This will be seen in @smevpa.
+This will be seen in @sec:smevpa.
 We will henceforth refer to the datatype SME.PreM.
 
 === PreM

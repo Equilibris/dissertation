@@ -1,7 +1,7 @@
 
 Here we will 
 
-== Performance between SME and PA<smevpa>
+== Performance between SME and PA<sec:smevpa>
 
 After building the equivelence,
 and instantiating shrink,
