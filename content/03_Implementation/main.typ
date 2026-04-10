@@ -1,9 +1,119 @@
 #import "../utils.typ": *
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
+#import "@preview/colorful-boxes:1.4.3": colorbox
+#import "@preview/diagraph:0.3.6": render as grender
 
-This chapter describes the implementation of the `Sme` constructs.
+// TODO
+#let impl(content) = align[Addressing: #content]
 
-== Transiteration
+This chapter describes the implementation of each of the requirements stated in @sec:rq.
+I will break it down into a common section,
+then go by induvidual components.
+I will also mention which parts are in process of being upstreamed and which parts are already in @cite:mathlib.
+
+// TODO: Fix these
+unnacc
+- rq:sme:fast
+- rq:sme:ct
+
+== Repository overview
+
+The Lean component of this repository,
+and how they relate to each of the requirements can be seen in the list below.
+Additionally the import graph can be seen in @rep:fg:import
+
+#figure(
+  grender(
+    read("../../sme/import_graph.dot"),
+    height: 100%,
+  ),
+  caption: [Import graph of the lean component of the project as of 2026-04-04]
+)<rep:fg:import>
+
+// TODO Make this take up less page space. Make it alternate between horizontal and vertical
+
+#colorbox(title: [Main lean section])[
+- ABI.lean
+- Basic.lean
+- Examples
+  - AMP
+    - Product.lean
+    - Supo1.lean
+  - FunctionPFunctor.lean
+- ForMathlib
+  - Data
+    - PFunctor
+      - Multivariate
+        - Basic.lean
+        - M.lean
+    - QPF
+      - Multivariate
+        - Basic.lean
+        - Constructions
+          - Cofix.lean
+    - TypeVec.lean
+    - ULift.lean
+- HEq.lean
+- HList.lean
+- ITree
+  - Bisim.lean @rq:it:sbisim
+  - Combinators.lean @rq:it:comb
+  - Defs.lean @rq:it:impl, @rq:sme:itree
+  - Events
+    - Empty.lean
+    - Map.lean
+    - State.lean
+    - SubEvent.lean
+  - Examples
+    - Echo.lean
+    - Imp.lean
+  - Interp.lean @rq:it:moni
+  - KTree.lean @rq:it:kt
+  - MonadIter.lean
+  - Monad.lean @rq:it:mon, @rq:it:lmon
+  - WBisim
+    - Congr.lean
+    - Defs.lean
+    - IterCongr.lean
+    - Monad.lean
+    - Step.lean
+  - WBisim.lean @rq:it:wbisim
+- ListMemT.lean
+- M
+  - DT
+    - Bind.lean
+    - Closed.lean
+    - CorecEq.lean
+    - Corec.lean
+    - Defs.lean
+    - DTSum.lean
+    - Factorize.lean
+    - Flat.lean
+    - Inject.lean
+    - ULift.lean
+  - DT.lean @rq:sme:prod
+  - Equiv.lean @rq:sme:equiv
+  - HpLuCofix.lean
+  - HpLuM.lean @rq:sme:abi, @rq:sme:cind
+  - PreM.lean @rq:sme:impl, @rq:sme:cind
+  - SM.lean @rq:sme:impl, @rq:sme:cind
+- NTMonad
+  - Defs.lean @rq:sme:ntm
+- PFunctor
+  - EquivP.lean
+  - NatIso.lean
+  - Prj.lean
+  - Utils.lean
+- Stream
+  - Equiv.lean @rq:sme:stream:equiv
+  - PDefs.lean
+  - SDefs.lean @rq:sme:stream:impl
+- Vec.lean
+]
+
+== Common
+
+=== Transiteration
 
 A family of functions,
 that keep solving problems throughout this dissertation are what I call transliterations.
@@ -32,7 +142,7 @@ as long as the function is applied at a usage of ULift it all just works.
 We will use this function to define transliteration between universe-lifted polynomials,
 we will see more of this in @sec:ulift_p.
 
-#let f = read("../../sme/Sme/ForMathlib/Data/ULift.lean").split("\n").slice(2,11).join("\n")
+#let f = takeL(read("../../sme/Sme/ForMathlib/Data/ULift.lean"), 2, 11)
 
 #figure(
   raw(f, lang : "lean", block:true),
@@ -46,19 +156,9 @@ and made it possible to define a universe-polymorphic eliminator.
 
 ////////////////////////////////////////////////////////////////////////////////
 
-== Stream implementation
+=== Expanding the progressive approximation theory
 
-As proving these equivleneces is extremely challenging I decidede I would start by implementing it for the special case of streams.
-Streams are the text-book coinductive datatype that most people know as mentioned in @sec:coind.
-Therefore I expected this to be an easy task to start with to test showing the equivilence.
-
-First I set up a class of preobject:
-
-////////////////////////////////////////////////////////////////////////////////
-
-== Expanding the progressive approximation theory
-
-During the pheasability assesment I noticed that,
+During the feasability assesment I noticed that,
 in the current formalised theory of polynomials,
 the statement wouldn't even type-check.
 This stemmed from a problem with the corecursive principle for the M type in the old implementation.
@@ -67,7 +167,7 @@ $"corec" : {alpha : "TypeVec".{cal(U)} n} arrow {beta : "Type" cal(U)} arrow (g 
 The problem here is that both $alpha$ and $beta$ have to both reside in $cal(U)$.
 Solving this is done through the next two sections.
 
-=== Universe lifting of polynomial functors.<sec:ulift_p>
+==== Universe lifting of polynomial functors.<sec:ulift_p>
 
 The main problem caused here comes from the fact that lean isnt cummulative.
 This means it is impossible to express a universe hetrogouns typevector.
@@ -96,7 +196,7 @@ This works and now we can move on to our goal
   Ex : Locally presentable and accessable categories Adameck roshiski
 ]).
 
-=== Generalizing the corecursor
+==== Generalizing the corecursor
 
 Now with all the work in the previous section,
 by generalizing $"corec'"$#footnote([Done in PR NUMBER ]),
@@ -113,7 +213,33 @@ The expected diagram using corecU and dest commutes.
 
 ////////////////////////////////////////////////////////////////////////////////
 
-== State machine encoding
+
+== Stream implementation
+
+#impl[@rq:sme:stream:impl, @rq:sme:stream:equiv]
+
+As proving these equivleneces is extremely challenging I decidede I would start by implementing it for the special case of streams.
+Streams are the text-book coinductive datatype that most people know as mentioned in @sec:coind.
+Therefore I expected this to be an easy task to start with to test showing the equivilence.
+
+First I set up a class of preobject, these correspond to the corecurisve principle holding tehir type.
+Then I defined a bisimilarity relation, I proved this was an equivalence relation.
+Then I quotiented the preobject with this relation.
+Once this was done I specialised the PA encoding to streams as seen in FIGURE.
+I also specialised the base bisimilarity relation for polynomials to be analougous to the one defined for the SME.
+
+Once this was done I started proving the equivalence.
+The functions of this equivalence correspond to the corecursors parameterised by the destructors of the opposite type as seen in FIGURE.
+To prove that these functions are inverses, I had to find a relation for the bisimilarity.
+This was quite challenging but in the end I found an equiality solved it.
+
+Having done this I now knew how to approach the case of the polynomial.
+
+////////////////////////////////////////////////////////////////////////////////
+
+== State machine encoding of M-Types
+
+#impl[@rq:sme:stream:impl, @rq:sme:stream:equiv]
 
 Noting the definition of corecU,
 one might wonder if you could define M from first principles for this.
@@ -134,17 +260,65 @@ We will henceforth refer to the datatype SME.PreM.
 As we speak about in @pfunctofalg,
 the M Type is the terminal object in the category of coalgebras.
 We can see through reasoning (cumilatively) in this category that PreM is weakly terminal.
-Looking at this category we want to somehow force the incoming morphisms together.
-This corresponds exactly to quotienting,
-for this we will use Bisimilarity.
+Looking at this category we want to force the incoming morphisms together.
+This corresponds exactly to quotienting just as we saw for streams.
 
-////////////////////////////////////////////////////////////////////////////////
+=== Writing for performance
 
-== Interaction trees
+#impl[@rq:sme:fast, @rq:sme:zc]
 
-Interaction trees (ITrees) are a coinductive datastructure detailed in @itrees_paper.
+=== A coinduction principle on polynomials
 
-////////////////////////////////////////////////////////////////////////////////
+#impl[@rq:sme:cind]
+
+For an arbitrarry polynomial we can define bisimilarities for its cofix point.
+Mathlib has a definition for this for the PA encoding @cite:mathlib.
+This has the structure as seen in FIGURE.
+I found this very challenging to work with;
+Not only does this require using heterogeneous equalities,
+it also requires synthesizing three elements.
+These are the head and two children under the provided head.
+After struggling with this,
+I realize it can be solved using the universal property of the terminal object.
+The exact structure of this can be seen in FIGURE.
+An example of where this shines is as an alternative to conduction-up-to.
+Instead of having the ability to extend the relation,
+we get parts of the way there using automatic solving tactics like simp as seen in FIGURE.
+
+== Proving the equivalence
+
+#impl[@rq:sme:equiv]
+
+Proving the equivalence on polynomials is much more challenging than proving it on streams.
+We know at least from streams,
+each of the directions will be given by each of their corecursors.
+One might expect to follow the type signatures and mostly you do,
+but Lean couldn’t help with this,
+as it had to do higher order unification.
+When Lean finally type checked one could see the functions are obvious as seen in FIGURE.
+We now need to prove the expected diagrams commute.
+When I was proving these equalities I was not very familiar with bisimilarities,
+and tried tens of relations.
+Finally I landed on simply forcing their equalities.
+Once this was found I had to find the three required structures for bisimilarity.
+I picked the head of the first type and was lucky that they both definitioaly was of the same type.
+Then to prove the final equalities I proceeded by sigma-,
+unction  extentiality,
+finally proving the equalities.
+The other direction followed analougesly.
+
+This was the main deliverable of the project,
+and would help make high performance low universe M types (HpLuM).
+Sadly I could not use it directly but instead needed to also make a transliteration REFERENCE.
+This transliteration helps justify the uniqueness of a low universe M type.
+I hacked and used the Lean ABI stating this is a noop as mentioned in section REFERENCE TRANS.
+
+I used this to instantiate the ABI type.
+I then gave it a destructor,
+a corecursor,
+and a coinduction principal,
+I proved the expected unfold lemass and gave it a functorial map.
+For the rest of this dissipation I will be proving the results about this type.
 
 == The ABI Type<sec:abi>
 
@@ -237,6 +411,27 @@ You can free a universe level and open for a more general usage of the function.
 
 // TODO: Shrink and ABI are related. "Universe altering type"
 // TODO: Highlight the delta from the shrink type
+TODO
 
 ////////////////////////////////////////////////////////////////////////////////
+
+== NTMonad<sec:ntmonad>
+
+== Interaction trees
+
+TODO
+
+=== Weak bisimilarity
+
+TODO
+
+=== A formally verified compiler
+
+TODO
+
+// Interaction trees (ITrees) are a coinductive datastructure detailed in @itrees_paper.
+
+////////////////////////////////////////////////////////////////////////////////
+
+
 

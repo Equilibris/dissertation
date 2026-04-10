@@ -7,6 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 == Dependent type theory
+
 We can start by adding a type for Types,
 giving us a higher order logic.
 Recall back to discrete maths #footnote([TODO: Cite DM]),
@@ -155,44 +156,33 @@ For an explanation of the notation see @a:gpfunctors.
 
 ==== Constant
 
-#spg(
-  figure(
-    text(size: 8pt)[
-    ```lean
-inductive Const
-    (T : Type) (a_1 ... a_n : Type) where
-  | mk (t : T)
-    ```],
-    caption: [Inductive Notation]
-  ),
-  figure(
-    $ (T : Type) -> mpf(T, lambda i. lambda h. 0) $ ,
-    caption: [Polynomial]
-  ),
+#let code-math(code, math, c, ccode : [Inductive Notation], cmath : [Polynomial], lab : none) = spg(
+  figure(text(size: 8pt)[#code], caption: ccode),
+  figure(math, caption: cmath),
   columns: (1fr, 1fr),
-  caption: [Constant pfunctor]
+  caption: c,
+  label: lab
+)
+
+#code-math(```lean
+inductive Const
+  (T : Type) (a_1 ... a_n : Type) where
+  | mk (t : T) ```,
+  $ (T : Type) -> mpf(T, lambda i. lambda h. 0) $ ,
+  [Constant pfunctor]
 )
 
 ==== Prj
 
 ==== Sum
 
-#spg(
-  figure(
-    text(size: 8pt)[
-    ```lean
+#code-math(```lean
 inductive Sum (A B : Type) where
   | inl : A -> Sum A B
   | inr : B -> Sum A B
-    ```],
-    caption: [Inductive Notation]
-  ),
-  figure(
-    $ mpf(BB, lambda { 0, "true" 0 |-> 1, "false" 1 |-> 1, \_ " " \_ |-> 0 }) $ ,
-    caption: [Polynomial]
-  ),
-  columns: (1fr, 1fr),
-  caption: [Constant pfunctor]
+  ```,
+  $ mpf(BB, lambda { 0, "true" 0 |-> 1, "false" 1 |-> 1, \_ " " \_ |-> 0 }) $,
+  [Constant pfunctor]
 )
 
 ==== Option
@@ -219,8 +209,6 @@ inductive Sum (A B : Type) where
 
 === Lean formalization <pfunctorlean>
 
-#lorem(100)
-
 === F-(co)algebras<pfunctofalg>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -245,16 +233,14 @@ any function that terminates,
 must by definition return at most a finite (but unbounded) amount of constructors.
 This means fold is guarangteed to terminate too.
 All (primitive) recursive functions can be compiled into a call to fold#footnote([TODO: Cite McBride's work]).
+We also have two operations mk and dest.
+These form an equivalence (Lambek's Theorem)
+
+#let il = read("./IList.ml")
+#let eind = 8
 
 #figure(
-```ocaml
-type ('a, 'b) listF = Nil | Cons of 'a * 'b
-
-type 'a list = Nil | Cons of 'a * 'a list
-let nil = Nil
-let cons h t = Cons(h,t)
-let rec fold bh ih = function | Nil -> bh | Cons(h, t) -> ih h (fold bh ih t)
-```,
+  raw(takeL(il,0,eind), lang: "ocaml", block: true),
   caption: [Definition of list in OCaml]
 )<cr:ls:list>
 
@@ -264,7 +250,7 @@ let rec fold bh ih = function | Nil -> bh | Cons(h, t) -> ih h (fold bh ih t)
 
 Given the family of endofunctors on $Set$.
 Consider the polynomial given by $L_A = 1 plus.o (underline(A) times.o id)$,
-or in its expanded form in @cr:m:list.
+or in its expanded form in @cr:list.
 Now recall the definition of the category of #box[$L_A$-algebras]#footnote([TODO: Cite algebra definition]).
 The lists we are used to are exactly the initial object in this category.
 The initial map takes an algebra $f : L_A (B) -> B$ and yields a map $"fold" : mu L_A -> B$#footnote([TODO: Cite Neel]).
@@ -274,45 +260,223 @@ as expanding the definition or $L_A (B)$ and distrubuting this over the arrows w
 $
 L_A & (quad X quad &) &= & quad 1 quad        & plus.o quad & (& A       & times.o quad & X &) \
 L_A & (quad f quad &) &= & (iota_l compose !) & plus.o_m    & (& bb(1)_A & times.o_m    & f &)
-$<cr:m:list>
+$<cr:list>
 
 == Corecursion and coinductives
 
 Coinductives are the duals of inductives,
 they have an operation `unfold` which is the dual of the operation `fold`.
 
-=== Morally
-
-Morally,
-if you have never seen `unfold`'s or coinductives,
+The intuition for this if you have never seen `unfold`'s or coinductives,
 simply view it as if a fix F yields an X,
 then cofix F yields a lazy X#footnote([
   I. e. $"fix" L_A$ gives lists,
   then $"cofix" L_A$ gives lazy lists.
 ]).
-We can think back to what we did in Foundations of Computer Science,
-when we made lazy lists we also had to change recursive occurances to be thunked,
-this thunking allows infinite structures to exist in finite memory.
 
 === In OCaml
 
+If we were in Haskell (or any call by name / push-value langauge),
+the definition of icolist would be exactly that of ilist.
+We can think back to what we did in Foundations of Computer Science,
+when we made lazy lists we also had to change recursive occurances to be thunked,
+this thunking allows infinite structures to exist in finite memory.
+This happens because OCaml is CBV.
+Then I carry over the definitions mk and dest with minimal change,
+and also add the unfold operator i mentioned.
+All this can be seen in @cr:ls:colist.
+Equally we have a similar theorem to Lambek;
+mk and dest are inverses.
+
 #figure(
-```ocaml
-type 'a colist = Nil | Cons of 'a * (() -> 'a colist)
-let nil = Nil
-let cons h t = Cons(h,() -> t)
-let rec fold bh ih = function | Nil -> bh | Cons(h, t) -> ih h (fold bh ih t)
-```,
-  caption: [Definition of list in OCaml]
+  raw(takeL(il, eind, 17), lang: "ocaml", block: true),
+  caption: [Definition of colist in OCaml]
 )<cr:ls:colist>
 
-=== Categorically
+The keen eyes will notice and call out that `unfold` is not structurally recursive,
+or even decreasing at all.
+This is the key difference between inductives and coinductives;
+coinductives can be 'infinitely big'.
+Though it is not decreasing,
+assuming gen is terminating it is _productive_
+(think of this as coterminating).
+
+=== Streams
+
+Streams are similar to lists,
+the only difference is they have no 'nil' constructor.
+As one might expect there cant exist any inductive of this form#footnote[
+  See the following lean
+
+  #let ns = read("./NoStream.lean")
+  #raw(ns, lang:"lean")
+].
+Though this is a perfectly well-defined coinductive.
+Streams are also common in general purpose programming,
+Java Streams are very similar
+
+=== The conaturals
+
+The conaturals arise naturally from failiure:
+Consider a category whos objects are 'fallable computations' $(S : Type, sigma : S -> 1 plus.o S)$,
+and arrows between them are 'failiure preserving' functions,
+that is given $(S,sigma)$ and $(T, tau)$ the arrow is an $f : S -> T$ and a proof $tau compose f = (bb(1) plus.o_m f) compose sigma$.
+Then the terminal object in this category will be conaturals.
+This question is provided by Fiore and Pitts TODO: CITE.
+
+Some phrase this object as 'the natural numbers adjoin infinity',
+this is a subtily different structure.
+There is a non-computable#footnote[
+  This is exactly the halting oracle for PCF actually.
+] eqvuielence between them.
+The tradeoff is productive generation versus decidable equality,
+and in this case it is much more natural to choose productive generation as it makes the denotation computable.
+One can imagine these structures as sequences of arcs that get closer and closer to a circle,
+then we add one additonal element $omega$ which closes it completely as seen in @cr:fg:conats.
+Another useful way to view conatural numbers is turing machines,
+quotiented by how many steps it takes for them to terminate.
+In this definition there trivially is a unique non-terminiating machine.
+We will use this exact notation when we get to @sec:ntmonad
+
+#let spiral(n, ps,  L : 1.81, k : 1.4, r : 1.0) = {
+  n += 1
+  let pts = ()
+  let angle = -calc.pi / 2
+  for i in range(n) {
+    pts.push((
+      calc.cos(angle * 1rad) * r + ps.at(0),
+      -calc.sin(angle * 1rad) * r + ps.at(1),
+    ))
+    angle -= L / calc.pow(k, i)      // advance CW
+  }
+  let o = pts.map(node)
+  for i in range(n - 1) {
+    let sweep = L / calc.pow(k, i)
+    // For a circular arc subtending φ, bend ≈ φ/2.
+    // Positive bend = curve left of travel direction = CW bulge.
+    // Negate if your arcs bow inward instead of outward.
+    let b = sweep / 2 * (180 / calc.pi) * 1deg
+    o.push(edge(pts.at(i), pts.at(i + 1), "|-|", bend: b))
+  }
+  o
+}
+
+// ── Draw ────────────────────────────────────
+#spg(
+  figure(diagram(spiral(2, (0, 0))), caption: [$n = 2$]),
+  figure(diagram(spiral(6, (0, 0))), caption: [$n = 6$]),
+  figure(diagram(spiral(15, (0, 0))), caption: [$n = omega$]),
+  caption: [A selection of conatural numbers],
+  columns: (1fr,1fr,1fr),
+  label: <cr:fg:conats>
+)
+
+=== The $M$ type <sec:m>
+
+The $M$ type is the name given to the types whos semantics are terminal $F$-coalgebra;
+possibly infinitely deep trees in which each layer is an unfolding of $F$ (co-Amadek'sTODO:CITE).
+This means the implementations must have both:
+A a corecursor $"corec" : {alpha : "Type"} arrow.r (f : alpha arrow.r F alpha) arrow.r alpha arrow.r M F$,
+and a destructurer $"dest" : "M" F arrow.r F (M F)$.
+Two encodings of $M$-type's are seen in @sec:m:sme and @sec:m:pa.
+
+==== Progressive approximation encoding <sec:m:pa>
+
+A simple way to encode $M$-types,
+are as functions emitting trees that must at every level 'agree',
+this corresponds to the expected limit over the natural number poset category from co-Amadek's.
+Agreement is given by them being the same up to the previous depth as seen in @m:fg:agree.
+I like to think about agreement as the structure 'crystalizing',
+since it can only 'grow' from the ends.
+This is really easy to implement in lean.
+
+#figure(
+  diagram(cell-size:5mm, $
+  0 edge("rrrrrrrrr", "..") & & & edge("lld") edge("d") edge("dr") & & & & edge("lld") edge("d") edge("dr") &
+  \
+  1 edge("rrrrrrrrr", "..") & & & & & edge("d") edge("dr") & & & edge("d")
+  \
+  2 edge("rrrrrrrrr", "..")
+  $),
+  caption: [Agreement of two trees of height 1 and 2]
+)<m:fg:agree>
+
+===== In lean
+
+In lean we 
+
+=== State-machine encoding <sec:m:sme>
+
+The state-machine encoding is the naïve way to implement the terminal coalgebra.
+Given some polynomial functor $F$, the state-machine encoding is given by:
+some type $alpha : "Type"$,
+a function $f : alpha arrow.r F alpha$,
+and some witness $a : alpha$.
+Then you quotient over bisimilarity,
+thereby only allowing direct usage of $"dest" : "Sme" F arrow.r F ("Sme" F)$.
+
+////////////////////////////////////////////////////////////////////////////////
+
+== Inductive predicate
+
+An inductive predicate is a least fixed point,
+it is a universal quantification over all relations of a given shape.
+An example of an inductive predicate is whether a number is even.
+We begin by defining this as a higher order predicate,
+the shape,
+we define this as seen in @ipred:fg:iseven.
+It can be shown that this definition is equivalent to the usual one.
+
+#code-math(raw(read("./IsEven.lean"), lang: "lean", block: true),
+  ccode: [],
+  $
+  "shape"_P  &eq.delta P 0 and forall n, P n -> P (n + 2) \
+  "Even" (n) &eq.delta forall P, "shape"_P -> P n \
+  e_0 : "Even" 0 &eq.delta lambda P "hP". pi_1 ("hP")
+  $,
+  cmath: [],
+  [Evenness inductive predicate, from first principles],
+  lab: <ipred:fg:iseven>
+)
+
+== Coinductive predicate
+
+// TODO: Fix this section
+
+Given what we saw in the last section and what we have seen when speaking about conductive data we now now all we must do is dualize this construction.
+So we change the universal to an existential and the disjuckt to a conjunct.
+This gives us a proof principal with tree components.
+We now need to define the entry predicate,
+we need to proof it satisfy the restriction and finally that it contains our value.
+
+=== Coinduction up-to
+
+When proving coinductive predicates it is often useful not to include the entire relation upfront.
+Instead we use libraries such as CITATION PACO.
+This allows for providing an initial relation then later automatically extending it to for example include reflexivity.
+Sadly Lean does not have such libraries.
+
+== Bisimilarity
+
+In this section we will talk about the equivalence relation on co inductive types called bisimilarities.
+Morally two things are bisimilar if for every possible choice in a structure A there exists a corresponding choice in structure B such that you can repeat this procedure from the new point.
+
+Onstreams this corrensponds to saying that the heads of the streams are equal and then the tails are bisimilar.
+As you may note this is not a well founded relation.
+This means we ned to define it as a coinductive predicate rather than an inductive one.
+Then the proof principal for this will be giving a relation,
+showing it is a bisimilary and that it holds on our values.
+
+=== Coinduction principle
+
+A coinductive type has a conduction principle is bisimilarites implies equality.
+For the SME this will be harder to show.
 
 ////////////////////////////////////////////////////////////////////////////////
 
 == Tools used
 
-== Requirement Analysis
+== Requirement Analysis <sec:rq>
 
 To expand on the success critera given in the proposal,
 I specified the project using MoSCoW.
@@ -321,7 +485,9 @@ and improvements have become SHOULD.
 I have done this for the core and each of the extentions of the project.
 
 #let moscow(nm, m, s, c, x) = [
-#let f(l) = (n) => box(width: 3em)[#strong(nm + l + [#n])]
+// #let f(l) = (n) => box(width: 3em)[#strong(nm + l + [#n])]
+// TODO: Make this look more like whats above 
+#let f(l) = nm + l + "1"
 #set enum(numbering: f("M"))
 #m
 #set enum(numbering: f("S"))
@@ -334,41 +500,91 @@ I have done this for the core and each of the extentions of the project.
 
 === State machine encoding (Core)
 
-#columns(2)[
 #moscow("S", [
-1. The SME MUST be implemented.
-2. The SME MUST be constant time under destructuring.
-3. The SME MUST be able to express the NT monad, @pl:sec:ntm.
-4. The equivelence between SME and PA MUST be implemented.
++ The SME Stream MUST be implemented in its high universe form. <rq:sme:stream:impl>
++ The equivelence between SME Stream and PA Stream MUST be implemented. <rq:sme:stream:equiv>
++ The SME M MUST be implemented in its high universe form. <rq:sme:impl>
++ The SME M MUST be constant time under destructuring. <rq:sme:fast>
++ The SME M MUST be able to express the NT monad, @pl:sec:ntm. <rq:sme:ntm>
++ The equivelence between SME M and PA MUST be implemented. <rq:sme:equiv>
 ], [
-1. The SME SHOULD have a coinduction principle.
++ The SME M SHOULD have a coinduction principle. <rq:sme:cind>
 ], [
-1. The SME COULD have a productivity transform @pl:sec:prod.
-2. The SME COULD have an Interaction tree library @pl:sec:itree.
-3. The SME COULD have a Choice Tree library @pl:sec:ctree.
++ The SME M COULD have a low universe shifted version @pl:sec:abi. <rq:sme:abi>
++ The SME M COULD have an Interaction tree library @pl:sec:itree. <rq:sme:itree>
++ The SME M COULD have a Productivity Transform @pl:sec:prod. <rq:sme:prod>
++ The SME M COULD have a Choice Tree library @pl:sec:ctree. <rq:sme:ct>
++ The SME M COULD be zero cost. <rq:sme:zc>
 ], [
-1. The SME WONT have a syntax macro a la @cite:keizer.
++ The SME M WONT have a syntax macro a la @cite:keizer. <rq:sme:sm>
 ])
 
 === Non-termination-monad (Core)<pl:sec:ntm>
 
 #moscow("N", [
-1.
++ The NTMonad MUST be implemented using the SME. <rq:ntm:impl>
++ The NTMonad MUST have a monadic bind and return. <rq:ntm:mon>
++ The NTMonad MUST be linear in compression. <rq:ntm:fast>
 ], [
-1.
++ The NTMonad SHOULD be a lawful monad. <rq:ntm:lfm>
 ], [
-1.
++ The NTMonad COULD be set up to use @pl:sec:prod. <rq:ntm:prod>
 ], [
-1.
++ The NTMonad WONT have a syntax macro. <rq:ntm:sm>
 ])
 
-=== ABI Type (Extention)
+=== ABI Type (Extention)<pl:sec:abi>
+
+#moscow("\u{0410}", [
++ The ABI Type MUST be implemented. <rq:abi:impl>
++ 
+], [
++ 
+], [
++ 
+], [
++ 
+])
 
 === Interaction Trees (Extention)<pl:sec:itree>
 
+#moscow("\u{0406}", [
++ ITrees MUST be implemented. <rq:it:impl>
++ ITrees MUST have strong bisimilarity. <rq:it:sbisim>
++ ITrees MUST have bind and return constructs. <rq:it:mon>
++ ITrees MUST have KTrees. <rq:it:kt>
+], [
++ ITrees SHOULD have flow combinators implemented. <rq:it:comb>
++ ITrees SHOULD have a coinduction principle. <rq:it:coind>
++ ITrees SHOULD be a lawful monad. <rq:it:lmon>
+], [
++ ITrees COULD have weak bisimilarity implemented. <rq:it:wbisim>
++ ITrees COULD have the monadic interpretation. <rq:it:moni>
+], [
++ 
+])
+
 === Futumorphic productivity (Extention)<pl:sec:prod>
 
-=== Choice Trees (Extention)<pl:sec:ctree>
-]
+#moscow("F", [
+1. 
+], [
+1. 
+], [
+1. 
+], [
+1. 
+])
 
+=== Choice Trees (Extention)<pl:sec:ctree>
+
+#moscow("C", [
++ 
+], [
++ 
+], [
++ 
+], [
++ 
+])
 

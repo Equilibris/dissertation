@@ -1,5 +1,6 @@
 #import "@preview/codly:1.3.0": *
 #import "@preview/codly-languages:0.1.8": *
+#import "@preview/itemize:0.2.0" as el
 
 #let common(
   title: "My Dissertation",
@@ -19,9 +20,12 @@
   set heading(numbering: "1.1")
   set math.equation(numbering: "1.1")
   set par(justify: true)
-  show: codly-init.with()
   show raw: set text(font : "FiraCode Nerd Font")
-  codly(languages: codly-languages, number-format : none, display-name: false)
+  show: el.default-enum-list
+  show: el.config.ref
+  // TODO: Fix codly
+  // show: codly-init.with()
+  // codly(languages: codly-languages, number-format : none, display-name: false, zebra-fill: none)
 
   body
 }
