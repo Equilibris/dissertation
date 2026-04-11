@@ -4,6 +4,8 @@
 #import "@preview/subpar:0.2.2" as subpar: grid as spg
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
 
+#set raw(lang: "lean")
+
 ////////////////////////////////////////////////////////////////////////////////
 
 == Dependent type theory
@@ -97,7 +99,7 @@ read @cite:hottbook.
     caption: [$Sigma$-elimination rule#footnote([
       Technically this isn't the most general eliminator for Sigma's,
       as $C$ can depend on the content of the type.
-      For symetry and simplicity I omit this.
+      For symmetry and simplicity I omit this.
     ])]
   ),
   columns: (auto,auto,auto),
@@ -114,7 +116,7 @@ $ Pi, Sigma stretch(harpoons.rtlb)^("propositional truncation")_("Categorificati
 
 === Categorically
 
-Dependent type theory is an extention on the simply typed lambda calculus.
+Dependent type theory is an extension on the simply typed lambda calculus.
 It is for locally cartesian closed categories,
 what ST$lambda$C is for cartesian categories;
 the semantics of a dependent calculus will be in terms of some LCCC.
@@ -124,6 +126,99 @@ the semantics of a dependent calculus will be in terms of some LCCC.
 
 ////////////////////////////////////////////////////////////////////////////////
 
+== Lean
+
+Lean is a popular dependently typed proof assistant,
+it is famous for a few reasons.
+
++ It has @cite:mathlib, one of the largest repositories of formalized mathematics in the world.
++ It is a proof assistant made for (classical) mathematicians.
++ It has a rich tactic language in which most proofs are written.
++ It has a compiler, and can be used as a general purpose programming language. <lean:li:compiler>
+
+We will mainly focus on point @lean:li:compiler,
+as a consequence of this point,
+we sometimes have a tention between the logical and computation sides of a proof.
+A classic example of where this occurs is in the elimination principle for strong-induction#footnote[
+  This is now,
+  for the case of natural numbers,
+  fixed as of lean 4.27.
+  https://www.youtube.com/watch?v=LOUbbiV0mWc
+  https://lean-lang.org/doc/reference/latest/releases/v4.27.0/
+].
+
+Lean requires all induction to be structural,
+so to do induction over a general well-founded relation,
+we need some inductive (@sec:ind),
+Lean calls this `Acc` and defines it as seen in @lean:ls:acc.
+On this they define a function `WellFounded.fixF`
+which allows for strong induction.
+This function is at least quadratic in its runtime,
+therefore as a consequence the kernel takes this quadratic runtime to execute.
+
+#figure(
+  ```lean
+inductive Acc {α : Sort u} (r : α → α → Prop) : α → Prop where
+  /--
+  A value is accessible if for all `y` such that `r y x`, `y` is also accessible.
+  Note that if there exists no `y` such that `r y x`, then `x` is accessible.
+  Such an `x` is called a _base case_.
+  -/
+  | intro (x : α) (h : (y : α) → r y x → Acc r y) : Acc r x ```,
+  caption: [Definition for `Acc` taken from @cite:lean's GitHub]
+)<lean:ls:acc>
+
+
+It would be unacceptable for a program using strong recursion to be quadratic for a general purpose programming language,
+therefore the compiler decides to simply not compile the definition using `fixF`,
+and generates the expected intermediate representation.
+We can see that given the source-code @lean:ls:def,
+it generates a definition @lean:ls:ker with `fixF`,
+but in the output lean intermediate-representation we get @lean:ls:ir,
+which deos not contain any mention of `fixF`,
+but rather the expected recursive call.
+
+#let gcdc = read("./Gcd.lean")
+
+#[
+#show raw.where(block: true): set text(size: 5pt)
+#spg(
+  figure(raw(takeL(gcdc,0,7), block: true), caption : [GCD source code]),
+  <lean:ls:def>,
+  figure(raw(takeL(gcdc,8,27), block: true), caption : [generated kernel code]),
+  <lean:ls:ker>,
+  figure(
+    ```lean
+[Compiler.result] size: 9
+  def gcd a b : tobj :=
+    let _x.1 := 0;
+    let _x.2 := Nat.decEq b _x.1;
+    cases _x.2 : tobj
+    | Bool.false =>
+      let _x.3 := Nat.mod a b;
+      dec a;
+      let _x.4 := gcd b _x.3;
+      return _x.4
+    | Bool.true =>
+      dec b;
+      return a
+    ```,
+    caption: [Generated intermediate representation]
+  ),
+  <lean:ls:ir>,
+  columns: (1fr, 1fr, 1fr)
+)
+]
+
+This general trick was what inspired me to start this project,
+as it demonstrates that there is precident in Lean4 to have seperate logical and executional models.
+This is further highligthed by the existance of the `@[implemented_by ...]` attribute,
+which lets you off-load the runtime behaviour of a function to another possibly unsafe definition.
+The semantics of `@[implemented_by]` is simply calling the alternative function when not evaluation in the kernel.
+Safety of programs using `@[implemented_by]` is a very complex endevour to find,
+as lean has a tactic called `native_decide` that runs the generated code outside of the kernel.
+I have been told by some of the maintainers of @cite:mathlib,
+that all definitions that use `@[implemented_by]` should also be `@[irriducable]`.
 == Polynomial functors
 
 A (multivariate) polynomial functor on set#footnote([
@@ -187,12 +282,6 @@ inductive Sum (A B : Type) where
 
 ==== Option
 
-==== Functions from fixed types
-
-==== W
-
-==== M
-
 // #figure(
 //   diagram(
 //     cell-size: 6mm,
@@ -213,28 +302,29 @@ inductive Sum (A B : Type) where
 
 ////////////////////////////////////////////////////////////////////////////////
 
-== Recursion and Inductives<sec:coind>
+== Recursion and Inductives<sec:ind>
+
+#set raw(lang: "ocaml")
 
 We are all familiar with algebraic datatypes from OCaml.
 These are structures freely generated from a set of constructurs.
 The classic example is a list,
 given as two constructors,
-`cons : 'a -> 'a list -> 'a list` and `nil : 'a list`,
-and a way to consume lists `fold : 'a -> ('b -> 'a -> 'a) -> 'b list -> 'a`.
+`val cons : 'a -> 'a list -> 'a list` and `val nil : 'a list`,
+and a way to consume lists `val fold : 'a -> ('b -> 'a -> 'a) -> 'b list -> 'a` (in lean we say `rec` instead of `fold`).
 We write this as seen in @cr:ls:list.
 This is what is known as an inductive datatype.
-Inductive datatypes are well-founded trees#footnote([
-  OCaml is quite stupid and allows for non well-founded trees,
-  an example is `let rec degen = Cons((), degen)`.
-  This is because inductives and coinductives are 'coincident' in OCaml.
-  We will come back to this in the next section.
+Inductive data-types are well-founded trees#footnote([
+  In OCaml, data-types do not correspond directly to inductives since we can have non-well-founded trees,
+  an example is `let rec degen = Cons((), degen)`,
 ]);
 any function that terminates,
 must by definition return at most a finite (but unbounded) amount of constructors.
-This means fold is guarangteed to terminate too.
+This means fold is guarangted to terminate too.
 All (primitive) recursive functions can be compiled into a call to fold#footnote([TODO: Cite McBride's work]).
 We also have two operations mk and dest.
-These form an equivalence (Lambek's Theorem)
+These form an equivalence (Lambek's Theorem),
+giving us the result that the fix-point is what we want $F (mu F) tilde.eq mu F$.
 
 #let il = read("./IList.ml")
 #let eind = 8
@@ -244,53 +334,44 @@ These form an equivalence (Lambek's Theorem)
   caption: [Definition of list in OCaml]
 )<cr:ls:list>
 
-=== Categorically
-
-#let Set = $bold("Set")$
-
-Given the family of endofunctors on $Set$.
-Consider the polynomial given by $L_A = 1 plus.o (underline(A) times.o id)$,
-or in its expanded form in @cr:list.
-Now recall the definition of the category of #box[$L_A$-algebras]#footnote([TODO: Cite algebra definition]).
-The lists we are used to are exactly the initial object in this category.
-The initial map takes an algebra $f : L_A (B) -> B$ and yields a map $"fold" : mu L_A -> B$#footnote([TODO: Cite Neel]).
-This is exactly what we want,
-as expanding the definition or $L_A (B)$ and distrubuting this over the arrows we get the signature above.
-
-$
-L_A & (quad X quad &) &= & quad 1 quad        & plus.o quad & (& A       & times.o quad & X &) \
-L_A & (quad f quad &) &= & (iota_l compose !) & plus.o_m    & (& bb(1)_A & times.o_m    & f &)
-$<cr:list>
-
-== Corecursion and coinductives
+// === Semantics
+//
+// Given the family of endofunctors on $Type$.
+// Consider the polynomial given by $L_A = 1 plus.o (underline(A) times.o id)$.
+// Now recall the definition of the category of #box[$L_A$-algebras]#footnote([TODO: Cite algebra definition]).
+// The lists we are used to are exactly the initial object in this category.
+// The initial map takes an algebra $f : L_A (B) -> B$ and yields a map $"fold" : mu L_A -> B$#footnote([TODO: Cite Neel]).
+// This is exactly what we want,
+// as expanding the definition or $L_A (B)$ and distrubuting this over the arrows we get the signature above.
+//
+== Corecursion and coinductives<sec:coind>
 
 // TODO: Write about how they are just state-machine ish
 // TODO: What that means is ... sayind dual is useless  
 // Step 1: finish this section
 
-Coinductives are the duals of inductives,
-they have an operation `unfold` which is the dual of the operation `fold`.
-
+Coinductive datatypes are datatypes we allow to be infinitely deep.
+Where inductive datatypes have a `fold : (('a, 'b) f → 'b) → (('a, 'g) f as 'g) → 'b` to consume them,
+coinductives have an `unfold : ('b → ('a, 'b) f) → 'b → (('a, 'g) f as 'g)` to produce them.
 The intuition for this if you have never seen `unfold`'s or coinductives,
 simply view it as if a fix F yields an X,
 then cofix F yields a lazy X#footnote([
   I. e. $"fix" L_A$ gives lists,
   then $"cofix" L_A$ gives lazy lists.
 ]).
+Another way to view coinductives are as a state-machine,
 
 === In OCaml
 
-If we were in Haskell (or any call by name / push-value langauge),
-the definition of icolist would be exactly that of ilist.
 We can think back to what we did in Foundations of Computer Science,
-when we made lazy lists we also had to change recursive occurances to be thunked,
+we made lazy lists simply by thunking recursive occurnces,
 this thunking allows infinite structures to exist in finite memory.
 This happens because OCaml is CBV.
-Then I carry over the definitions mk and dest with minimal change,
-and also add the unfold operator i mentioned.
-All this can be seen in @cr:ls:colist.
-Equally we have a similar theorem to Lambek;
-mk and dest are inverses.
+If we were in Haskell (or any call by name / push-value language),
+the definition of icolist would be exactly that of ilist.
+Then all we need to do is add a definition of `unfold`, `mk` and `dest`.
+All these can be seen in @cr:ls:colist.
+We have a coinductive version of Lambek's theorem now too.
 
 #figure(
   raw(takeL(il, eind, 17), lang: "ocaml", block: true),
@@ -298,12 +379,14 @@ mk and dest are inverses.
 )<cr:ls:colist>
 
 The keen eyes will notice and call out that `unfold` is not structurally recursive,
-or even decreasing at all.
+nor even decreasing at all.
 This is the key difference between inductives and coinductives;
 coinductives can be 'infinitely big'.
 Though it is not decreasing,
 assuming gen is terminating it is _productive_
 (think of this as coterminating).
+As termination is having a complete structure in finite time,
+productivity is growing in finite time.
 
 === Streams
 
@@ -319,77 +402,89 @@ Though this is a perfectly well-defined coinductive.
 Streams are also common in general purpose programming,
 Java has Stream,
 Rust and Python have Iterator.
-From this we can see the use of them.
+This backs up our use cases put forward in the introduction.
 We will give concrete implementations of them for each of the encodings as follows.
 
-=== The conaturals
+// === The conaturals
+//
+// The conaturals arise naturally from failiure:
+// Consider a category whos objects are 'fallable computations' $(S : Type, sigma : S -> 1 plus.o S)$,
+// and arrows between them are 'failiure preserving' functions,
+// that is given $(S,sigma)$ and $(T, tau)$ the arrow is an $f : S -> T$ and a proof $tau compose f = (bb(1) plus.o_m f) compose sigma$.
+// Then the terminal object in this category will be conaturals.
+// This question is provided by Fiore and Pitts TODO: CITE.
+//
+// Some phrase this object as 'the natural numbers adjoin infinity',
+// this is a subtily different structure.
+// There is a non-computable#footnote[
+//   This is exactly the halting oracle for PCF actually.
+// ] eqvuielence between them.
+// The tradeoff is productive generation versus decidable equality,
+// and in this case it is much more natural to choose productive generation as it makes the denotation computable.
+// One can imagine these structures as sequences of arcs that get closer and closer to a circle,
+// then we add one additonal element $omega$ which closes it completely as seen in @cr:fg:conats.
+// Another useful way to view conatural numbers is turing machines,
+// quotiented by how many steps it takes for them to terminate.
+// In this definition there trivially is a unique non-terminiating machine.
+// We will use this exact notation when we get to @sec:ntmonad
+//
+// #let spiral(n, ps,  L : 1.81, k : 1.4, r : 1.0) = {
+//   n += 1
+//   let pts = ()
+//   let angle = -calc.pi / 2
+//   for i in range(n) {
+//     pts.push((
+//       calc.cos(angle * 1rad) * r + ps.at(0),
+//       -calc.sin(angle * 1rad) * r + ps.at(1),
+//     ))
+//     angle -= L / calc.pow(k, i)      // advance CW
+//   }
+//   let o = pts.map(node)
+//   for i in range(n - 1) {
+//     let sweep = L / calc.pow(k, i)
+//     // For a circular arc subtending φ, bend ≈ φ/2.
+//     // Positive bend = curve left of travel direction = CW bulge.
+//     // Negate if your arcs bow inward instead of outward.
+//     let b = sweep / 2 * (180 / calc.pi) * 1deg
+//     o.push(edge(pts.at(i), pts.at(i + 1), "|-|", bend: b))
+//   }
+//   o
+// }
+//
+// // ── Draw ────────────────────────────────────
+// #spg(
+//   figure(diagram(spiral(2, (0, 0))), caption: [$n = 2$]),
+//   figure(diagram(spiral(6, (0, 0))), caption: [$n = 6$]),
+//   figure(diagram(spiral(15, (0, 0))), caption: [$n = omega$]),
+//   caption: [A selection of conatural numbers],
+//   columns: (1fr,1fr,1fr),
+//   label: <cr:fg:conats>
+// )
 
-The conaturals arise naturally from failiure:
-Consider a category whos objects are 'fallable computations' $(S : Type, sigma : S -> 1 plus.o S)$,
-and arrows between them are 'failiure preserving' functions,
-that is given $(S,sigma)$ and $(T, tau)$ the arrow is an $f : S -> T$ and a proof $tau compose f = (bb(1) plus.o_m f) compose sigma$.
-Then the terminal object in this category will be conaturals.
-This question is provided by Fiore and Pitts TODO: CITE.
+#let MT = [$M$-type]
+#let MTs = [$M$-types]
 
-Some phrase this object as 'the natural numbers adjoin infinity',
-this is a subtily different structure.
-There is a non-computable#footnote[
-  This is exactly the halting oracle for PCF actually.
-] eqvuielence between them.
-The tradeoff is productive generation versus decidable equality,
-and in this case it is much more natural to choose productive generation as it makes the denotation computable.
-One can imagine these structures as sequences of arcs that get closer and closer to a circle,
-then we add one additonal element $omega$ which closes it completely as seen in @cr:fg:conats.
-Another useful way to view conatural numbers is turing machines,
-quotiented by how many steps it takes for them to terminate.
-In this definition there trivially is a unique non-terminiating machine.
-We will use this exact notation when we get to @sec:ntmonad
+=== The #MT <sec:m>
 
-#let spiral(n, ps,  L : 1.81, k : 1.4, r : 1.0) = {
-  n += 1
-  let pts = ()
-  let angle = -calc.pi / 2
-  for i in range(n) {
-    pts.push((
-      calc.cos(angle * 1rad) * r + ps.at(0),
-      -calc.sin(angle * 1rad) * r + ps.at(1),
-    ))
-    angle -= L / calc.pow(k, i)      // advance CW
-  }
-  let o = pts.map(node)
-  for i in range(n - 1) {
-    let sweep = L / calc.pow(k, i)
-    // For a circular arc subtending φ, bend ≈ φ/2.
-    // Positive bend = curve left of travel direction = CW bulge.
-    // Negate if your arcs bow inward instead of outward.
-    let b = sweep / 2 * (180 / calc.pi) * 1deg
-    o.push(edge(pts.at(i), pts.at(i + 1), "|-|", bend: b))
-  }
-  o
-}
-
-// ── Draw ────────────────────────────────────
-#spg(
-  figure(diagram(spiral(2, (0, 0))), caption: [$n = 2$]),
-  figure(diagram(spiral(6, (0, 0))), caption: [$n = 6$]),
-  figure(diagram(spiral(15, (0, 0))), caption: [$n = omega$]),
-  caption: [A selection of conatural numbers],
-  columns: (1fr,1fr,1fr),
-  label: <cr:fg:conats>
-)
-
-=== The $M$ type <sec:m>
-
-The $M$ type is the name given to the types whos semantics are terminal $F$-coalgebra;
+// The $M$ type is the name given to the types who's semantics are terminal $F$-coalgebra;
+The $M$ type is the name given to the cofixed-point I mentioned
+#footnote[Often phrases as types who's semantics are terminal $F$-coalgebra.];
 possibly infinitely deep trees in which each layer is an unfolding of $F$ (co-Amadek'sTODO:CITE).
 This means the implementations must have both:
-A a corecursor $"corec" : {alpha : "Type"} arrow.r (f : alpha arrow.r F alpha) arrow.r alpha arrow.r M F$,
-and a destructurer $"dest" : "M" F arrow.r F (M F)$.
-Two encodings of $M$-type's are seen in @sec:m:sme and @sec:m:pa.
+A corecursor $"corec" : {alpha : "Type"} arrow.r (f : alpha arrow.r F alpha) arrow.r alpha arrow.r M F$,
+and a destructor $"dest" : "M" F arrow.r F (M F)$.
+These are the what we mentioned above,
+often we also want to ship a way to `mk` a new layer,
+but we can define this from the two operators above.
+
+When it comes to encoding #MTs in lean,
+there are a few different approaches.
+We will focus on two encodings of #MT's,
+the State-Machine encoding @sec:m:sme (the new method) and Progressive Approximation @sec:m:pa (as seen in @cite:mathlib).
 
 ==== Progressive approximation encoding <sec:m:pa>
 
-A simple way to encode $M$-types,
+A simple way to encode #MTs,
 are as functions emitting trees that must at every level 'agree',
 this corresponds to the expected limit over the natural number poset category from co-Amadek's.
 Agreement is given by them being the same up to the previous depth as seen in @m:fg:agree.
@@ -432,7 +527,8 @@ There are a few different approches to solve this that we will compare and contr
 === State-machine encoding <sec:m:sme>
 
 The state-machine encoding is the naïve way to implement the terminal coalgebra.
-Given some polynomial functor $F$, the state-machine encoding is given by:
+Given some polynomial functor $F$,
+the state-machine encoding is given by:
 some type $alpha : "Type"$,
 a function $f : alpha arrow.r F alpha$,
 and some witness $a : alpha$.
@@ -440,11 +536,10 @@ Once this is done there are 3 key problems:
 1) The object constructed is only weakly terminal,
 2) the object created has no coinduction principle,
 3) the object resides in a higher universe.
-Let us first focus on the first two problems,
+Let us first focus on the first two problems (the 3rd problem is tackled in @sec:abi),
 both of these are solved by quotienting over bisimilarity.
 The reason this works has to do with how bisimilarity 'hides' the generating type,
 making the only operation you really can do to access the data a destructure.
-
 
 == Inductive predicate
 

@@ -2,6 +2,9 @@
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
 #import "@preview/colorful-boxes:1.4.3": colorbox
 #import "@preview/diagraph:0.3.6": render as grender
+#import "@preview/tdtr:0.5.5" : tidy-tree-graph, tidy-tree-draws
+#import "@preview/pintorita:0.1.4"
+#show raw.where(lang: "pintora"): it => pintorita.render(it.text)
 
 // TODO
 #let impl(content) = align[Addressing: #content]
@@ -32,84 +35,137 @@ Additionally the import graph can be seen in @rep:fg:import
 
 // TODO Make this take up less page space. Make it alternate between horizontal and vertical
 
-#colorbox(title: [Main lean section])[
-- ABI.lean
-- Basic.lean
-- Examples
-  - AMP
-    - Product.lean
-    - Supo1.lean
-  - FunctionPFunctor.lean
-- ForMathlib
-  - Data
-    - PFunctor
-      - Multivariate
-        - Basic.lean
-        - M.lean
-    - QPF
-      - Multivariate
-        - Basic.lean
-        - Constructions
-          - Cofix.lean
-    - TypeVec.lean
-    - ULift.lean
-- HEq.lean
-- HList.lean
-- ITree
-  - Bisim.lean @rq:it:sbisim
-  - Combinators.lean @rq:it:comb
-  - Defs.lean @rq:it:impl, @rq:sme:itree
-  - Events
-    - Empty.lean
-    - Map.lean
-    - State.lean
-    - SubEvent.lean
-  - Examples
-    - Echo.lean
-    - Imp.lean
-  - Interp.lean @rq:it:moni
-  - KTree.lean @rq:it:kt
-  - MonadIter.lean
-  - Monad.lean @rq:it:mon, @rq:it:lmon
-  - WBisim
-    - Congr.lean
-    - Defs.lean
-    - IterCongr.lean
-    - Monad.lean
-    - Step.lean
-  - WBisim.lean @rq:it:wbisim
-- ListMemT.lean
-- M
-  - DT
-    - Bind.lean
-    - Closed.lean
-    - CorecEq.lean
-    - Corec.lean
-    - Defs.lean
-    - DTSum.lean
-    - Factorize.lean
-    - Flat.lean
-    - Inject.lean
-    - ULift.lean
-  - DT.lean @rq:sme:prod
-  - Equiv.lean @rq:sme:equiv
-  - HpLuCofix.lean
-  - HpLuM.lean @rq:sme:abi, @rq:sme:cind
-  - PreM.lean @rq:sme:impl, @rq:sme:cind
-  - SM.lean @rq:sme:impl, @rq:sme:cind
-- NTMonad
-  - Defs.lean @rq:sme:ntm
-- PFunctor
-  - EquivP.lean
-  - NatIso.lean
-  - Prj.lean
-  - Utils.lean
-- Stream
-  - Equiv.lean @rq:sme:stream:equiv
-  - PDefs.lean
-  - SDefs.lean @rq:sme:stream:impl
-- Vec.lean
-]
+#let box(boxc) = node.with(snap: -1, fill: boxc.lighten(90%), stroke: boxc)
+
+#let sl = 2
+#figure(
+  diagram(
+    cell-size: 4mm,
+    box(teal)(enclose : (<slib>, <dt>)),
+
+    node((1,1-sl), [PA Impl], name: <spa>),
+    edge("->"),
+    node((2,0-sl), [Equiv], name : <seq>),
+    edge("<-"),
+    node((2,1-sl), [SME Impl], name: <ssme>),
+    box(teal)(align(top + left)[Stream], enclose: (<spa>, <seq>, <ssme>, (0,-1)), snap: -1, name: <s>),
+
+    node((1,1), [PreM], name: <prem>),
+    edge("->"),
+    node((2,1), [SM], name : <sm>),
+    edge("->"),
+    node((3,0), [HpLuM], name: <hplum>),
+    edge("<-"),
+    node((2,0), [Equiv], name: <peq>),
+    box(teal)(align(top+left)[Polynomial], enclose: (<prem>,<sm>,<hplum>,<peq>, (0,1)),name : <slib>),
+
+    edge(<hplum>, (3,2), <dtd>, "->"),
+
+    node((2,2), [DT Defs], name: <dtd>),
+    edge("->"),
+    node((1,3), [DT Corec],name : <dtc>),
+    edge(<dtd>,<dtf>,"->"),
+    node((2,3), [DT Inject], name: <dtf>),
+    box(teal)(align(top+left)[Deep thunks], enclose: (<dtf>,<dtd>,<dtc>, (0,2)), name: <dt>),
+
+    edge(<hplum>, <clib>, "->"),
+    edge(<dtc>,   (1, 4),(3, 4), <clib>, "->"),
+    edge(<dtf>,   (2, 4),(3, 4), <clib>, "-"),
+
+    node((3,5), [Coinduction library], name: <clib>),
+
+
+    node((3, -1), [ABI], name: <abi>),
+    edge(<abi>, <hplum>, "->"),
+    box(teal)([ABI], enclose: (<abi>,) ),
+
+    edge(<hplum>, <itd>, "->"),
+    node((4,0), [ITree Defs], name:<itd>),
+    edge("->"),
+    node((4,1), [Monad], name:<itm>),
+    edge("->"),
+    node((4,2), [Iter], name:<iti>),
+    node((5,0), [WBisim], name:<wbs>),
+    edge("->"),
+    node((5,1), [Congr], name:<wbsc>),
+    edge("->"),
+    node((5,2), [Congr Iter], name:<wbsi>),
+    edge( <itd>, <wbs>  , "->",),
+    edge( <itm>, <wbsc> , "->",),
+    edge( <iti>, <wbsi> , "->",),
+
+    box(teal)(enclose: (<itd>, <wbsi>) ),
+
+  )
+)
+
+// #colorbox(title: [Main lean section])[
+// #tidy-tree-graph(
+//   draw-edge: tidy-tree-draws.horizontal-vertical-draw-edge
+// )[
+// - SME
+//   - ABI.lean
+//   // - Basic.lean
+//   // - Examples
+//   //   - AMP
+//   //     - Product.lean
+//   //     - Supo1.lean
+//   //   - FunctionPFunctor.lean
+//   - ITree @rq:it:impl, @rq:sme:itree
+//     - Bisim.lean @rq:it:sbisim
+//       - Interp.lean @rq:it:moni
+//         - KTree.lean @rq:it:kt
+//     - Monad.lean @rq:it:mon, @rq:it:lmon
+//       - MonadIter.lean
+//         - Combinators.lean @rq:it:comb
+//     - WBisim.lean @rq:it:wbisim
+//       - Congr.lean
+//         - Defs.lean
+//            - IterCongr.lean
+//               - Monad.lean
+//                 - Step.lean
+//   - M
+//     - DT.lean @rq:sme:prod
+//       - Defs.lean
+//         - DTSum.lean
+//           - Corec.lean
+//             - Bind.lean
+//               - Closed.lean
+//                 - Factorize.lean
+//                   - CorecEq.lean
+//                     - Flat.lean
+//                       - Inject.lean
+//                         - ULift.lean
+//     - PreM.lean @rq:sme:impl, @rq:sme:cind
+//       - SM.lean @rq:sme:impl, @rq:sme:cind
+//         - Equiv.lean @rq:sme:equiv
+//           - HpLuM.lean @rq:sme:abi, @rq:sme:cind
+//             - HpLuCofix.lean
+//   - NTMonad @rq:sme:ntm
+//   - PFunctor
+//     - EquivP.lean
+//       - NatIso.lean
+//         - Prj.lean
+//           - Utils.lean
+//   - Stream
+//     - Equiv.lean @rq:sme:stream:equiv
+//       - PDefs.lean
+//         - SDefs.lean @rq:sme:stream:impl
+//   - ForMathlib
+//     - Data
+//       - PFunctor
+//         - Multivariate
+//           - Basic.lean
+//           - M.lean
+//       // - QPF
+//       //   - Multivariate
+//       //     - Basic.lean
+//       //     - Constructions
+//       //       - Cofix.lean
+//       - TypeVec.lean
+//       - ULift.lean
+// ]
+// ]
 
 == Common
 

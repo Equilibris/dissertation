@@ -21,6 +21,7 @@
   set math.equation(numbering: "1.1")
   set par(justify: true)
   show raw: set text(font : "FiraCode Nerd Font")
+  show raw.where(block: true): set text(size: 8pt)
   show: el.default-enum-list
   show: el.config.ref
   // TODO: Fix codly
