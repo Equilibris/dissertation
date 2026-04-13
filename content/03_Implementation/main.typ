@@ -235,7 +235,7 @@ then ulift both of them to a common universe $"ULift" alpha ::: "ULift" beta : "
 #footnote([Note we overload ULift as a notation to refer to lifting TypeVecs as well]).
 
 Noticable the next hurdle we encounter is that PFunctors are restricted to a universe level.
-Recall the definition from @pfunctorlean.
+Recall the definition from @sec:poly.
 Observe how for a $"MvPfunctor".{cal(U)} n$,
 we require that both the head and child reside in $cal(U)$.
 This will also cause problems,
@@ -313,7 +313,7 @@ We will henceforth refer to the datatype SME.PreM.
 
 === PreM
 
-As we speak about in @pfunctofalg,
+As we speak about in // TODO @pfunctofalg,
 the M Type is the terminal object in the category of coalgebras.
 We can see through reasoning (cumilatively) in this category that PreM is weakly terminal.
 Looking at this category we want to force the incoming morphisms together.

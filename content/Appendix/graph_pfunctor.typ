@@ -13,7 +13,7 @@ it would conventionally be written as @p-too-big,
 I will display the $h$s and $c$s as in @p-reasonably-written.
 I write an object of this functor, picked at $h_0$ with functions $f_i$,
 as seen in @po-reasonably-written.
-The justification of this notation will be seen @pfunctorlean.
+The justification of this notation will be seen @sec:poly.
 
 $ (j' : "Fin" j) times (h : h_(j')) times (i' : "Fin" i) arrow.r c_(i',h) arrow.r alpha_(i') $<p-too-big>
 
@@ -48,8 +48,7 @@ mapping a composition is the same as mapping each one by one.
   ),
   caption : [
     Definition of mapping of mvpfunctors,
-
-    in this case specalised to
+    #box[in this case specalised to]
     $P alpha_0 dots alpha_i$]
 )<po-mapping-defns>
 
@@ -114,9 +113,7 @@ with an inverse $"get"_alpha : "prj"_n alpha_0 dots alpha_i arrow.r alpha_n$.
     // show_obj("p2", (3,0), pfunc.prj, "mk", (($excl.inv$,),($excl.inv$,),), params : $v$, ),
   ),
   caption : [
-    By initial hom uniqueness,
-
-    mapping only changes the $n$th argument. ]
+    By initial hom uniqueness, #box[mapping only changes the $n$th argument.] ]
 )
 
 ==== Sum

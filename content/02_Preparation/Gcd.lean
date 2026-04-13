@@ -3,7 +3,8 @@ set_option trace.Compiler.result true in
 def gcd (a b : Nat) : Nat :=
   if h' : b = 0 then a
   else
-    have : a % b < b := Nat.mod_lt a (Nat.pos_of_ne_zero h')
+    have : a % b < b := Nat.mod_lt a
+      (Nat.pos_of_ne_zero h')
     gcd b (a % b)
 termination_by b
 

@@ -5,6 +5,8 @@
 // Take a look at the file `template.typ` in the file panel
 // to customize this template and discover how it works.
 
+#set page(numbering: "i")
+
 #show: project.with(
   title: "Efficient Coinductives through \nState-Machine Corecursors",
   author: "William Sørensen",
@@ -28,9 +30,16 @@
   <aix>,
 ))
 
-#show-todos()
+#outline(
+  title: [List of figures],
+  target: figure
+)
+
+#pagebreak()
 
 = Introduction
+
+#context counter(page).update(n => 1)
 
 #include "content/01_Intro/main.typ"
 
