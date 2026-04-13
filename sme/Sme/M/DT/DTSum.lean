@@ -157,6 +157,34 @@ theorem cocont_cont {α} (z : α .fz) (h : ∀ k, ¬cont z = recall k)
 theorem corecall_recall {α} (z : α (.fs .fz)) (h : ∀ k, ¬recall z = cont k)
     : corecall (α := α) (recall z) h = z := rfl
 
+theorem cocont_map {α β} (v : DTSum α)
+    {f : α ⟹ β} {h}
+    : cocont (f <$$> v) h = f .fz (cocont v fun k h' => by
+      subst h'
+      simp only [map_recall] at h
+      apply h _ rfl
+      ) := by
+  induction v using eqCases
+  <;> rename_i h'
+  <;> subst h'
+  · simp
+  · simp only [map_recall] at h
+    apply (h _ rfl).elim
+
+theorem corecall_map {α β} (v : DTSum α)
+    {f : α ⟹ β} {h}
+    : corecall (f <$$> v) h = f (.fs .fz) (corecall v fun k h' => by
+      subst h'
+      simp only [map_cont] at h
+      apply h _ rfl
+      ) := by
+  induction v using eqCases
+  <;> rename_i h'
+  <;> subst h'
+  · simp only [map_cont] at h
+    apply (h _ rfl).elim
+  · simp
+
 def equiv {α : TypeVec 2} : DTSum α ≃ (α <| .fs .fz) ⊕ (α <| .fz) where
   toFun := fun
     | ⟨.up .true,  v⟩ => .inl (v (.fs .fz) .unit)

@@ -4,6 +4,8 @@ import Sme.ITree.Monad
 import Sme.ITree.Combinators
 import Sme.ITree.MonadIter
 import Sme.ITree.Events.Empty
+import Sme.ITree.Interp
+import Sme.ITree.WBisim
 
 namespace Sme.ITree
 
@@ -24,6 +26,14 @@ instance {σ : Type u} {M : Type _ → Type _} [Iter M] [Functor M]
     | ⟨.inl x, y⟩ => .inl ⟨x, y⟩
     | ⟨.inr x, y⟩ => .inr ⟨x, y⟩
     ) <$> f a s) (Prod.mk a s)
+
+#check interp StateE.handle Type
+
+example {S : Type u} {R X}
+    {a b : ITree (StateE S) R}
+    {x}
+    : interp StateE.handle X a x ≈ interp StateE.handle X b x := sorry
+
 
 end Sme.ITree
 

@@ -167,9 +167,9 @@ theorem uLift_down_flat'
   rw! [MvFunctor.map_map]
   rw! [←ulift_NatTrans.symm.nat']
   simp
+  stop
   rw! [←MvPFunctor.uLift_down_nat']
   rw! [comp.get_map]
-  stop
   sorry
 
 theorem uLift_down_flat

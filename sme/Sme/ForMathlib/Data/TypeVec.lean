@@ -215,7 +215,7 @@ theorem appendFun_splitFun' {α α' : TypeVec (n + 1)} (f : α.drop ⟹ α'.drop
   <;> simp
 
 @[simp]
-theorem id_eq : (fun x ↦ _root_.id) = TypeVec.id (α := α) := rfl
+theorem id_eq : (fun _ ↦ _root_.id) = TypeVec.id (α := α) := rfl
 
 @[simp]
 theorem mp.get {p : α = β} {i} : Arrow.mp p i = cast (funext_iff.mp p i) := rfl

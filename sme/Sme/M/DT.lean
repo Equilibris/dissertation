@@ -15,7 +15,6 @@ open scoped MvFunctor
 universe u v w
 
 variable {α β : Type u} {n : Nat}
-instance {n} {P : MvPFunctor n} : MvFunctor <| DeepThunk P := HpLuM.instMvFunctor
 
 namespace DeepThunk
 

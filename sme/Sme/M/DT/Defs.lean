@@ -48,6 +48,7 @@ end DeepThunk
 def DeepThunk {n} (P : MvPFunctor n) := HpLuM (DeepThunk.NatTrans P)
 
 instance {n} {P : MvPFunctor n} : MvFunctor <| DeepThunk P := HpLuM.instMvFunctor
+instance {n} {P : MvPFunctor n} : LawfulMvFunctor <| DeepThunk P := HpLuM.instLawfulMvFunctor
 
 namespace DeepThunk
 

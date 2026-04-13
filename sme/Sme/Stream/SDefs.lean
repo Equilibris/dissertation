@@ -5,7 +5,7 @@ namespace Sme
 
 universe u v
 
-structure PreStream (A : Type u) where
+structure PreStream (A : Type u) : Type (max u (v + 1)) where
   corec ::
   {Gen : Type v}
   gen : Gen → A × Gen
@@ -81,11 +81,8 @@ coinductive Bisim (A : Type _) : SStream A → SStream A → Prop
 theorem bisim {a b : SStream A} (h : Bisim A a b) : a = b := by
   induction a using Quotient.ind
   induction b using Quotient.ind
-
   apply Quot.sound
-
   change PreStream.Bisim _ _ _
-
   rcases h with ⟨r, his, hhold⟩
   exact ⟨
     fun x y => r (.mk _ x) (.mk _ y),
@@ -109,7 +106,8 @@ theorem corec.tl {A Gen : Type _} {gen : Gen → A × Gen} {g : Gen}
 def dest (x : SStream A) : A × SStream A := ⟨x.hd, x.tl⟩
 
 @[simp]
-theorem corec.dest {A Gen : Type _} {gen : Gen → A × Gen} {g : Gen} : (corec gen g).dest = ((gen g).fst, corec gen (gen g).snd) := rfl
+theorem corec.dest {A Gen : Type _} {gen : Gen → A × Gen} {g : Gen}
+    : (corec gen g).dest = ((gen g).fst, corec gen (gen g).snd) := rfl
 
 end SStream
 
