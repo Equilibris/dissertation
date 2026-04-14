@@ -3,6 +3,7 @@
 #import "@preview/curryst:0.6.0": rule, prooftree
 #import "@preview/subpar:0.2.2" as subpar: grid as spg
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
+#import "@preview/diagraph:0.3.6": raw-render as grender
 
 #set raw(lang: "lean")
 
@@ -109,8 +110,8 @@ read @cite:hottbook.
 #let ch = footnote([
   #cite(<cite:cltt>, form:"prose") calls this 'categorification',
   as it is only one direction of Curry-Howard.
-  I know @dtt:eq:pt is just a more verbose way of writing 'Curry-Howard',
-  but I find it useful to be verbose here.
+  @dtt:eq:pt can also just simply be said as 'Curry-Howard',
+  but I prefer to highlight the directions of the relationship.
 ])
 $ Pi, Sigma stretch(harpoons.rtlb)^("propositional truncation")_("Categorification"^ch) forall, exists $<dtt:eq:pt>
 
@@ -138,7 +139,7 @@ it is famous for a few reasons.
 
 We will mainly focus on point @lean:li:compiler,
 as a consequence of this point,
-we sometimes have a tension between the logical and computation sides of a proof.
+we sometimes have a tension between the logical and computation sides of a proofs/programs.
 A classic example of where this occurs is in the elimination principle for strong-induction#footnote[
   This is now,
   for the case of natural numbers,
@@ -153,8 +154,8 @@ we need some inductive (@sec:ind),
 Lean calls this `Acc` and defines it as seen in @lean:ls:acc.
 On this they define a function `WellFounded.fixF`
 which allows for strong induction.
-This function is at least quadratic in its runtime,
-therefore as a consequence the kernel takes this quadratic runtime to execute.
+This function is quadratic in its runtime,
+therefore as a consequence the kernel takes quadratic runtime to execute.
 
 #figure(
   ```lean
@@ -165,17 +166,17 @@ inductive Acc {α : Sort u} (r : α → α → Prop) : α → Prop where
   Such an `x` is called a _base case_.
   -/
   | intro (x : α) (h : (y : α) → r y x → Acc r y) : Acc r x ```,
-  caption: [Definition for `Acc` taken from @cite:lean's GitHub]
+  caption: [Definition for `Acc` taken from Lean's GitHub @cite:lean]
 )<lean:ls:acc>
 
 
 It would be unacceptable for a program using strong recursion to be quadratic for a general purpose programming language,
-therefore the compiler decides to simply not compile the definition using `fixF`,
-and generates the expected intermediate representation.
+therefore the compiler decides to compile away the usage of `fixF`,
+and generates the expected calls in the intermediate representation (LCNF).
 
 We can see that given the source-code @lean:ls:def,
 it generates a definition @lean:ls:ker with `Nat.fix` (a variant of `fixF`),
-but in the output lean intermediate-representation we get @lean:ls:ir,
+but in the output LCNF we get @lean:ls:ir,
 which does not contain any mention of `Nat.fix`,
 but rather the expected recursive call.
 
@@ -212,65 +213,58 @@ but rather the expected recursive call.
 )]
 
 This general trick was what inspired me to start this project,
-as it demonstrates that there is precident in Lean4 to have seperate logical and executional models.
-This is further highlighted by the existence of the `@[implemented_by ...]` attribute,
+as it demonstrates that there is precedent in Lean4 to have separate logical and executional models.
+This is further highlighted by the existence of the `@[implemented_by]` attribute,
 which lets you off-load the runtime behaviour of a function to another possibly unsafe definition.
-The semantics of `@[implemented_by]` is simply calling the alternative function when not evaluation in the kernel.
-Safety of programs using `@[implemented_by]` is a very complex endeavour to find,
-as lean has a tactic called `native_decide` that runs the generated code outside of the kernel.
+The semantics of `@[implemented_by]` is simply calling the alternative function when not evaluating in the kernel.
+Safety of programs using `@[implemented_by]` is a very complex endeavour to verify,
+as Lean has a tactic called `native_decide` that runs the generated code outside of the kernel.
 I have been told by some of the maintainers of @cite:mathlib,
 that all definitions that use `@[implemented_by]` should also be `@[irreducible]`.
 
 == Polynomial functors<sec:poly>
 
-I will give two definitions now in the next paragraphs,
-these will be unary and (multivariate) polynomial functors respectively.
-
-Morally polynomial functors can be thought of as types generic in some set of arguments,
+Polynomial functors can be thought of as types generic in some set of arguments,
 with a collection of constructors (the head type),
 where the children correspond to how many of the polymorphic argument are wanted.
 The formal definition is as follows:
 
-A (multivariate) polynomial functor on #Type#footnote[
-  For the readers familiar with category theory,
-  simply think of categorical dependent products,
-  and (co)limits when I use the set-theoretic language.
-] is:
+A polynomial functor on #Type is:
 a head-type,
-along with a (collection of) child family(ies) parameterised by the head.
+along with a child family parameterised by the head.
 An object of a polynomial functor is a select head type,
-and the functions form the corresponding child(ren) parameterised by the head as seen in @pfunc-math
-#footnote[
-  More can be read on the ncatlab article @nlab:polynomial_functor,
-  we restrict ourselves to Set,
-  so I recommend skipping to that section.
-].
-// Equally this is the justification for why it is called a polynomial.
+and a function form the corresponding child parameterised by the head as seen in @pfunc-math @nlab:polynomial_functor.
 
 $ (h : H) times c_h arrow.r alpha eq.triple sum_(h : H) alpha^(c_h) $ <pfunc-math>
 
-Polynomial functors have all finite products (@pf:fg:const @pf:fg:prod) and coproducts (@pf:fg:const @pf:fg:sum).
-Polynomial functors are also closed under (co)fixed points so I will write them using a notation a la inductives,
+This is a univariate polynomial functor,
+this dissertation will mainly focus on multivariate polynomial functors.
+Where rather than having a single child,
+we have a $n$-tuple of children for an $n$-polynomial functor.
+
+Polynomial functors have all finite products (@pf:fg:const, @pf:fg:prod) and coproducts (@pf:fg:const, @pf:fg:sum).
+Polynomial functors are also closed under (co)fixed points so I will write them using a notation like inductives,
 in the next examples I have an ellipsis,
-in reality multivariate polynomials operate on type-vectors which come from the category formed by the products $Type^n$ for some $n$,
-these are an absolute pain to work with as I will discuss in the implementation#footnote[TODO ADD EXACT SECTION].
-The justification for writing pfunctors using an inductive notation can be found in #cite(<cite:keizer>, form: "prose") and #cite(<cite:qpf>, form: "prose").
+in reality multivariate polynomials operate on Type-vectors which come from the category formed by the products $Type^n$ for some $n$,
+these are an absolute pain to work with as I will discuss in the implementation#footnote[TODO: Add exact section when it is written].
+The justification for writing polynomials using an inductive notation can be found in #cite(<cite:keizer>, form: "prose") and #cite(<cite:qpf>, form: "prose").
 
 // For an explanation of the notation see @a:gpfunctors.
 
 === Common polynomials
 
 Some examples of common polynomials can be seen in the following figures,
-one crucial polynomial I am not mentioning which is maybe the most useful one but also most complex one,
+one crucial polynomial I am not providing code for which is complex to define here,
 is composition.
 The composition polynomial works exactly like composition in primitive recursive functions,
-it takes a $n$-polynomial, and $n$ lots of $m$-polynomials, and outputs an $m$-polynomial.
+it takes an $n$-polynomial, and $n$ lots of $m$-polynomials, and outputs an $m$-polynomial.
 The polynomial notation for this can be found in @cite:mathlib.
 
-We can now using these functors make a polynomial compiler from any syntax of the form `P :: var | P × P | P + P | const n` where `var :: x | y | ...`,
-this compiler is trivially structurally recursive on the syntax,
-simply when you see a var do `Prj` (@pf:fg:prj), a const `Const` (@pf:fg:const),
-and for the binary operators first a composition then the expected polynomial.
+We can, using these functors,
+make a polynomial compiler from any syntax of the form `P :: var | P × P | P + P | const n` where `var` ranges over named variables.
+This compiler is structurally recursive on the syntax.
+When you see a var do `Prj` (@pf:fg:prj), a const `Const` (@pf:fg:const),
+and for the binary operators first a composition then either `Sum` or `Prod`.
 
 #let code-math(code, math, c, ccode : [Inductive Notation], cmath : [Polynomial], lab : none) = pad(x:-1cm)[#spg(
   figure(code, caption: ccode),
@@ -334,7 +328,7 @@ inductive Sum (A B : Type) where
 
 #set raw(lang: "ocaml")
 
-We are all familiar with algebraic datatypes from OCaml.
+We are familiar with algebraic datatypes from OCaml.
 These are structures freely generated from a set of constructors.
 The classic example is a list,
 given as two constructors,
@@ -342,17 +336,17 @@ given as two constructors,
 and a way to consume lists `val fold : 'a -> ('b -> 'a -> 'a) -> 'b list -> 'a` (in lean we say `rec` instead of `fold`).
 We write this as seen in @cr:ls:list.
 This is what is known as an inductive datatype.
-Inductive data-types are well-founded trees#footnote[
-  In OCaml, data-types do not correspond directly to inductives since we can have non-well-founded trees,
+Inductive datatypes are well-founded trees#footnote[
+  In OCaml, datatypes do not correspond directly to inductives since we can have non-well-founded trees,
   an example is `let rec degen = Cons((), degen)`,
-];
-any function that terminates,
-must by definition return at most a (unbounded) finite tree of constructors.
+].
+Any function that terminates,
+must by definition return a finite tree of constructors.
 This means fold is guaranteed to terminate too.
-All (structural) recursive functions can be compiled into a call to fold#footnote[NOTE FOR REVIEW: does this need a citation?].
+All structurally recursive functions can be compiled into a call to fold.
 We also have two operations mk and dest.
 These form an equivalence (#cite(<cite:lambek>, form: "prose") Corollary 2.4),
-giving us the result that the fix-point is exactly that $F (mu F) tilde.eq mu F$.
+giving us the result that the fix-point satisfies $F (mu F) tilde.eq mu F$.
 
 #let (ilr, ilc) = partL(read("./IList.ml"), 8)
 
@@ -373,31 +367,27 @@ giving us the result that the fix-point is exactly that $F (mu F) tilde.eq mu F$
 //
 == Corecursion and coinductives<sec:coind>
 
-// TODO: Write about how they are just state-machine ish
-// TODO: What that means is ... sayind dual is useless  
-// Step 1: finish this section
-
 Coinductive datatypes are datatypes we allow to be infinitely deep.
 Where inductive datatypes have a `fold : (('a, 'b) f → 'b) → (('a, 'g) f as 'g) → 'b` (rec) to consume them,
 coinductives have an `unfold : ('b → ('a, 'b) f) → 'b → (('a, 'g) f as 'g)` (corec) to produce them.
-The intuition for this if you have never seen `unfold`'s or coinductives,
-simply view it as if a fix F yields an X,
+The intuition for this,
+is to view it as if a fix F yields an X,
 then cofix F yields a lazy X#footnote[
-  I. e. $"fix" (1 + (A times -))$ gives lists,
+  That is $"fix" (1 + (A times -))$ gives lists,
   then $"cofix" (1 + (A times -))$ gives lazy lists.
 ].
 Another way to view coinductives are as a state-machine,
 here the corecursor takes center stage,
 we can say a coinductive datatype is a datatype generated by some corecursor state-machine.
 
-=== In OCaml
+=== In OCaml <sec:cf:ocaml>
 
 We can think back to what we did in Foundations of Computer Science,
 we made lazy lists simply by thunking recursive occurrences,
 this thunking allows infinite structures to exist in finite memory.
 This happens because OCaml is CBV.
 If we were in Haskell (or any call by name / push-value language),
-the definition of icolist would be exactly that of ilist.
+the definition of icolist would be that of ilist.
 Then all we need to do is add a definition of `unfold`, `mk` and `dest`.
 All these can be seen in @cr:ls:colist.
 We have a coinductive version of Lambek's theorem now too.
@@ -407,15 +397,16 @@ We have a coinductive version of Lambek's theorem now too.
   caption: [Definition of colist in OCaml]
 )<cr:ls:colist>
 
-The keen eyes will notice and call out that `unfold` is not structurally recursive,
+The keen eyed will notice and call out that `unfold` is not structurally recursive,
 nor even decreasing at all.
 This is the key difference between inductives and coinductives;
 coinductives can be 'infinitely big'.
-Though it is not decreasing,
-assuming gen is terminating it is _productive_
-(think of this as coterminating).
-As termination is having a complete structure in finite time,
+Despite not being terminating,
+the definition is _productive_ (think of this as coterminating).
+Termination is having a complete structure in finite time,
 productivity is growing in finite time.
+
+// TODO: Make this into one big section,
 
 === Streams
 
@@ -428,7 +419,7 @@ As one might expect there cant exist any inductive of this form#footnote[
   #raw(ns, lang:"lean")
 ].
 Though this is a perfectly well-defined coinductive.
-Streams are also common in general purpose programming,
+Streams and colists are also common in general purpose programming,
 Java has Stream,
 Rust and Python have Iterator.
 This backs up our use cases put forward in the introduction.
@@ -496,17 +487,17 @@ We will give concrete implementations of them for each of the encodings as follo
 === The #MT <sec:m>
 
 // The $M$ type is the name given to the types who's semantics are terminal $F$-coalgebra;
-The $M$ type is the name given to the cofixed-point I mentioned
-#footnote[Often phrases as types who's semantics are terminal $F$-coalgebra.];
-possibly infinitely deep trees in which each layer is an unfolding of $F$ (dual of Lambek's @cite:lambek).
+The $M$ type is the name given to the cofixed-point of a polynomial functor
+#footnote[Often phrased as types who's semantics are terminal $F$-coalgebra.] ;
+possibly infinitely deep trees in which each layer is an unfolding of $F$.
 This means the implementations must have both:
-A corecursor $"corec" : {alpha : "Type"} arrow.r (f : alpha arrow.r F alpha) arrow.r alpha arrow.r M F$,
+a corecursor $"corec" : {alpha : "Type"} arrow.r (f : alpha arrow.r F alpha) arrow.r alpha arrow.r M F$,
 and a destructor $"dest" : "M" F arrow.r F (M F)$.
-These are the what we mentioned above,
-often we also want to ship a way to `mk` a new layer,
+These are the functions mentioned in @sec:cf:ocaml.
+Often we also want to ship a way to `mk` a new layer,
 but we can define this from the two operators above.
 
-When it comes to encoding #MTs in lean,
+When it comes to encoding #MTs in Lean,
 there are a few different approaches.
 We will focus on two encodings of #MT's,
 the State-Machine encoding @sec:m:sme and Progressive Approximation @sec:m:pa (as seen in @cite:mathlib).
@@ -514,12 +505,11 @@ the State-Machine encoding @sec:m:sme and Progressive Approximation @sec:m:pa (a
 ==== Progressive approximation encoding <sec:m:pa>
 
 A simple way to encode #MTs,
-are as functions emitting trees that must at every level 'agree',
-this corresponds to the expected limit#footnote[TODO: is this a colimit] over the natural number poset category from the dual of #cite(<cite:adamek>, form: "prose")'s "Free" algebra algorithm.
+are as functions emitting trees that must at every level agree.
+This corresponds to the limit over the natural number category as the dual of #cite(<cite:adamek>, form: "prose") (see section "Free algebra algorithm").
 Agreement is given by them being the same up to the previous depth as seen in @m:fg:agree.
 I like to think about agreement as the structure 'crystalizing',
 since it can only 'grow' from the ends.
-This is really easy to implement in lean.
 
 #figure(
   diagram(cell-size:5mm, $
@@ -532,30 +522,27 @@ This is really easy to implement in lean.
   caption: [Agreement of two trees of height 1 and 2]
 )<m:fg:agree>
 
-===== In lean
-
-In Lean, this encoding is very easy to set up.
+In Lean, this encoding is easy to set up.
 It can be seen in @m:ls:pa.
-The main component which is hard to define is a coinduction theorem (@sec:coindp),
-#cite(<cite:bisim>, form: "prose") is a very insightful read on this topic.
-(I recommend reading up to Section 6).
-Luckily for us we dont need to worry about implementing and proving this as @cite:mathlib already provides an implementation of this.
+The main component which is hard to define is a coinduction theorem (@sec:coindp).
+#cite(<cite:bisim>, form: "prose") is an insightful read on this topic.
+Luckily for us we do not need to worry about implementing and proving this as @cite:mathlib already provides an implementation of this.
 This was ported to Lean4 as part of @cite:keizer.
 
 A major problem with this implementation is the complexity of access.
 As you can see in @m:ls:pa in the definition of `corec.o`,
 we have to regenerate the entire tree to get a corecursor to the next depth.
-There are a few different approches to solve this that we will compare and contrast in @sec:smevpa
+There are a few different approaches to solve this that we will compare and contrast in @sec:smevpa.
 
 #let streamf = read("./Stream.lean")
 #figure(
   raw(streamf, lang: "lean", block: true),
-  caption: [PA Stream in lean]
+  caption: [PA Stream in Lean]
 )<m:ls:pa>
 
 === State-machine encoding <sec:m:sme>
 
-The state-machine encoding is the naïve way to implement the terminal coalgebra.
+The state-machine encoding is the naïve way to implement the #MT.
 Given some polynomial functor $F$,
 the state-machine encoding is given by:
 some type $alpha : "Type"$,
@@ -565,20 +552,20 @@ Once this is done there are 3 key problems:
 1) The object constructed is only weakly terminal,
 2) the object created has no coinduction principle,
 3) the object resides in a higher universe.
-Let us first focus on the first two problems (the 3rd problem is tackled in @sec:abi),
+Let us focus on the first two problems (the 3rd problem is tackled in @sec:abi),
 both of these are solved by quotienting over bisimilarity.
 The reason this works has to do with how bisimilarity 'hides' the generating type,
-making the only operation you really can do to access the data a destructure.
+making the only operation you can do to access the data a destructure.
 
 == Inductive predicate
 
 An inductive predicate is a least fixed point;
-it is a universal quantification over all relations of a given shape.
-An example of an inductive predicate is whether a number is even.
-We begin by defining this as a higher order predicate,
-the shape,
-we define this as seen in @ipred:fg:iseven.
-It can be shown that this definition is equal to the one generated by the expected lean code.
+a universal quantification over all relations of a given shape.
+An example of an inductive predicate is evenness.
+This is defined as a higher-order predicate called the `Shape` in this case,
+we use this to restrict the relations we are talking about.
+Then we take the universal over this shape and we get what is shown in @ipred:fg:iseven.
+It can be shown that this definition is equal to the one generated by the expected Lean code.
 
 #code-math(raw(read("./IsEven.lean"), lang: "lean", block: true),
   ccode: [],
@@ -595,79 +582,131 @@ It can be shown that this definition is equal to the one generated by the expect
 == Coinductive predicate
 
 Given what we saw in the last section and how we have seen the duality for coinductive and inductive data;
-we now know all we must do is dualize this construction.
+all we must do is dualize this construction.
 So we change the universal to an existential, disjuncts to conjuncts,
 and flip the arrows (each of these swap left and right adjoints).
 This gives us a proof principal with three components.
 We now need to define an invariant,
-we need to proof the invariant satisfy the restriction,
+we need to prove the invariant satisfies the restriction,
 and that our value is contained in the invariant.
 
-Proving coinductive predicates is very challenging as it requires coming up with the invariant,
-this is a kind of proof I initially had very little experience in and took me a while to pick up.
+Proving coinductive predicates is very challenging as it requires coming up with the invariant.
+This is a kind of proof I had no experience in,
+and it took me a while to pick up.
 An additional difficulty is,
 if you get the invariant wrong,
-you just have to start completely again and try to come up with something better.
-This means that for some of my proofs I hundreds of lines of code that have not made it into the dissertation.
+you have to start completely again and try to come up with something better.
+This means that for some of my proofs I wrote hundreds of lines of code that have not made it into the dissertation.
 
 Some languages have facilities to make this better,
-these are collectively refered to as coinduction-up-to.
-These are techniques where you can write parts of a proof somewhere in a certian style,
-then reuse them other proofs.
-For Rocq a popular library for this is Paco TODO CITE,
-for which a lot of the harder proofs often use.
+these are collectively known as coinduction-up-to.
+These are techniques where you can reuse earlier proofs and automatically expand the invariant.
+For Rocq a popular library for this is Paco#footnote[TODO CITE],
+a lot of harder coinduction proofs use this technique.
 Lean does not have this feature,
 and it is out of scope for me to add it.
+In its place I spend a lot of time picking the shape of the Invariant I need.
 
-// === Coinduction up-to
-//
-// When proving coinductive predicates it is often useful not to include the entire relation upfront.
-// Instead we use libraries such as CITATION PACO.
-// This allows for providing an initial relation then later automatically extending it to for example include reflexivity.
-// Sadly Lean does not have such libraries.
+=== Bisimilarity <sec:coindp>
 
-== Bisimilarity
+Bisimilarity is an equivalence relation on coinductive types.
+Two coinductives are bisimilar if,
+for every possible choice in a structure A,
+there exists a corresponding choice in structure B,
+such that you can repeat this procedure.
 
-In this section we will talk about the equivalence relation on co inductive types called bisimilarities.
-Morally two things are bisimilar if for every possible choice in a structure A there exists a corresponding choice in structure B such that you can repeat this procedure from the new point.
-
-On streams this corrensponds to saying that the heads of the streams are equal and then the tails are bisimilar.
-As you may note this is not a well founded relation.
+Bisimilarity is not a well founded relation.
 This means we need to define it as a coinductive predicate rather than an inductive one.
-Then the proof principal for this will be giving a relation,
-showing it is a bisimilary and that it holds on our values.
+Then the proof principal for this will be giving an invariant,
+showing the invariant is a bisimilarity,
+and our values are contained within the invariant.
 
-=== Coinduction principle<sec:coindp>
+A classic example would be to check if the two state-machine are equal.
+In @bs:fg:f you see two state-machine for two different regexs.
+One could use bisimilarity to show these are the same.
+The invariant for this would probably be $(a=q_0 and b=q_0) or (a=q_0 and b=q_2) or (a=q_1 and b=q_1) or (a=q_1 and b=q_3)$.
+This also contains the initial state $a = q_0 and b=q_0$.
+We also need to show the invariant is a bisimilarity which is a bit more involved.
 
-A coinductive type has a conduction principle is bisimilarites implies equality.
-For the SME this will be harder to show.
+#pad(x:-1cm)[
+#spg(
+  figure(
+    grender(```dot
+digraph ab_star {
+    rankdir=LR;
+    node [shape=circle];
+    start [shape=point];
+    q_0 [shape=doublecircle];
+
+    start -> q_0;
+    q_0 -> q_1 [label="a"];
+    q_1 -> q_0 [label="b"];
+}
+    ```), caption: [DFA for `(ab)*`]),
+  <bs:fg:ab>,
+  figure(
+    grender(```dot
+digraph ab_ab_star_star_nfa {
+    rankdir=LR;
+    node [shape=circle];
+    start [shape=point];
+    q_0 [shape=doublecircle];
+
+    start -> q_0;
+
+    q_0 -> q_1 [label="a"];
+    q_1 -> q_2 [label="b"];
+    q_2 -> q_0 [label="ε"];
+    q_2 -> q_3 [label="a"];
+    q_3 -> q_2 [label="b"];
+}
+    ```), caption: [NFA for `(ab(ab*))*`]),
+  <bs:fg:abab>,
+  columns: (auto, auto),
+  caption: [
+    Two bisimilar state machines
+  ],
+  label: <bs:fg:f>
+)
+]
+
+On streams bisimilarity corresponds to saying that the heads of the streams are equal and then the tails are bisimilar.
+A coinductive type has a coinduction principle if bisimilarity implies equality.
+Streams and in general cofixed-points of polynomials satisfy this.
 
 ////////////////////////////////////////////////////////////////////////////////
 
 == Methodology
 
-Writing in a proof-assistant is quite different than writing in a general purpose language,
+// TODO: actuall write this as a methodology
+
+Writing in a proof-assistant is quite different to writing in a general purpose language,
 this is especially the case in Lean as it is a hybrid of both styles.
 A notable and immediate difference is the prevalence of software testing of programs.
 Rather than having tests that can be flakey or incomplete,
-in lean you have checked proofs.
-From this in a conventional programming language,
-you can for example follow TDD where you constantly refine the specification with additional tests,
+in Lean you have checked proofs.
+
+In a conventional programming language,
+you can follow Test Driven Development where you constantly refine the specification with additional tests,
 which you check as you go through the code.
-Proof Driven Development (PDD, @cite:pdd) perfect for this in Lean after seeing success in Idris.
-In PDD you work similarly to TDD,
+In Proof Driven Development (PDD, @cite:pdd) you work similarly to TDD,
 but now when you have your function,
 rather than knowing it works for finite cases,
-you can be guaranteed that it works.
+you can be guaranteed that it satisfies the equation.
 Furthermore, the proofs can serve to enrich the main artifact.
 This will be seen in the ITree implementation as well as the futumorphic productivity.
 Lean makes working in this style a delightful experience using constructs such as `#check`, `#print` and `#eval`,
-one can see exactly what a function is / is doing.
-These can also be turned more conventional tests using `#guard_msgs in`,
+one can see exactly what a function is and what it is doing.
+These can also be turned into conventional tests using `#guard_msgs in`,
 which raises a compile error upon an output changing.
+PDD was originally demonstrated for Idris,
+which in many ways is similar to Lean as it is a hybrid language,
+therefore I will apply this approach as I write the code.
+
 Lean also has great automation features which I use at many points in the dissertation,
 these are the unification solver `exact?` and SMT solver `grind`.
 These both stand as principled (as opposed to LLM Slop) ways to develop programs and proofs that would otherwise be tedious for a human.
+I use these regularly to speed up the development process.
 
 == Tools used
 
@@ -736,7 +775,7 @@ I have done this for the core and each of the extensions of the project.
 + The SME M COULD be zero cost. <rq:sme:zc>
 // + The SME M COULD have a Choice Tree library @pl:sec:ctree. <rq:sme:ct>
 ], [
-+ The SME M WONT have a syntax macro a la @cite:keizer. <rq:sme:sm>
++ The SME M WONT have a syntax macro as in @cite:keizer. <rq:sme:sm>
 + There WONT be any work towards coinduction-up-to systems.
 ])
 
@@ -789,7 +828,7 @@ I have done this for the core and each of the extensions of the project.
 === Futumorphic productivity (Extention)<pl:sec:prod>
 
 #moscow("F", [
-+ Futumorphic productivity MUST have a in universe corecursor.
++ Futumorphic productivity MUST have an in-universe corecursor.
 + Futumorphic productivity MUST have an injector.
 ], [
 + Futumorphic productivity SHOULD have proof-principles for unfolding the corecursor.
