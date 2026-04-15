@@ -51,11 +51,12 @@ def setoid (A : Type u) : Setoid (PreStream A) where
 
 end PreStream
 
-def SStream (A : Type u) := Quotient (PreStream.setoid A)
+def SStream (A : Type u) := Quotient
+  (PreStream.setoid A)
 
 namespace SStream
 
-variable {A : Type u} {a b c : SStream.{u, v} A}
+variable {A : Type u}
 
 def hd : SStream A → A :=
   Quotient.lift
@@ -69,9 +70,6 @@ def tl : SStream A → SStream A :=
       match his rab with
       | .step h _ => Quotient.sound ⟨r, his, h⟩
 
-example (x : PreStream A) : x.hd = hd (.mk (PreStream.setoid A) x) := rfl
-example (x : PreStream A) : .mk _ x.tl = tl (.mk (PreStream.setoid A) x) := rfl
-
 coinductive Bisim (A : Type _) : SStream A → SStream A → Prop
   | step {a b : SStream A}
     (cont : Bisim a.tl b.tl)
@@ -79,20 +77,25 @@ coinductive Bisim (A : Type _) : SStream A → SStream A → Prop
     : Bisim A a b
 
 theorem bisim {a b : SStream A} (h : Bisim A a b) : a = b := by
-  induction a using Quotient.ind
-  induction b using Quotient.ind
+  induction a using Quotient.ind; next a =>
+  induction b using Quotient.ind; next b =>
   apply Quot.sound
-  change PreStream.Bisim _ _ _
+  change PreStream.Bisim A a b
   rcases h with ⟨r, his, hhold⟩
   exact ⟨
     fun x y => r (.mk _ x) (.mk _ y),
     fun {x y} hxy =>
       match his hxy with
-      | .step htl hhd => .step htl hhd,
+      | .step htl hhd =>
+        .step htl hhd,
     hhold
   ⟩
 
-def corec {A Gen : Type _} (gen : Gen → A × Gen) (g : Gen) : SStream A :=
+example (x : PreStream A) : x.hd = hd (.mk (PreStream.setoid A) x) := rfl
+example (x : PreStream A) : .mk _ x.tl = tl (.mk (PreStream.setoid A) x) := rfl
+
+def corec {A Gen : Type _}
+    (gen : Gen → A × Gen) (g : Gen) : SStream A :=
   Quotient.mk _ (.corec gen g)
 
 @[simp]

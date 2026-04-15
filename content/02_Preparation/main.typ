@@ -524,7 +524,7 @@ since it can only 'grow' from the ends.
 
 In Lean, this encoding is easy to set up.
 It can be seen in @m:ls:pa.
-The main component which is hard to define is a coinduction theorem (@sec:coindp).
+The main component which is hard to define is a coinduction theorem (@sec:bisim).
 #cite(<cite:bisim>, form: "prose") is an insightful read on this topic.
 Luckily for us we do not need to worry about implementing and proving this as @cite:mathlib already provides an implementation of this.
 This was ported to Lean4 as part of @cite:keizer.
@@ -607,7 +607,7 @@ Lean does not have this feature,
 and it is out of scope for me to add it.
 In its place I spend a lot of time picking the shape of the Invariant I need.
 
-=== Bisimilarity <sec:coindp>
+=== Bisimilarity <sec:bisim>
 
 Bisimilarity is an equivalence relation on coinductive types.
 Two coinductives are bisimilar if,

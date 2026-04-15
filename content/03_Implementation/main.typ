@@ -4,10 +4,13 @@
 #import "@preview/diagraph:0.3.6": render as grender
 #import "@preview/tdtr:0.5.5" : tidy-tree-graph, tidy-tree-draws
 #import "@preview/pintorita:0.1.4"
+#import "@preview/subpar:0.2.2" as subpar: grid as spg
 #show raw.where(lang: "pintora"): it => pintorita.render(it.text)
 
+#set raw(lang: "lean")
+
 // TODO
-#let impl(content) = align[Addressing: #content]
+#let impl(content, path) = align[Addressing: #content, Path: #raw(path)]
 
 This chapter describes the implementation of each of the requirements stated in @sec:rq.
 I will break it down into a common section,
@@ -24,14 +27,6 @@ unnacc
 The Lean component of this repository,
 and how they relate to each of the requirements can be seen in the list below.
 Additionally the import graph can be seen in @rep:fg:import
-
-#figure(
-  grender(
-    read("../../sme/import_graph.dot"),
-    height: 100%,
-  ),
-  caption: [Import graph of the lean component of the project as of 2026-04-04]
-)<rep:fg:import>
 
 // TODO Make this take up less page space. Make it alternate between horizontal and vertical
 
@@ -57,6 +52,7 @@ Additionally the import graph can be seen in @rep:fg:import
     node((3,0), [HpLuM], name: <hplum>),
     edge("<-"),
     node((2,0), [Equiv], name: <peq>),
+    edge(<sm>, <peq>, "->"),
     box(teal)(align(top+left)[Polynomial], enclose: (<prem>,<sm>,<hplum>,<peq>, (0,1)),name : <slib>),
 
     edge(<hplum>, (3,2), <dtd>, "->"),
@@ -68,16 +64,18 @@ Additionally the import graph can be seen in @rep:fg:import
     node((2,3), [DT Inject], name: <dtf>),
     box(teal)(align(top+left)[Deep thunks], enclose: (<dtf>,<dtd>,<dtc>, (0,2)), name: <dt>),
 
-    edge(<hplum>, <clib>, "->"),
-    edge(<dtc>,   (1, 4),(3, 4), <clib>, "->"),
-    edge(<dtf>,   (2, 4),(3, 4), <clib>, "-"),
+    edge(<hplum>, (3, 4), (2,4), <clib>, "->"),
+    edge(<dtc>,   (1, 4), (2,4), <clib>, "->"),
+    edge(<dtf>,   (2,4), <clib>, "-"),
 
-    node((3,5), [Coinduction library], name: <clib>),
-
+    node((2,5), [Coinduction library], name: <clib>),
 
     node((3, -1), [ABI], name: <abi>),
     edge(<abi>, <hplum>, "->"),
     box(teal)([ABI], enclose: (<abi>,) ),
+
+    edge(<abi>, (3.5, -1), <abil>, "->"),
+    node((3.5,5), [ABI Type], name: <abil>),
 
     edge(<hplum>, <itd>, "->"),
     node((4,0), [ITree Defs], name:<itd>),
@@ -90,12 +88,11 @@ Additionally the import graph can be seen in @rep:fg:import
     node((5,1), [Congr], name:<wbsc>),
     edge("->"),
     node((5,2), [Congr Iter], name:<wbsi>),
-    edge( <itd>, <wbs>  , "->",),
-    edge( <itm>, <wbsc> , "->",),
-    edge( <iti>, <wbsi> , "->",),
+    edge(<itd>, <wbs> , "->",),
+    edge(<itm>, <wbsc>, "->",),
+    edge(<iti>, <wbsi>, "->",),
 
     box(teal)(enclose: (<itd>, <wbsi>) ),
-
   )
 )
 
@@ -214,9 +211,11 @@ and made it possible to define a universe-polymorphic eliminator.
 
 === Expanding the progressive approximation theory
 
+#impl([], "sme/Sme/ForMathlib/{PFunctor/*,TypeVec.lean}")
+
 During the feasability assesment I noticed that,
 in the current formalised theory of polynomials,
-the statement wouldn't even type-check.
+the equivilence wouldn't even type-check.
 This stemmed from a problem with the corecursive principle for the M type in the old implementation.
 $"corec" : {alpha : "TypeVec".{cal(U)} n} arrow {beta : "Type" cal(U)} arrow (g : beta → P (alpha ::: beta)) arrow beta arrow M alpha$
 #footnote(link("https://github.com/leanprover-community/mathlib4/blob/7a60b315c7441b56020c4948c4be7b54c222247b/Mathlib/Data/PFunctor/Multivariate/M.lean#L152-L154")) @cite:mathlib.
@@ -232,7 +231,7 @@ The natural way of solving this is using the supremum in universe levels you get
 $"ULift" : "Type" cal(U) arrow "Type" (max cal(U) cal(V))$.
 This means we can have $beta : "Type" cal(U)$ and $alpha : "Type" cal(V)$,
 then ulift both of them to a common universe $"ULift" alpha ::: "ULift" beta : "TypeVec".{max cal(U) cal(V)} (n+1)$
-#footnote([Note we overload ULift as a notation to refer to lifting TypeVecs as well]).
+#footnote[Note we overload ULift as a notation to refer to lifting TypeVecs as well].
 
 Noticable the next hurdle we encounter is that PFunctors are restricted to a universe level.
 Recall the definition from @sec:poly.
@@ -245,57 +244,145 @@ If we do not add the ability to lift $P$,
 the unifier will force $cal(U) = cal(V)$,
 thereby invalidating all the work we did in the previous section.
 Luckily lifting a PFunctor is relatively easy.
-We define it as $"ULift" P eq.delta chevron.l "ULift" P.1, lambda x mapsto "ULift" (P.2 x) chevron.r$.
-This works and now we can move on to our goal
-#footnote([
+We define it as $"ULift" P eq.delta chevron.l "ULift" P.1, lambda x mapsto "ULift" (P.2 x."down") chevron.r$.
+This works and now we can move on to generalizing the corecursor.
+#footnote[
   TODO: Speak with JV / W to see if this might be done in the lit,
   Ex : Locally presentable and accessable categories Adameck roshiski
-]).
+].
 
 ==== Generalizing the corecursor
 
+#impl([], "[UPSTREAMED],sme/Sme/PFunctor/ForMathlib/M.lean")
+
 Now with all the work in the previous section,
-by generalizing $"corec'"$#footnote([Done in PR NUMBER ]),
-we can define
+first we generalize a helper function#footnote([Done in TODO: PR NUMBER ]),
+then we can define
 $"corecU" : {alpha : "TypeVec".{cal(U)} n}
   arrow {beta : "Type" cal(V)}
   arrow (g : beta → "ULift" P ("ULift" alpha ::: "ULift" beta))
   arrow beta
   arrow M.{cal(U)} alpha$.
 Notably we are able to fit the object into $cal(U)$
-(as opposed to in the SME).
+(this will not be the case for the SME).
 
-The expected diagram using corecU and dest commutes.
+`corecU` and `dest` satisfy an unfolding equation.
+This is more complex than it used to be as we now need to lower before we continue with the mapping.
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
 == Stream implementation
 
-#impl[@rq:sme:stream:impl, @rq:sme:stream:equiv]
+#impl([@rq:sme:stream:impl, @rq:sme:stream:equiv], "sme/Sme/Stream/*")
 
-As proving these equivleneces is extremely challenging I decidede I would start by implementing it for the special case of streams.
+As proving these equivleneces is challenging I decidede I would start by implementing it for the special case of streams.
 Streams are the text-book coinductive datatype that most people know as mentioned in @sec:coind.
-Therefore I expected this to be an easy task to start with to test showing the equivilence.
+Therefore I expected this to be pedogodical to implement.
 
-First I set up a class of preobject, these correspond to the corecurisve principle holding tehir type.
-Then I defined a bisimilarity relation, I proved this was an equivalence relation.
-Then I quotiented the preobject with this relation.
-Once this was done I specialised the PA encoding to streams as seen in FIGURE.
-I also specialised the base bisimilarity relation for polynomials to be analougous to the one defined for the SME.
+=== SME
+#impl([@rq:sme:stream:impl], "sme/Sme/Stream/SDefs.lean")
 
-Once this was done I started proving the equivalence.
-The functions of this equivalence correspond to the corecursors parameterised by the destructors of the opposite type as seen in FIGURE.
-To prove that these functions are inverses, I had to find a relation for the bisimilarity.
-This was quite challenging but in the end I found an equiality solved it.
+First I set up a class (can't be a #Type as it varies through universe levels) of prestreams,
+these correspond to the corecurisve principle holding their type.
 
-Having done this I now knew how to approach the case of the polynomial.
+I had to define hd and tl for streams here corresponding to the destructors of streams.
+Care had to be taken to ensure that the definition would work under a quotient as well.
+
+Then I defined a bisimilarity relation;
+heads being equal and tails bisimilar as seen in @sec:bisim.
+I proved this was an equivalence relation (reflexive, symmetric, transitive).
+Using this I defined a setoid on PreStreams.
+
+The definition of an SME Stream is then preobjects quotiented by this setoid.
+Quotients are famously a pain to work with.
+When lifting the destructors from PreStreams to Streams I have to go through the lifting function of Quotients.
+When lifting to a quotient one has to provide the lifting function,
+then a proof that the function is stable under quotienting.
+Initially these proofs were in tactic-mode,
+but were rewritten in term-mode for readability.
+The corecursor was simpler to define,
+it is just the constructor for PreStreams under a Quotient introduction.
+
+The next step was defining a coinduction principle,
+in the code this is called `bisim` to align to convention with @cite:mathlib.
+The proof of this proceeds by Quotient soundness anc can be found in `SDefs.lean`.
+
+Parts of this definition can be seen in @stream:fg:sme.
+
+=== PA
+#impl([], "sme/Sme/Stream/PDefs.lean")
+
+To implement PA Streams,
+I had to first implement the Stream's base functor,
+this is quite easy for streams as they have one constructor (so a head of $1$),
+and each of the families only hold one instance of the value (so child $lambda i (). 1$).
+From here I defined the destructors of streams this is as simple as calling the child with the correct indicies.
+
+For symetry I also defined a syntactically identical bisimilarity relation on PA Streams,
+and for this I also prove a coinduction principle for PStreams of this relation.
+This proof proceeded by using the coinduction principle on general polynomials,
+which is a very tideous principle to work with as it requires unfolding the polynomial.
+When it was done I cleaned it up and this can be seen in `PDefs.lean`.
+
+The corecursor wasn't as simple as for the case of SME Streams either,
+though all it required was doing a series of pattern-matches to get the right structure.
+I will do something similar like this for ITrees and the NTMonad as well.
+
+Parts of this definition can be seen in @stream:fg:pa.
+
+=== Proving the equivalence
+#impl([@rq:sme:stream:equiv], "sme/Sme/Stream/Equiv.lean")
+
+The functions of this equivalence correspond to:
+the corecursors parameterised by the destructors of the opposite type.
+Proving that these are inverses was slightly involved,
+I toyed around with a few different relations trying to make it work.
+In the end I landed on the quite straight forward equality as seen in the @stream:fg:equiv.
+This solved very nicely and made the entire proof quite small after cleaning.
+
+Having done this I was ready to approach the case of the polynomial.
+This turned out to be harder than I expected for 2 reasons.
+1. Observant readers may notice the statement I proved is subtily the wrong statement.
+  At the time I did not see this,
+  but the equivalence should not be `SStream.{u, u} A ≃ PStream A`,
+  but rather `SStream.{u, max u v} A ≃ PStream A`.
+  This statement is actually dramatically harder to prove.
+2. When you look at the proofs,
+  in the bisimilarity there are `rfl`s,
+  this is because the statements are *definitionaly* equal ($beta$,$eta$-equivalent).
+  For general polynomials this will not be the case and also explode ever so slightly.
+
+#let pdef = read("../../sme/Sme/Stream/PDefs.lean")
+#let sdef = read("../../sme/Sme/Stream/SDefs.lean")
+#let equiv = read("../../sme/Sme/Stream/Equiv.lean")
+
+#pad(x: -1cm)[
+#spg(
+  figure(
+    raw(takeL(pdef, 12, 33), block: true),
+    caption: [PA Stream]
+  ),
+  <stream:fg:pa>,
+  figure(
+    raw(takeL(sdef, 53, 77), block: true),
+    caption: [SME Stream]
+  ),
+  <stream:fg:sme>,
+  figure(
+    raw(takeL(equiv, 4, 18), block: true),
+    caption: [Equivalence]
+  ),
+  <stream:fg:equiv>,
+  columns: (1fr, 1fr, 1fr),
+  caption: [Key code involved in Stream equivlance]
+)
+]
 
 ////////////////////////////////////////////////////////////////////////////////
 
 == State machine encoding of M-Types
 
-#impl[@rq:sme:stream:impl, @rq:sme:stream:equiv]
+#impl([@rq:sme:stream:impl, @rq:sme:stream:equiv], "")
 
 Noting the definition of corecU,
 one might wonder if you could define M from first principles for this.
@@ -321,11 +408,11 @@ This corresponds exactly to quotienting just as we saw for streams.
 
 === Writing for performance
 
-#impl[@rq:sme:fast, @rq:sme:zc]
+#impl([@rq:sme:fast, @rq:sme:zc], "")
 
 === A coinduction principle on polynomials
 
-#impl[@rq:sme:cind]
+#impl([@rq:sme:cind], "")
 
 For an arbitrarry polynomial we can define bisimilarities for its cofix point.
 Mathlib has a definition for this for the PA encoding @cite:mathlib.
@@ -343,7 +430,7 @@ we get parts of the way there using automatic solving tactics like simp as seen 
 
 == Proving the equivalence
 
-#impl[@rq:sme:equiv]
+#impl([@rq:sme:equiv], "")
 
 Proving the equivalence on polynomials is much more challenging than proving it on streams.
 We know at least from streams,

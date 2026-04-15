@@ -1,7 +1,7 @@
 import Mathlib.Data.QPF.Multivariate.Constructions.Comp
 import Mathlib.Data.QPF.Multivariate.Constructions.Prj
 import Mathlib.Data.QPF.Multivariate.Constructions.Cofix
-import Sme.M.Prj
+import Sme.PFunctor.Prj
 import Sme.M.HpLuM
 import Sme.M.DT
 import Sme.Vec
