@@ -77,8 +77,7 @@ coinductive Bisim (A : Type _) : SStream A → SStream A → Prop
     : Bisim A a b
 
 theorem bisim {a b : SStream A} (h : Bisim A a b) : a = b := by
-  induction a using Quotient.ind; next a =>
-  induction b using Quotient.ind; next b =>
+  cases a, b using Quotient.ind₂; next a b =>
   apply Quot.sound
   change PreStream.Bisim A a b
   rcases h with ⟨r, his, hhold⟩

@@ -73,7 +73,6 @@ def PBase : MvPFunctor.{max v (u + 1)} 2 where
     | .tau => !![PEmpty, PUnit]
     | .vis A _ => !![PEmpty, ULift.{max v (u + 1), u} A]
 
--- 2 does not work !?
 instance equivB {E} : EquivP (1 + 1) (Base E) (PBase E) := ⟨{
   toFun
     | ⟨.tau, v⟩ => .tau (v .fz .unit)
@@ -123,16 +122,16 @@ def mk (v : Base E (ITree E R) R) : ITree E R :=
   HpLuM.mkE (show _ from Base.map id ULift.up v)
 
 @[simp]
-theorem _root_.ULift.up_down' {A : Type u} : (ULift.up ∘ ULift.down (α := A)) = id := 
+theorem _root_.ULift.up_down' {A : Type u} : (ULift.up ∘ ULift.down (α := A)) = id :=
   funext fun v => by simp
 @[simp]
-theorem _root_.ULift.down_up' {A : Type u} : (ULift.down (α := A) ∘ ULift.up) = id := 
+theorem _root_.ULift.down_up' {A : Type u} : (ULift.down (α := A) ∘ ULift.up) = id :=
   funext fun v => by simp
 
 @[simp] theorem dest_mk {v : ITree E R} : mk (dest v) = v := by
   dsimp [mk, dest]
   rw [Base.map_map, ULift.up_down', Function.comp_id, Base.map_id, HpLuM.destE_mkE ]
-@[simp] theorem mk_dest {v : Base E (ITree E R) R} : dest (mk v) = v := by 
+@[simp] theorem mk_dest {v : Base E (ITree E R) R} : dest (mk v) = v := by
   dsimp [mk, dest]
   rw [HpLuM.mkE_destE, Base.map_map, ULift.down_up', Function.comp_id, Base.map_id]
 

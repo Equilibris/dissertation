@@ -7,12 +7,30 @@
 
 #set raw(lang: "lean")
 
+// TODO: Fill out a chapter introduction.
+// Talk more about the background that is needed
+// I.e. dependent type theiry, coinduction, lean and other similar things.
+
+In this section I will discuss prerequrisites for the implementation of the dissertation.
+I will discuss the backround needed to understand the state machine encoding,
+and other relevant topics.
+
+#set terms(tight: true)
+// Run by jamie this list.
+
+TODO: Integrate these terms
+
+/ Propositionally extentionality: $forall (P Q : "Prop"). (P arrow.l.r Q) -> (P = Q)$
+/ Univalence: $forall (P Q : "Type"). (P tilde.eq Q) -> (P = Q)$
+/ Axiom K: Every equality $p : a = a$, can only be reflexivity.
+
 ////////////////////////////////////////////////////////////////////////////////
 
 == Dependent type theory
 
-We can start by adding a type for Types,
-giving us a higher order logic.
+// TODO: Rephrase this
+// We can start by adding a type for Types,
+// giving us a higher order logic.
 Recall back to discrete maths @cite:dm,
 how functions between sets $A, B : Type$ $,A -> B$ correspond with a form of arbitrary product,
 $B^A eq.triple product_(x : A) B$.
@@ -26,12 +44,18 @@ then letting us write the #box[$Pi$-type]#footnote([
 We can also do the dual construction,
 and get #box[$Sigma$-types].
 The inference rules for these can be seen in @dtt:fg:psir.
-These rules should be familiar as they are the analogous to the rules for $forall, exists$ in the 1st order sequent calculus,
+These rules should be familiar as they are the analogous to the rules for $forall, exists$ from the natural deduction system,
 their relationship can be seen in @dtt:eq:pt.
 If you are unfamiliar with dependent types,
 I recommend viewing them using this relationship.
 For a more in depth look at dependent type theory,
 read @cite:hottbook.
+
+// TODO: You would rather understand a general notion of a dependent type,
+// than just seeing the rules
+// Vectors as lists of fixed lengths,
+// (ls : List A) ×' ls.length = 10,
+// Come up with an example that works for sigma types.
 
 #spg(
   figure(
@@ -123,7 +147,6 @@ $ Pi, Sigma stretch(harpoons.rtlb)^("propositional truncation")_("Categorificati
 // the semantics of a dependent calculus will be in terms of some LCCC.
 
 #let mpf(a, b) = $chevron.l #a, #b chevron.r$
-#let Type = $"Type"$
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -133,7 +156,6 @@ Lean @cite:lean is a popular dependently typed proof assistant,
 it is famous for a few reasons.
 
 + It has Mathlib @cite:mathlib, one of the world's largest repositories of formalized mathematics.
-+ It is a proof assistant made for (classical) mathematicians.
 + It has a rich tactic language in which most proofs are written.
 + It has a compiler, and can be used as a general purpose programming language. <lean:li:compiler>
 
@@ -147,6 +169,9 @@ A classic example of where this occurs is in the elimination principle for stron
   https://www.youtube.com/watch?v=LOUbbiV0mWc
   https://lean-lang.org/doc/reference/latest/releases/v4.27.0/
 ].
+We talk about this being a difference between the kernel
+(the small safe piece of code we belive to be correct)
+and the compiler (which is much larger and more complex).
 
 Lean requires all induction to be structural,
 so to do induction over a general well-founded relation,
@@ -171,14 +196,15 @@ inductive Acc {α : Sort u} (r : α → α → Prop) : α → Prop where
 
 
 It would be unacceptable for a program using strong recursion to be quadratic for a general purpose programming language,
-therefore the compiler decides to compile away the usage of `fixF`,
+therefore the compiler removes the usage of `fixF`,
 and generates the expected calls in the intermediate representation (LCNF).
 
 We can see that given the source-code @lean:ls:def,
 it generates a definition @lean:ls:ker with `Nat.fix` (a variant of `fixF`),
 but in the output LCNF we get @lean:ls:ir,
 which does not contain any mention of `Nat.fix`,
-but rather the expected recursive call.
+but rather we see the recursive call,
+demonstaring how the logical and computation definitions diverge.
 
 #let (gcda, gcdb) = partL(read("./Gcd.lean"), 9)
 
@@ -212,30 +238,52 @@ but rather the expected recursive call.
   caption: [Gcd as Source, Kernel and LCNF]
 )]
 
-This general trick was what inspired me to start this project,
+// TODO: Rephrase as passive voice
+// Ex what inspired this project over what inspired _me_ to start tihgs project.
+
+This general trick inspired the project,
 as it demonstrates that there is precedent in Lean4 to have separate logical and executional models.
 This is further highlighted by the existence of the `@[implemented_by]` attribute,
 which lets you off-load the runtime behaviour of a function to another possibly unsafe definition.
-The semantics of `@[implemented_by]` is simply calling the alternative function when not evaluating in the kernel.
+When a definition is marked as `@[implemented_by]`,
+the codegenerator treats it as the other function when compiling the code.
+// TODO: Rephrase ^
+// The semantics of `@[implemented_by]` is simply calling the alternative function when not evaluating in the kernel.
 Safety of programs using `@[implemented_by]` is a very complex endeavour to verify,
 as Lean has a tactic called `native_decide` that runs the generated code outside of the kernel.
-I have been told by some of the maintainers of @cite:mathlib,
-that all definitions that use `@[implemented_by]` should also be `@[irreducible]`.
+// TODO:
+// I have been told by some of the maintainers of @cite:mathlib,
+// that all definitions that use `@[implemented_by]` should also be `@[irreducible]`.
+
+When talking about lean we also use the term _definitionally equal_ to mean $beta$,$eta$-equivalent,
+and _propositionally equal_ if two terms are identified by a gADT.
+Additonally we have _hetrogenous equality_ where the types are only propositionally equal.
 
 == Polynomial functors<sec:poly>
 
-Polynomial functors can be thought of as types generic in some set of arguments,
-with a collection of constructors (the head type),
-where the children correspond to how many of the polymorphic argument are wanted.
-The formal definition is as follows:
+// TODO: Explain what a functor is.
 
-A polynomial functor on #Type is:
-a head-type,
-along with a child family parameterised by the head.
-An object of a polynomial functor is a select head type,
-and a function form the corresponding child parameterised by the head as seen in @pfunc-math @nlab:polynomial_functor.
+A functor is a function `(α : Type) → F α` sending types to types,
+and a map between types to functions between the functor at those types `(α β : Type) → (α → β) → F α → F β`,
+such that the map distributes over composition and preserves identities.
 
-$ (h : H) times c_h arrow.r alpha eq.triple sum_(h : H) alpha^(c_h) $ <pfunc-math>
+Polynomial functors are functors with a collection of constructors (the head type),
+where the children correspond to how many of the polymorphic argument are wanted,
+alternatively they are functors generaed by the grammar
+The formal definition can be seen in @pfunc-math.
+
+$ P(α) eq.delta (h : H) times c_h arrow.r alpha $ <pfunc-math>
+
+A polynomial functor $P(alpha)$ is given by:
+a head-type $H$,
+along with a child family $c_h$ parameterised by the head $h:H$.
+A polynomial functor applied at type $alpha$,
+is a sigma-type of the head,
+and the child family
+@nlab:polynomial_functor.
+// TODO: Include some of this
+// An object of a polynomial functor is a select head type,
+// and a function form the corresponding child parameterised by the head as seen in 
 
 This is a univariate polynomial functor,
 this dissertation will mainly focus on multivariate polynomial functors.
@@ -243,32 +291,48 @@ Where rather than having a single child,
 we have a $n$-tuple of children for an $n$-polynomial functor.
 
 Polynomial functors have all finite products (@pf:fg:const, @pf:fg:prod) and coproducts (@pf:fg:const, @pf:fg:sum).
-Polynomial functors are also closed under (co)fixed points so I will write them using a notation like inductives,
-in the next examples I have an ellipsis,
-in reality multivariate polynomials operate on Type-vectors which come from the category formed by the products $Type^n$ for some $n$,
-these are an absolute pain to work with as I will discuss in the implementation#footnote[TODO: Add exact section when it is written].
-The justification for writing polynomials using an inductive notation can be found in #cite(<cite:keizer>, form: "prose") and #cite(<cite:qpf>, form: "prose").
+Polynomial functors have fixed points corresponding to `inductive`s,
+and cofixed-points as `coinductive`s @cite:keizer @cite:qpf. // #cite(<cite:keizer>, form: "prose") #cite(<cite:qpf>, form: "prose").
+// Polynomial functors are also closed under (co)fixed points so I will write them using lean `inductive` syntax,
+// the fix point corresponds to .
+In the figures there are ellipsies,
+in reality multivariate polynomials operate on Type-vectors which come from the category formed by the products $Type^n$ for some $n : NN$,
+// TODO: This was unergonomic to write
+// ... these can be painful to use
+these are a pain to work with as will be discussen in the implementation#footnote[TODO: Add exact section when it is written].
+// The justification for writing polynomials using an inductive notation can be found in 
 
 // For an explanation of the notation see @a:gpfunctors.
 
 === Common polynomials
 
-Some examples of common polynomials can be seen in the following figures,
-one crucial polynomial I am not providing code for which is complex to define here,
+// TODO: Some examples of polynomials are prj fig ... ...
+Some examples of common polynomials are projection @pf:fg:prj,
+constant functors @pf:fg:const,
+binary products @pf:fg:prod,
+and binary sums @pf:fg:sum.
+One crucial polynomial I am not providing code for which is complex to define here,
 is composition.
-The composition polynomial works exactly like composition in primitive recursive functions,
-it takes an $n$-polynomial, and $n$ lots of $m$-polynomials, and outputs an $m$-polynomial.
-The polynomial notation for this can be found in @cite:mathlib.
+// TODO: For those familiar
+// TODO: give the signature and fig of composition
+// TODO: Give a concrete example of a composition.
+Composition takes an $n$-polynomial, and $n$ lots of $m$-polynomials, and outputs an $m$-polynomial.
+For example, taking the 3-polynomial $F$ and 3 2-polynomial $G_1,G_2,G_3$,
+we get that the constructor of the composition takes a $F (G_1 alpha beta) (G_2 alpha beta) (G_3 alpha beta)$.
+The polynomial notation for this can be found in @cite:mathlib @cite:qpf.
+For those familiar, the composition polynomial works exactly like composition in primitive recursive functions,
 
-We can, using these functors,
-make a polynomial compiler from any syntax of the form `P :: var | P × P | P + P | const n` where `var` ranges over named variables.
-This compiler is structurally recursive on the syntax.
-When you see a var do `Prj` (@pf:fg:prj), a const `Const` (@pf:fg:const),
-and for the binary operators first a composition then either `Sum` or `Prod`.
+// We can, using these functors,
+// make a polynomial compiler from any syntax of the form `P :: var | P × P | P + P | const n` where `var` ranges over named variables.
+// This compiler is structurally recursive on the syntax.
+// When you see a var do `Prj` (@pf:fg:prj), a const `Const` (@pf:fg:const),
+// and for the binary operators first a composition then either `Sum` or `Prod`.
 
-#let code-math(code, math, c, ccode : [Inductive Notation], cmath : [Polynomial], lab : none) = pad(x:-1cm)[#spg(
+#let code-math(code, mmath, c, ccode : [Inductive Notation], cmath : [Polynomial], lab : none) = pad(x:-1cm)[
+  #set math.equation(numbering: none)
+  #spg(
   figure(code, caption: ccode),
-  figure(math, caption: cmath),
+  figure(mmath, caption: cmath),
   columns: (1fr, 1fr),
   caption: c,
   label: lab
@@ -328,25 +392,31 @@ inductive Sum (A B : Type) where
 
 #set raw(lang: "ocaml")
 
-We are familiar with algebraic datatypes from OCaml.
+// TODO: 
+Recall algebraic datatypes from your favoriate language (OCaml, Haskell, Rust).
 These are structures freely generated from a set of constructors.
 The classic example is a list,
 given as two constructors,
 `val cons : 'a -> 'a list -> 'a list` and `val nil : 'a list`,
-and a way to consume lists `val fold : 'a -> ('b -> 'a -> 'a) -> 'b list -> 'a` (in lean we say `rec` instead of `fold`).
+and a way to consume lists `val fold : 'a -> ('b -> 'a -> 'a) -> 'b list -> 'a`.
 We write this as seen in @cr:ls:list.
-This is what is known as an inductive datatype.
-Inductive datatypes are well-founded trees#footnote[
-  In OCaml, datatypes do not correspond directly to inductives since we can have non-well-founded trees,
-  an example is `let rec degen = Cons((), degen)`,
+// TODO: Write that in these langauges they arent actually inductive
+// in lean we care about termination.
+// If we restrict ourselfs to well-founded trees.
+Inductive datatypes are well-founded trees of constructors#footnote[
+  In OCaml, Haskell and Rust, datatypes do not correspond directly to inductives since we can have non-well-founded trees,
+  an example is `let rec degen = Cons((), degen)`.
 ].
-Any function that terminates,
+Any pure function that terminates,
 must by definition return a finite tree of constructors.
 This means fold is guaranteed to terminate too.
+In Lean, all functions are compiled into a call to some recursor for a type,
+for lists this recursor is a dependent generalization of fold.
 All structurally recursive functions can be compiled into a call to fold.
 We also have two operations mk and dest.
 These form an equivalence (#cite(<cite:lambek>, form: "prose") Corollary 2.4),
-giving us the result that the fix-point satisfies $F (mu F) tilde.eq mu F$.
+giving us the result that the cofix-point of $F$, written as $mu F$, is equivlanet to $F (mu F)$.
+This means we can unfold $mu F$.
 
 #let (ilr, ilc) = partL(read("./IList.ml"), 8)
 
@@ -579,7 +649,7 @@ It can be shown that this definition is equal to the one generated by the expect
   lab: <ipred:fg:iseven>
 )
 
-== Coinductive predicate
+== Coinductive predicate <sec:coindp>
 
 Given what we saw in the last section and how we have seen the duality for coinductive and inductive data;
 all we must do is dualize this construction.
@@ -592,7 +662,7 @@ and that our value is contained in the invariant.
 
 Proving coinductive predicates is very challenging as it requires coming up with the invariant.
 This is a kind of proof I had no experience in,
-and it took me a while to pick up.
+and it took a while to pick up.
 An additional difficulty is,
 if you get the invariant wrong,
 you have to start completely again and try to come up with something better.
@@ -604,7 +674,7 @@ These are techniques where you can reuse earlier proofs and automatically expand
 For Rocq a popular library for this is Paco#footnote[TODO CITE],
 a lot of harder coinduction proofs use this technique.
 Lean does not have this feature,
-and it is out of scope for me to add it.
+and it is out of scope for the dissertation.
 In its place I spend a lot of time picking the shape of the Invariant I need.
 
 === Bisimilarity <sec:bisim>
@@ -784,9 +854,9 @@ I have done this for the core and each of the extensions of the project.
 #moscow("N", [
 + The NTMonad MUST be implemented using the SME. <rq:ntm:impl>
 + The NTMonad MUST have a monadic bind and return. <rq:ntm:mon>
-+ The NTMonad MUST be linear in compression. <rq:ntm:fast>
 ], [
 + The NTMonad SHOULD be a lawful monad. <rq:ntm:lfm>
++ The NTMonad SHOULD be linear in compression. <rq:ntm:fast>
 ], [
 + The NTMonad COULD be set up to use @pl:sec:prod. <rq:ntm:prod>
 ], [
@@ -797,14 +867,14 @@ I have done this for the core and each of the extensions of the project.
 
 #moscow("\u{0410}", [
 + The ABI Type MUST be implemented. <rq:abi:impl>
-+ The ABI Type MUST have an eliminator.
-+ The ABI Type MUST have the computational behaviour of the higher type.
++ The ABI Type MUST have an eliminator. <rq:abi:elim>
++ The ABI Type MUST have the computational behaviour of the higher type. <rq:abi:opt>
 ], [
 // + The ABI Type MUST have the computational behaviour of the higher type.
 ], [
-+ The ABI Type COULD be zero-cost.
++ The ABI Type COULD be zero-cost. <rq:abi:zc>
 ], [
-// + 
+// +
 ])
 
 === Interaction Trees (Extention)<pl:sec:itree>

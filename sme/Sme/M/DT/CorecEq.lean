@@ -219,11 +219,24 @@ theorem uLift_down_flat
     sorry
   sorry
 
+
+theorem corec_eq2 {β : Type v}
+    (gen : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
+    {v}
+    : corec gen v
+    = flat ((TypeVec.id ::: ULift.up ∘ corec gen ∘ ULift.down) <$$> (gen v)).uLift_down := by
+  rw [←corec_eq_corec']
+  rw [corec'_eq]
+  change ((TypeVec.id ::: corec' (gen ∘ ULift.down)) <$$> gen v).flat.uLift_down = _
+  #check corec_eq_corec'
+  sorry
+
 theorem corec_eq {β : Type v}
     (gen : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
     {v}
     : corec gen v
     = flat ((TypeVec.id ::: ULift.up ∘ corec gen ∘ ULift.down) <$$> (gen v)).uLift_down := by
+  stop
   rw [←corec_eq_corec']
   rw [corec'_eq]
   generalize ((TypeVec.id ::: corec' (gen ∘ ULift.down)) <$$> (gen ∘ ULift.down) { down := v }) = x

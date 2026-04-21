@@ -74,8 +74,7 @@ theorem IterCotrace_transfer
   intro a h'
   rcases h'.unfold with (h'|⟨hv, h'⟩)
   · refine .spin ?_
-    have := (h a)
-    rw [h'] at this
+    have := h' ▸(h a)
     exact WBisim.spinEq_iff.mp this
   case step h' =>
     refine .step (Classical.choice <| (h a).stepRet hv) h'
@@ -226,12 +225,10 @@ theorem iter_congr_cont {it it' : A → ITree E (A ⊕ B)} {v}
           intro v
           simp only [Function.comp_apply, dest_bind]
           refine ⟨_,_, (hB v).symm, rfl, rfl⟩
-      · simp only [not_exists, not_nonempty_iff, Step.no_step_eq] at h'
-        simp only [←spin.dest_eq, ←ITree.dest_eq_iff] at h'
-        rw [h']
-        simp
-        have := it_spin h h'
-        simp [this]
+      · simp only [not_exists, not_nonempty_iff, Step.no_step_eq,
+          ←spin.dest_eq, ←ITree.dest_eq_iff] at h'
+        rw [h', it_spin h h']
+        exact .refl'
     · exact .refl'
   case vis h h1 h2 =>
     refine .vis

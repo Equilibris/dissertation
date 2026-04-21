@@ -22,7 +22,7 @@ inductive Imp (N : Type) : Type
   -- control
   | ite (c t f : Imp N)
   | while (c b : Imp N)
-deriving DecidableEq
+deriving DecidableEq, Repr
 
 inductive IOE : Type → Type
   | print : Int → IOE Unit
@@ -70,7 +70,7 @@ def sem {N} : Imp N → ITree (IOE ⊕, MapE N Int) Int
     if c ≠ 0 then sem t
     else          sem f
 
-def constProp {N} (inp : Imp N) : Imp N :=
+def simpl {N} (inp : Imp N) : Imp N :=
   flat <| pass inp
 where
   flat : Int ⊕ _ → _
@@ -113,7 +113,7 @@ where
         .inr <| .while (.constN 1) <| flat b
       | .inr c, b => .inr <| .while c <| flat b
 
-open constProp in
+open simpl in
 theorem pass_inl_eq_wbisim {N} {a : Imp N} {v}
     (h : pass a = Sum.inl v)
     : sem a ≈ .ret v :=
@@ -223,7 +223,7 @@ theorem pass_inl_eq_wbisim {N} {a : Imp N} {v}
     · contradiction
     · contradiction
 
-open constProp in
+open simpl in
 mutual
 
 theorem pass_inr_eq_wbisim {N} {a : Imp N} {v}
@@ -243,7 +243,7 @@ theorem pass_inr_eq_wbisim {N} {a : Imp N} {v}
       apply WBisim.bind_congr h
       intro a
       dsimp
-      exact WBisim.bind_congr_arg constProp_safe
+      exact WBisim.bind_congr_arg simpl_safe
     · obtain rfl := (Sum.inr.injEq _ _).mp h
       rename_i h₁ h₂
       apply WBisim.trans <| WBisim.bind_congr_arg <| pass_inl_eq_wbisim h₁
@@ -257,7 +257,7 @@ theorem pass_inr_eq_wbisim {N} {a : Imp N} {v}
     obtain rfl := (Sum.inr.injEq _ _).mp h
     dsimp [sem, Bind.bind]
     apply WBisim.bind_congr_arg
-    exact constProp_safe
+    exact simpl_safe
   | .seq a b => by
     dsimp [pass] at h
     split at h
@@ -301,8 +301,8 @@ theorem pass_inr_eq_wbisim {N} {a : Imp N} {v}
       intro k
       dsimp
       split
-      · exact constProp_safe
-      · exact constProp_safe
+      · exact simpl_safe
+      · exact simpl_safe
   | .while c b => by
     dsimp [pass, sem, Bind.bind] at h ⊢
     split at h
@@ -320,15 +320,15 @@ theorem pass_inr_eq_wbisim {N} {a : Imp N} {v}
       simp only
       split
       · rfl
-      · exact WBisim.bind_congr_arg constProp_safe
+      · exact WBisim.bind_congr_arg simpl_safe
     all_goals apply WBisim.trans <| WBisim.bind_congr_arg <| pass_inl_eq_wbisim heq
     all_goals simp only [Nat.succ_eq_add_one, Int.ofNat_eq_natCast, Int.natCast_add,
       Int.cast_ofNat_Int, ret_bind, ret_bind, Int.negSucc_ne_zero, ↓reduceIte]
     any_goals split
     any_goals omega
-    all_goals exact WBisim.bind_congr_arg constProp_safe
+    all_goals exact WBisim.bind_congr_arg simpl_safe
 
-theorem constProp_safe {N} {b : Imp N} : sem b ≈ sem (flat (pass b)) := by
+theorem simpl_safe {N} {b : Imp N} : sem b ≈ sem (flat (pass b)) := by
   cases h : pass b
   · exact pass_inl_eq_wbisim h
   · exact pass_inr_eq_wbisim h

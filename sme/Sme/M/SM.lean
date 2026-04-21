@@ -21,16 +21,17 @@ def SM.{args, ind}
 namespace SM
 
 set_option trace.Compiler.result true in
-@[inline, specialize n P α]
+@[inline, specialize P n]
 def dest : SM.{u, v} P α → MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::: SM.{u, v} P α) :=
   Quotient.lift (map (TypeVec.id ::: (Quotient.mk (PreM.setoid P α) ·)) ∘ PreM.dest)
     fun | a, b, ⟨r, his, rab⟩ => (by
+      rw [PreM.IsBisim.Alt_eq] at his
       have ⟨hd, ca, cb, ha, hb, h⟩ := (MvPFunctor.liftR_iff _ _ _).mp <| his _ _ rab
       dsimp
       rw [ha, hb]
       refine Sigma.ext rfl (heq_of_eq <| funext₂ fun | .fz, h' | .fs s, h' => ?_)
       · change ⟦ca Fin2.fz h'⟧ = ⟦cb Fin2.fz h'⟧
-        exact Quotient.sound <| ⟨r, his, h .fz h'⟩
+        exact Quotient.sound <| ⟨r, PreM.IsBisim.Alt_eq ▸ his, h .fz h'⟩
       · change ca s.fs h' = cb s.fs h'
         exact (h s.fs h'))
 
@@ -57,118 +58,68 @@ def IsBisim (R : SM.{u, v} P α → SM.{u, v} P α → Prop) : Prop :=
     ∀ s t, R s t →
       LiftR (TypeVec.RelLast _ R) s.dest t.dest
 
+def IsBisim.Alt (R : SM.{u, v} P α → SM.{u, v} P α → Prop) :=
+    ∀ s t, R s t →
+      ∃ h : (TypeVec.id ::: Function.const _ PUnit.unit) <$$> s.dest
+          = (TypeVec.id ::: Function.const _ PUnit.unit) <$$> t.dest,
+      ∀ v, R (s.dest.snd .fz v) (t.dest.snd .fz (cast (by
+        generalize s.dest = s, t.dest = t at h ⊢
+        rcases s with ⟨sf, _⟩
+        rcases t with ⟨tf, _⟩
+        obtain ⟨rfl, -⟩ := Sigma.ext_iff.mp h
+        rfl
+      ) v))
+
+theorem IsBisim.Alt_eq
+    {R : SM.{u, v} P α → SM.{u, v} P α → Prop}
+    : IsBisim R = IsBisim.Alt R := propext {
+  mp h s t rst := by
+    have ⟨a, fs, ft, hs, ht, h⟩ := (MvPFunctor.liftR_iff _ _ _).mp (h _ _ rst)
+    rw! [hs, ht]
+    simp only [cast_eq, MvPFunctor.map_mk, exists_prop]
+    rw [Sigma.ext_iff]
+    simp only [heq_eq_eq, true_and]
+    constructor
+    · funext i h'
+      rcases i with (_|i)
+      · rfl
+      · exact h i.fs h'
+    · exact h .fz
+  mpr h s t rst := by
+    apply (MvPFunctor.liftR_iff _ _ _).mpr
+    have ⟨h, hrel⟩ := h _ _ rst
+    set t' := t.dest with ht
+    rewrite! [←ht] at hrel
+    rcases t' with ⟨tf, ts⟩
+    obtain ⟨rfl, h⟩ := (Sigma.ext_iff.mp h)
+    simp only [MvPFunctor.map_fst, MvPFunctor.map_snd, MvPFunctor.map_mk, heq_eq_eq] at h
+    use s.dest.fst
+    use s.dest.snd
+    use ts
+    simp only [Sigma.eta, MvPFunctor.map_fst, true_and]
+    rintro (_|i) h'
+    · exact hrel h'
+    · exact funext_iff.mp (funext_iff.mp h i.fs) h'
+}
+
+
 def Bisim : SM.{u, v} P α → SM.{u, v} P α → Prop :=
   (∃ R, IsBisim R ∧ R · ·)
 
 variable {a b : SM P α}
 
 theorem bisim (h : Bisim a b) : a = b := by
-  induction a using Quotient.ind
-  induction b using Quotient.ind
-  --
+  cases a, b using Quotient.ind₂
   apply Quot.sound
   change PreM.Bisim _ _
-  --
   rcases h with ⟨r, his, hhold⟩
-  refine ⟨ fun x y => r (.mk _ x) (.mk _ y), fun {x y} hxy => ?_ , hhold ⟩
-  apply (MvPFunctor.liftR_iff _ _ _).mpr
-  have ⟨hd, cx, cy, hx, hy, h⟩ := (MvPFunctor.liftR_iff _ _ _).mp <| his _ _ hxy
-  have ⟨hx'₁, hx'₂⟩ := Sigma.ext_iff.mp hx
-  have ⟨hy'₁, hy'₂⟩ := Sigma.ext_iff.mp hy
-  dsimp [dest] at hx'₁ hy'₁
-  simp only [dest, Quotient.lift_mk, Function.comp_apply, MvPFunctor.map_fst, 
-    MvPFunctor.map_snd] at hx'₂ hy'₂
-  use hd
-  use cast (by rw [hx'₁]) x.dest.snd
-  use cast (by rw [hy'₁]) y.dest.snd
-  refine ⟨?_, ?_, ?_⟩
-  · rw! (castMode := .all) [←hx'₁]
-    rfl
-  · rw! (castMode := .all) [←hy'₁]
-    rfl
-  rintro (_|s) h'
-  · clear *- h hy'₂ hx'₂
-    change r _ _
-    have hx : @Eq
-      (SM P α) (TypeVec.comp (TypeVec.id ::: (⟦·⟧)) x.dest.snd Fin2.fz (Eq.symm (hx'₁) ▸ h'))
-      (cx Fin2.fz h') := by
-      apply eq_of_heq
-      apply dcongr_heq (by simp)
-      · intro a b heq; rfl
-      · intro v _
-        apply dcongr_heq (by rfl) _ fun v _ => hx'₂
-        simp_all
-    have hy : @Eq (SM P α)
-      (TypeVec.comp (TypeVec.id ::: (⟦·⟧)) y.dest.snd Fin2.fz (Eq.symm (hy'₁) ▸ h'))
-      (cy Fin2.fz h') := by
-      apply eq_of_heq
-      apply dcongr_heq (by simp)
-      · intro a b heq; rfl
-      · intro v _
-        apply dcongr_heq (by rfl) _ fun v _ => hy'₂
-        simp_all
-    simp only [TypeVec.comp, TypeVec.appendFun, TypeVec.splitFun] at hx hy
-    rw! (castMode := .all) [←hx'₁]
-    dsimp
-    rw [hx]
-    rw! (castMode := .all) [hx'₁, ←hy'₁]
-    dsimp
-    rw [hy]
-    exact h .fz h'
-  · clear *- hx h hy'₂ hx'₂
-    change _ = _
-    have hx : @Eq
-      (ULift (α s)) (@TypeVec.comp _ _ _ (TypeVec.uLift α ::: SM P α)
-        (TypeVec.id ::: (⟦·⟧)) x.dest.snd s.fs (cast (by rw [hx'₁]) h'))
-      (cx s.fs h') := by
-      apply eq_of_heq
-      apply dcongr_heq (by simp)
-      · intro a b heq; rfl
-      · intro v _
-        apply dcongr_heq (by rfl) _ fun v _ => hx'₂
-        simp_all
-    have hy : @Eq
-      (ULift (α s)) (@TypeVec.comp _ _ _ (TypeVec.uLift α ::: SM P α)
-        (TypeVec.id ::: (⟦·⟧)) y.dest.snd s.fs (cast (by rw [hy'₁]) h'))
-      (cy s.fs h') := by
-      apply eq_of_heq
-      apply dcongr_heq (by simp)
-      · intro a b heq; rfl
-      · intro v _
-        apply dcongr_heq (by rfl) _ fun v _ => hy'₂
-        simp_all
-    simp only [TypeVec.comp, TypeVec.appendFun, TypeVec.splitFun, TypeVec.id,
-      heq_eq_eq] at hx hy
-    generalize_proofs p₁ p₂
-    clear *- hx h hy
-    have h₁ : cast p₁ x.dest.snd s.fs h' = x.dest.snd s.fs (cast (by rw [hx'₁]) h') := by
-      clear *-
-      apply eq_of_heq
-      apply dcongr_heq (cast_heq _ h').symm (fun a b heq => rfl)
-      intro a b
-      apply dcongr_heq (by rfl)
-      · intro a b heq
-        rw! [hx'₁, heq]
-        rfl
-      intro a b
-      exact cast_heq p₁ x.dest.snd
-    have h₂ : cast p₂ y.dest.snd s.fs h' = y.dest.snd s.fs (cast (by rw [hy'₁]) h' ) := by
-      clear *-
-      apply eq_of_heq
-      apply dcongr_heq (cast_heq _ h').symm (fun a b heq => rfl)
-      intro a b
-      apply dcongr_heq (.refl _)
-      · intro a b heq
-        rw! [hy'₁, heq]
-        rfl
-      intro a b
-      exact cast_heq p₂ y.dest.snd
-    calc
-      _ = _ := h₁
-      _ = _ := hx
-      _ = _ := h (.fs s) h'
-      _ = _ := hy.symm
-      _ = _ := h₂.symm
+  refine ⟨fun x y => r (.mk _ x) (.mk _ y), ?_ , hhold⟩
+  clear *-his
+  intro s t rst
+  have ⟨hm, h⟩ := IsBisim.Alt_eq.mp his _ _ rst
+  dsimp [dest] at hm h
+  rw [MvFunctor.map_map, MvFunctor.map_map, TypeVec.appendFun_comp'] at hm
+  exact ⟨hm, h⟩
 
 -- This proof was actually truly pain
 def uLift : SM.{u, v} P α → SM.{u, max v w} P α :=
@@ -177,6 +128,22 @@ def uLift : SM.{u, v} P α → SM.{u, max v w} P α :=
       Quot.sound ⟨
         (∃ x y, x.uLift = · ∧ y.uLift = · ∧ r x y),
         by
+          /- clear *-his hr -/
+          /- rintro _ _ ⟨a,b,rfl,rfl,h⟩ -/
+          /- have ⟨h, hrel⟩ := his _ _ hr -/
+          /- refine ⟨?_, ?_⟩ -/
+          /- · simp only [PreM.uLift, ULift.transliterate_down, PreM.dest_corec, transliterate, -/
+          /-     transliterateMap, map_map, TypeVec.appendFun_comp', TypeVec.comp_id, -/
+          /-     Function.const_comp] -/
+          /-   change Sigma.mk _ _ = Sigma.mk _ _ -/
+          /-   simp [← TypeVec.comp_assoc, TypeVec.appendFun_comp', transliterate, transliterateMap] -/
+          /-   sorry -/
+          /- intro ⟨v⟩ -/
+          /- dsimp [PreM.uLift] at v -/
+          /- refine ⟨_, ?_, ?_, hrel <| .up v⟩ -/
+          /- simp -/
+          /- stop -/
+          rw [PreM.IsBisim.Alt_eq] at his ⊢
           rintro _ _ ⟨a,b,rfl,rfl,h⟩
           have ⟨v,f₀,f₁,hx, h, rst⟩ := (MvPFunctor.liftR_iff _ _ _).mp <| his _ _ h
           obtain ⟨rfl, rfl⟩ := Sigma.ext_iff.mp hx
@@ -208,8 +175,7 @@ def uLift : SM.{u, v} P α → SM.{u, max v w} P α :=
             apply ULift.down_inj.mpr
             simp only [TypeVec.Arrow.transliterate, TypeVec.comp, TypeVec.Arrow.uLift_up,
               TypeVec.Arrow.uLift_down, ULift.up.injEq, ULift.down_inj]
-            exact rst i.fs ⟨j⟩
-          ,
+            exact rst i.fs ⟨j⟩,
         ⟨_,_,rfl,rfl,hr⟩
       ⟩
 

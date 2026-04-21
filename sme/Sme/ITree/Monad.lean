@@ -157,7 +157,7 @@ theorem pure_bind (x : A) (f : A → ITree E B)
   simp [bind, dest_corec, bind.body]
 
 theorem bind_assoc {x : ITree E A} {f : A → ITree E B} {g : B → ITree E C}
-    : (x.bind f).bind g = x.bind ((fun x ↦ x.bind g) ∘ f) := by
+    : (x.bind f).bind g = x.bind ((·.bind g) ∘ f) := by
   ext
   simp only [Bisim, dest_bind]
   refine ⟨

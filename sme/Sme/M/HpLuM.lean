@@ -14,6 +14,68 @@ universe u v w
 
 variable {n : Nat} {P : MvPFunctor.{u} (n + 1)} {α : TypeVec.{u} n}
 
+section
+open SM
+
+@[pp_with_univ]
+def equivXU : SM.{u, max u v} P α ≃ SM.{u, max u w} P α :=
+  equivP.trans equivP.symm
+
+namespace equivXU 
+
+theorem inv'
+    {x : SM.{u, max u v} P α}
+    : equivXU x = x := by
+  simp [equivXU]
+
+theorem contract'
+    {x : SM.{u, max u v} P α}
+    : (equivXU ∘ equivXU) x = equivXU x := by
+  simp [equivXU]
+
+theorem toFun_invFun'
+    {x : SM.{u, max u v} P α}
+    : equivXU x = equivXU.symm x := by
+  simp [equivXU]
+
+def transform
+    (v : (MvPFunctor.uLift.{u, (max u w) + 1} P)
+      (TypeVec.uLift.{u, (max u w) + 1} α ::: SM.{u, max u w} P α))
+    : (MvPFunctor.uLift.{u, (max u v) + 1} P) 
+      (TypeVec.uLift.{u, (max u v) + 1} α ::: SM.{u, max u v} P α) :=
+  ⟨
+    .up v.fst.down,
+    fun
+      | .fz, h => equivXU (v.snd .fz (.up h.down))
+      | .fs s, h => .up (v.snd (s.fs) (.up h.down)).down
+  ⟩
+
+end equivXU
+
+@[simp]
+theorem transform_dest
+    {x : SM.{u, max u v} P α}
+    : (equivXU.{u, v, w} x).dest = equivXU.transform (dest x) := by
+  dsimp [equivXU, equivP]
+  simp only [dest_corec, Function.comp_apply, M.dest_corecU]
+  refine Sigma.ext (by rfl) <| heq_of_eq ?_
+  funext i h
+  rcases i with (_|⟨s⟩)
+  · rfl
+  · rfl
+
+-- The soundness of this is extremely dubious
+@[inline]
+private unsafe def equivXUImpl : SM.{u, max u v} P α ≃ SM.{u, max u w} P α where
+  toFun := unsafeCast
+  invFun := unsafeCast
+  left_inv _ := lcProof
+  right_inv _ := lcProof
+
+attribute [irreducible, implemented_by equivXUImpl, inline] equivXU
+
+end
+
 def HpLuM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Type u :=
   ABI _ _ (SM.equivP.{u, u} (P := P) (α := α)).symm
 
@@ -28,7 +90,7 @@ def corec
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (g : β)
     : HpLuM P α :=
-  .mkB <| SM.equivXU <| SM.uLift.{u, v, max u v} <| .corec gen g
+  .mkB <| equivXU <| SM.uLift.{u, v, max u v} <| .corec gen g
 
 /- attribute [macro_inline] TypeVec.splitFun -/
 
@@ -59,9 +121,9 @@ theorem dest_corec
         ((.mp TypeVec.uLift_append1_ULift_uLift ⊚ (TypeVec.id ::: .up ∘ corec gen ∘ ULift.down)))
         <$$> gen g
       ) := by
-  simp only [dest, uLift_down, map_fst, map_snd, corec, ABI.recCheap]
-  rw [SM.transform_dest]
-  refine Sigma.ext (by rfl) <| heq_of_eq <| funext fun | .fz | .fs _ => rfl
+  dsimp [dest, uLift_down, map_fst, map_snd, corec]
+  rw [ABI.recCheap, transform_dest]
+  refine Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => rfl
 
 section bisim
 
@@ -136,7 +198,7 @@ theorem bisim
     : a = b :=
   bisim' ⟨
     R,
-    fun s t h' => (MvPFunctor.liftR_iff _ _ _).mpr <| by 
+    fun s t h' => (MvPFunctor.liftR_iff _ _ _).mpr <| by
       conv =>
         rhs; intro _; rhs; intro _; rhs; intro _
         rw [Sigma.ext_iff, Sigma.ext_iff]

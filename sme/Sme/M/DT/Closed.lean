@@ -294,12 +294,21 @@ theorem linv_start h
 /-   sorry -/
 
 theorem linv {x : DeepThunk P (α ::: β)} h : inject β (extract x h) = x := by
+  stop
   apply HpLuM.bisim_map (fun x y => ∃ h, inject β (extract y h) = x) ⟨_, rfl⟩
   rintro _ x ⟨h, rfl⟩
-  use (linv_start h)
+  use linv_start h
   intro v
   use snd_fz_h_Closed_of_Closed h
-  symm
+  rw! (castMode := .all) [dest_inject]
+  dsimp [extract]
+  rw! (castMode := .all) [HpLuM.dest_corec', MvFunctor.map_map]
+  rw! [TypeVec.splitFun_eq_appendFun, TypeVec.splitFun_comp']
+  dsimp
+  dsimp [step]
+  /- apply HpLuM.ext_dest -/
+  dsimp [comp.mk]
+  stop
   dsimp [inject]
   rw! (castMode := .all) [HpLuM.dest_corec']
   simp only [map_snd, Nat.succ_eq_add_one, TypeVec.comp.get, TypeVec.append1_get_fz,
@@ -308,6 +317,7 @@ theorem linv {x : DeepThunk P (α ::: β)} h : inject β (extract x h) = x := by
   apply HpLuM.ext_dest
   simp only [extract, Nat.succ_eq_add_one, inject.step, TypeVec.drop_append1_simp, TypeVec.last_eq,
     TypeVec.append1_get_fz, HpLuM.dest_corec']
+  ---
   rw! [HpLuM.dest_corec', MvFunctor.map_map]
   rw! [TypeVec.splitFun_eq_appendFun, TypeVec.splitFun_comp']
   unfold Function.comp
@@ -342,20 +352,7 @@ def ext
     : x = y := by
   -- use the fact that inject is an injection
   have := (inject.inj β).eq_iff.mpr h
-  apply inject.inj β
-  apply HpLuM.bisim_map (fun x y => ∃ hx hy, extract x hx = extract y hy) ⟨_, _, h⟩
-  stop
-  clear *-
-  intro x y ⟨hx, hy, h⟩
-  sorry
-  stop
-  apply HpLuM.bisim (fun x y => ∃ hx hy, extract x hx = extract y hy) ⟨_, _, h⟩
-  clear *-
-  intro x y ⟨hx, hy, h⟩
-  use x.dest.fst, x.dest.snd
-  use cast sorry y.dest.snd
-  simp
-  sorry
+  rw [← linv hx, ← linv hy, h]
 
 end extract
 
@@ -516,35 +513,12 @@ theorem closed {γ} {x : DeepThunk P (α ::: β)} (h : Closed x) : (change γ x 
   rw! (castMode := .all) [HpLuM.dest_map, HpLuM.dest_corec']
   simp
 
-/- example {x : HpLuM P α} {γ v} -/
-/-   : (HpLuM.dest (inject γ x)).snd Fin2.fz v -/
-/-   = inject γ (x.dest.snd .fz (cast sorry v)) -/
-/-   := sorry -/
-
-/- theorem Sme.DeepThunk.Closed.change.extract_inject.extracted_1_8 -/
-/-   {β γ : Type u} (x : DeepThunk P (α ::: β)) (h : x.Closed) -/
-/-   v : -/
-/-   (HpLuM.dest (inject γ (extract x h))).snd Fin2.fz v = -/
-/-     inject γ (extract ((HpLuM.dest x).snd Fin2.fz (cast (by -/
-/-       congr 1 -/
-/-       simp only [Nat.succ_eq_add_one, inject, extract, HpLuM.dest_corec', inject.step, comp.mk, -/
-/-         TypeVec.drop_append1_simp, TypeVec.last_eq, TypeVec.append1_get_fz, DTSum.cont_fst, map_fst, -/
-/-         map_snd, TypeVec.comp.get, Function.comp_apply]; -/
-/-       rw [HpLuM.dest_corec'] -/
-/-       simp [extract.step] -/
-/-       sorry -/
-/-       ) v)) (snd_fz_h_Closed_of_Closed h)) := by  -/
-/-     sorry -/
-/-  -/
-/- #exit -/
 theorem extract_change {β γ} (x : DeepThunk P (α ::: β)) h
     : (extract (change γ x h) (closed h)) = extract x h := by
   /- apply HpLuM.bisim_map (fun a b => ∃ x h, -/
   /-   a = inject γ (extract x h) ∧ b = change γ x h) -/
   /-   ⟨_, h, rfl, rfl⟩ -/
   sorry
-
-#exit
 
 theorem extract_inject {β γ} (x : DeepThunk P (α ::: β)) h
     : inject γ (extract x h) = change γ x h := by

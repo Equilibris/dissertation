@@ -1,0 +1,91 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/3/syntax.html
+name: Coq
+file_extensions:
+  - v
+scope: source.coq
+contexts:
+  main:
+    - match: \b(Require|Import|From|Export|Local|Open|Scope|Goal|Program|Canonical|Tactic)\b
+      comment: Vernacular import keywords
+      scope: keyword.control.import.coq
+    - match: '\b(Lemma|Theorem|Fact|Remark|Corollary|Proposition|Property)\s+([a-zA-Z_][a-zA-Z0-9_'']*)'
+      comment: Theorem declarations
+      captures:
+        "1": keyword.source.coq
+        "2": entity.name.function.theorem.coq
+    - match: '\b(Fixpoint|CoFixpoint|Definition|Example|Let|Axiom|Hypothesis|Variable|Parameter|with|fix|Structure|Record|Class|Instance)\s+([a-zA-Z_][a-zA-Z0-9_'']*)'
+      comment: Definitions
+      captures:
+        "1": keyword.source.coq
+        "2": entity.name.function.coq
+    - match: '\b(Inductive|CoInductive)\s+([a-zA-Z_][a-zA-Z0-9_'']*)'
+      comment: Inductive type declarations
+      captures:
+        "1": keyword.source.coq
+        "2": entity.name.type.coq
+    - match: '\b(Ltac)\s+([a-zA-Z_][a-zA-Z0-9_'']*)'
+      comment: Ltac declarations
+      captures:
+        "1": keyword.source.coq
+        "2": entity.name.function.ltac
+    - match: '\b(Ltac2)\s+(Type\s+)?(rec\s+)?([a-zA-Z_][a-zA-Z0-9_'']*)'
+      comment: Ltac declarations
+      captures:
+        "1": keyword.source.coq
+        "2": keyword.source.coq
+        "3": keyword.source.coq
+        "4": entity.name.function.ltac2
+    - match: \b(Hint|Constructors|Resolve|Rewrite|Proof|Qed|Defined|Implicit|Set|Arguments|Notation|Section|End|Variables|Check|Print|Eval|shelve|Unshelve|Next\s+Obligation|Solve\s+(All\s+)?Obligations|Add\s+Printing\s+Constructor|Compute|Module|Abort|About)\b
+      comment: Vernacular keywords
+      scope: keyword.source.coq
+    - match: \b(admit|Admitted)\b
+      comment: Admits are bad
+      scope: invalid.illegal.admit.coq
+    - match: ':|\||=|<|>|\*|\+|-|\{|\}|\\|\/'
+      comment: Operators
+      scope: keyword.operator.coq
+    - match: \b(forall|exists|Type|Set|Prop)\b
+      comment: Type keywords
+      scope: support.type.coq
+    - match: \b(try|repeat|progress|set|fresh|solve|now|first)\b
+      comment: Ltac keywords
+      scope: keyword.control.ltac
+    - match: \b(into|with|eqn|by|as|using)\b
+      comment: Common Ltac connectors
+      scope: keyword.control.ltac
+    - match: \b(match|fun|with|return|end|let|in|if|then|else|return)\b
+      comment: Gallina keywords
+      scope: keyword.control.gallina
+    - match: \b(intro|intros|induction|destruct|case|auto|eauto|eassumption|apply|eapply|assumption|constructor|econstructor|reflexivity|inversion|assert|split|omega|fold|unfold|specialize|rewrite|erewrite|symmetry|(simple\s+)?refine|simpl|intuition|firstorder|generalize|idtac|exist|exists|eexists|elim|eelim|rename|subst|congruence|trivial|left|right|pose|discriminate|clear|clearbody|contradict|contradiction|exact|dependent|remember|do|decide\s+equality|exfalso|change|cbn|cbv)\b
+      comment: Ltac builtins
+      scope: support.function.builtin.ltac
+    - match: \(\*(?!#)
+      push:
+        - meta_scope: comment.block.coq
+        - include: block_comment
+        - match: \*\)
+          pop: true
+    - match: \b(nil|Some|None)\b
+      scope: constant.language.nil.gallina
+    - match: '\b((0(x|X)[0-9a-fA-F]+)|([0-9]+(\.[0-9]+)?))\b'
+      scope: constant.numeric.gallina
+    - match: \b(True|False|true|false)\b
+      scope: constant.language.boolean.gallina
+    - match: \b_\b
+      scope: constant.language.wildcard.coq
+    - match: '"'
+      push:
+        - meta_scope: string.quoted.double.coq
+        - match: '"'
+          pop: true
+        - match: '\\(x\h{2}|[0-2][0-7]{,2}|3[0-6][0-7]|37[0-7]?|[4-7][0-7]?|.)'
+          scope: constant.character.escape.coq
+  block_comment:
+    - match: \(\*(?!#)
+      push:
+        - meta_scope: comment.block.coq
+        - include: block_comment
+        - match: \*\)
+          pop: true

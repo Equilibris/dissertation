@@ -12,14 +12,16 @@ variable {E : Type u → Type u} {A B : Type _} {a b c : ITree E A}
 
 namespace ITree
 
-coinductive WBisim' (E : Type u → Type u) (A : Type v)
-    : Base E (ITree E A) A → Base E (ITree E A) A → Prop where
+coinductive WBisim' 
+    (E : Type u → Type u) (A : Type v)
+    : Base E (ITree E A) A → Base E (ITree E A) A → Prop
+    where
   -- This case only exists for refl spin spin,
   -- in fact it could be this,
   -- but that would be harder to prove things about
   | refl {a b c} : EStep a c → EStep b c → WBisim' E A a b
-  | ret {a b v}
-      : Step a (.ret v) → Step b (.ret v) → WBisim' E A a b
+  | ret {a b v} : Step a (.ret v)
+      → Step b (.ret v) → WBisim' E A a b
   | vis {V e a b a' b'}
       : Step a (.vis e a') → Step b (.vis e b') →
         (∀ v : V, WBisim' (a' v).dest (b' v).dest) → WBisim' E A a b
@@ -79,29 +81,25 @@ theorem antisymm {R}
   · obtain rfl := hab.eqSpin
     exact .refl (.refl _) (.refl _)
   · exact .ret h (EStep.step_comp hba h)
-  · refine .refl h.toEStep (EStep.step_comp hba h).toEStep
+  · exact .refl h.toEStep (EStep.step_comp hba h).toEStep
 
--- TODO: Clean...
 theorem skip
     {R : _ → _ → Prop} {a b c d}
-    (ha : EStep a c) (ha : EStep b d)
+    (hb : EStep a c) (ha : EStep b d)
     (v : WBisim'.Invariant E A R c d)
     : WBisim'.Invariant E A R a b := by
   rcases Step.no_middle c with (rfl|⟨_,⟨r⟩⟩|⟨_,_,_,⟨r⟩⟩)
-  · obtain rfl:= ha.spinEq
+  · obtain rfl:= hb.spinEq
     obtain rfl := v.eqSpin
     obtain rfl:= ha.spinEq
-    exact .refl (.refl _) (.refl _)
-  · rename_i ha' _
-    rcases v with (⟨v', v⟩|⟨v', v⟩|⟨v', v, h⟩)
-    · exact .refl (ha'.trans v') (ha.trans v)
-    · refine .ret (ha'.step_comp v') (ha.step_comp v)
-    · refine .vis (ha'.step_comp v') (ha.step_comp v) h
-  · rename_i ha' _ _ _
-    rcases v with (⟨v', v⟩|⟨v', v⟩|⟨v', v, h⟩)
-    · exact .refl (ha'.trans v') (ha.trans v)
-    · refine .ret (ha'.step_comp v') (ha.step_comp v)
-    · refine .vis (ha'.step_comp v') (ha.step_comp v) h
+    exact .refl'
+  all_goals rcases v with (⟨v', v⟩|⟨v', v⟩|⟨v', v, h⟩)
+  case refl => exact .refl (hb.trans v') (ha.trans v)
+  case refl => exact .refl (hb.trans v') (ha.trans v)
+  case ret => exact .ret (hb.step_comp v') (ha.step_comp v)
+  case ret => exact .ret (hb.step_comp v') (ha.step_comp v)
+  case vis => exact .vis (hb.step_comp v') (ha.step_comp v) h
+  case vis => exact .vis (hb.step_comp v') (ha.step_comp v) h
 
 theorem shrink
     {R : _ → _ → Prop} {a b c d}

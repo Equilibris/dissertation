@@ -3,7 +3,9 @@ import Mathlib.Control.Functor.Multivariate
 universe u v
 
 open scoped MvFunctor
-structure NatIso {n} (P Q : outParam (TypeVec.{v} n → Type u)) [MvFunctor P] [MvFunctor Q] where
+
+structure NatIso {n} (P Q : outParam (TypeVec.{v} n → Type u))
+    [MvFunctor P] [MvFunctor Q] where
   equiv : ∀ {α}, P α ≃ Q α
   nat' {α β} {f : α ⟹ β} (x : P α) : f <$$> equiv x = equiv (f <$$> x)
 

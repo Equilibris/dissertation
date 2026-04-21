@@ -35,11 +35,10 @@
   target: figure
 )
 
-#pagebreak()
+#set page(numbering: "1", number-align: center, )
+#context counter(page).update(n => 1)
 
 = Introduction
-
-#context counter(page).update(n => 1)
 
 #include "content/01_Intro/main.typ"
 

@@ -29,11 +29,10 @@ instance {σ : Type u} {M : Type _ → Type _} [Iter M] [Functor M]
 
 #check interp StateE.handle Type
 
-example {S : Type u} {R X}
-    {a b : ITree (StateE S) R}
-    {x}
-    : interp StateE.handle X a x ≈ interp StateE.handle X b x := sorry
-
+/- example {S : Type u} {R X} -/
+/-     {a b : ITree (StateE S) R} -/
+/-     {x} -/
+/-     : interp StateE.handle X a x ≈ interp StateE.handle X b x := sorry -/
 
 end Sme.ITree
 
