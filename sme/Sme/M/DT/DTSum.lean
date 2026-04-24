@@ -229,6 +229,15 @@ def lift : NatIso (uLift.{u, v} DTSum) DTSum where
     <;> rcases h with (_|_)
     <;> rfl
 
+theorem uLift_down_lift_symm {α}
+    {x}
+    : uLift_down.{u, v} (DTSum.lift.symm <| DTSum.cont (α := TypeVec.uLift α) x) 
+    = cont (x.down) := by
+  refine Sigma.ext rfl <| heq_of_eq <| funext₂ fun i h => ?_
+  rcases i with (_|_|_|_)
+  · rfl
+  · exact h.elim
+
 theorem cases' {α} (v : DTSum α) : (∃ x, v = cont x) ∨ (∃ x, v = recall x) := by
   induction v using cases
   <;> simp
@@ -282,6 +291,21 @@ theorem cont.inj_iff {α a b} : (cont (α := α) a = cont b) = (a = b) := propex
   mp h := cont.inj h
   mpr h := h ▸ rfl
 }
+
+def dive
+    {Q : Fin2 2 → MvPFunctor (n + 1)} 
+    {α}
+    {s}
+    : (DTSum.comp Q).B (comp.mk (P := DTSum) (Q := Q) (α := α) (cont s)).fst Fin2.fz
+    → (Q Fin2.fz).B s.fst Fin2.fz
+  | ⟨.fz, .unit, v⟩ => v
+  | ⟨.fs .fz, e, _⟩ => e.elim
+
+theorem comp_cont_fst
+    {Q : Fin2 2 → MvPFunctor (n + 1)} {α} {s} {v : (DTSum.comp Q).B (comp.mk (cont s)).fst Fin2.fz}
+    : ((comp.mk (P := DTSum) (Q := Q) (α := α) (cont s)).snd Fin2.fz v) = s.snd .fz (dive v) := by
+  rcases v with ⟨(_|_|_|_),(_|_),snd⟩
+  rfl
 
 end Sme.DTSum
 

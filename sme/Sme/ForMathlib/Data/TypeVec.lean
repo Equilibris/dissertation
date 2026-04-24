@@ -236,6 +236,10 @@ theorem mp_mp {p : α = β} {q : β = γ} : .mp q ⊚ .mp p = .mp (p.trans q) :=
   simp
 
 @[simp]
+theorem mp_mp_assoc {δ} {p : α = β} {q : β = γ} {f : δ ⟹ α} : .mp q ⊚ .mp p ⊚ f = .mp (p.trans q) ⊚ f := by
+  rw [←TypeVec.comp_assoc, mp_mp]
+
+@[simp]
 theorem mp_mpr {p : α = β} {q : γ = β} : .mpr q ⊚ .mp p = .mp (p.trans q.symm) := by
   simp
 

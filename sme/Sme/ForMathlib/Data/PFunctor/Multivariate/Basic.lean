@@ -158,6 +158,18 @@ theorem uLift_pull_get
     :=
   rfl
 
+theorem uLift_mk {α : TypeVec.{u} _}
+    {x : MvPFunctor.uLift.{u, v} P fun i => (MvPFunctor.uLift.{u, v} <| Q i) α.uLift}
+    : uLift_down (comp.uLift.symm (comp.mk x))
+    = comp.mk (uLift_down ( (fun _ h => .up <| uLift_down h) <$$> x)) :=
+  rfl
+
+@[elab_as_elim]
+theorem mk_cases {motive : comp P Q α → Prop}
+    (h : ∀ v, motive (mk v)) v : motive v := by
+  rw [←comp.mk_get (x := v)]
+  exact h _
+
 def equivTfn
     {P' : MvPFunctor.{u} n}
     (hP : ∀ α, P α ≃ P' α)
@@ -203,6 +215,24 @@ def niLift
     funext i h
     simp [(hQ i).nat]
 
+theorem niLift_symm_symm
+    {P' : MvPFunctor.{u} n}
+    {Q' : Fin2 n → MvPFunctor.{u} m}
+    (hP : NatIso P P')
+    (hQ : ∀ i, NatIso (Q i) (Q' i))
+    : (niLift hP hQ).symm = niLift hP.symm (fun i => (hQ i).symm) := by
+  ext α v
+  simp [niLift, NatIso.symm, equivTfn, equivTarg, hP.symm']
+
+@[simp]
+theorem niLift_mk
+    {P' : MvPFunctor.{u} n}
+    {Q' : Fin2 n → MvPFunctor.{u} m}
+    (hP : NatIso P P')
+    (hQ : ∀ i, NatIso (Q i) (Q' i))
+    {v : P (Q · α)}
+    : niLift hP hQ (comp.mk v) = comp.mk ((fun i h => hQ i h) <$$> hP v) := rfl
+
 theorem get_fst (x : P.comp Q α) : (comp.get x).fst = x.fst.fst := rfl
 theorem mk_fst (x : P (Q · α)) : (comp.mk x).fst = ⟨x.fst, (x.snd · · |>.fst)⟩ := rfl
 theorem get_snd (x : P.comp Q α)
@@ -223,6 +253,40 @@ theorem B_eq {α i} : (comp P Q).B α i = ((j : Fin2 n) × (b : P.B α.fst j) ×
   rfl
 
 end comp
+
+namespace const
+
+variable {n : Nat} {β : Type v} {α : TypeVec n}
+
+@[elab_as_elim]
+theorem mk_cases {motive : const n β α → Prop}
+    (h : ∀ v, motive (mk _ v)) v : motive v := by
+  rw [←const.mk_get (x := v)]
+  exact h _
+
+def ulift : NatIso (uLift.{v, u} (const n β)) (const n (ULift β)) where
+  equiv := {
+    toFun x := const.mk _ <| .up x.1.down
+    invFun x := ⟨.up x.1.down, fun _ => PEmpty.elim ∘ ULift.down⟩
+    left_inv _ := Sigma.ext rfl <| heq_of_eq <| funext₂ fun _ h => h.down.elim
+    right_inv _ := Sigma.ext rfl <| heq_of_eq <| funext₂ fun _ h => h.elim
+  }
+  nat' _ := Sigma.ext rfl <| heq_of_eq <| funext₂ fun _ h => h.elim
+
+@[simp]
+theorem map_mk {A} {v : A} {β} {f : α ⟹ β} : f <$$> const.mk _ v = const.mk _ v :=
+  Sigma.ext rfl <| heq_of_eq <| funext₂ fun i h => h.elim
+
+def transp {α} (h : α ≃ β) : NatIso (const n α) (const n β) where
+  equiv := {
+    toFun x := const.mk _ <| h.toFun (const.get x)
+    invFun x := const.mk _ <| h.invFun (const.get x)
+    left_inv _ := by simp
+    right_inv _ := by simp
+  }
+  nat' x := by simp
+
+end const
 
 end MvPFunctor
 

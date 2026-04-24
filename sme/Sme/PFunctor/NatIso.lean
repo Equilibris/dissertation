@@ -21,6 +21,16 @@ instance : CoeFun (NatIso P Q) (fun _ => {α : TypeVec n} → P α → Q α) whe
 instance : Coe (NatIso P Q) (P α ≃ Q α) where
   coe := (·.equiv)
 
+@[ext]
+def ext (a b : NatIso P Q)
+    (h : ∀ α, ∀ v : P α, a.equiv.toFun v = b.equiv.toFun v)
+    : a = b := by
+  rcases a with ⟨a, _⟩
+  rcases b with ⟨b, _⟩
+  simp only [mk.injEq]
+  ext v p
+  apply h
+
 variable (natiso : NatIso P Q) {p : P α} {q : Q α}
 
 @[simp] theorem abbr_eq : natiso.equiv = (natiso : P α ≃ Q α) := rfl
@@ -44,6 +54,8 @@ theorem symm_nat : f <$$> natiso.symm q = natiso.symm (f <$$> q) := natiso.symm.
 def trans (natiso' : NatIso Q R) : NatIso P R where
   equiv := natiso.equiv.trans natiso'.equiv
   nat' := by simp [nat]
+
+theorem trans_symm (natiso' : NatIso Q R) : (trans natiso natiso').symm = trans natiso'.symm natiso.symm := rfl
 
 end NatIso
 

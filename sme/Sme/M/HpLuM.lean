@@ -296,6 +296,14 @@ theorem dest_mk {v : HpLuM P α} : mk (dest v) = v := by
     fun | .fz, h | .fs s, h => rfl
   ⟩
 
+@[elab_as_elim]
+theorem mk_cases {motive : HpLuM P α → Prop}
+    (h : ∀ v, motive (.mk v))
+    v
+    : motive v := by
+  rw [←dest_mk (v := v)]
+  exact h v.dest
+
 @[simp]
 theorem mk_dest {v : P (α ::: HpLuM P α)} : dest (mk v) = v := by
   have : mk ∘ dest = @id (HpLuM P α) := funext fun x => dest_mk

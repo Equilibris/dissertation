@@ -12,11 +12,12 @@ variable {E : Type u → Type u} {A B : Type _} {a b c : ITree E A}
 
 namespace ITree
 
-coinductive WBisim' 
+coinductive WBisim'
     (E : Type u → Type u) (A : Type v)
     : Base E (ITree E A) A → Base E (ITree E A) A → Prop
     where
   -- This case only exists for refl spin spin,
+
   -- in fact it could be this,
   -- but that would be harder to prove things about
   | refl {a b c} : EStep a c → EStep b c → WBisim' E A a b

@@ -54,6 +54,12 @@ theorem cast_sigma_snd {α : Type _} {β γ : α → Type _} (fst : α) (snd : �
   subst p
   rfl
 
+theorem cast_ulift_up {α β : Type u} (v : α)
+    (p : α = β)
+    : cast (congr rfl p) (ULift.up v ) = ULift.up (cast p v) := by
+  subst p
+  rfl
+
 theorem hfunext_iff
     {α α' : Type u}
     {β : α → Type v} {β' : α' → Type v}

@@ -91,7 +91,7 @@ def runTests : IO Unit := do
   println! "hpRruns = "
   let res ← runs <| hp.mapM id
   println! res
-  
+
   println! "bigRuns = "
   let res ← runs <| big.mapM id
   println! res
