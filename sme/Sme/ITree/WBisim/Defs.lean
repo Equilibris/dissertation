@@ -312,24 +312,6 @@ theorem unfold' {a b : ITree E A} (h : WBisim a b) : WBisimAlt a b := by
   case ret ha hb => exact .ret ha hb
   case vis h ha hb => exact .vis h ha hb
 
-/- @[elab_as_elim] -/
-/- theorem cases {a b} {motive : ITree E A → ITree E A → Prop} -/
-/-     (h : WBisim a b) -/
-/-     (taul : ∀ a b, motive a b → motive (.tau a) b) -/
-/-     (taur : ∀ a b, motive a b → motive a (.tau b)) -/
-/-     (hRefl : motive (.tau spin) (.tau spin)) -/
-/-     (hRet : {v : _} → Step a.dest (.ret v) → Step b.dest (.ret v) → motive (.ret v) (.ret v)) -/
-/-     (hVis : {V e f g : _} -/
-/-       → Step a.dest (.vis e f) -/
-/-       → Step b.dest (.vis e g) -/
-/-       → (∀ v : V, WBisim (f v) (g v)) → motive (.vis e f) (.vis e g)) -/
-/-     : motive a b := by -/
-/-   have := h.unfold -/
-/-   cases this -/
-/-   · sorry -/
-/-   · sorry -/
-/-   · sorry -/
-
 theorem tau : .tau a ≈ a := by
   change WBisim' _ _ _ _
   rw [dest_tau]

@@ -421,6 +421,12 @@ theorem ext_mk {α : TypeVec n}
     : x = y := by
   rw [← mk_dest (v := x), h, mk_dest]
 
+theorem map_mk
+    {α β : TypeVec.{u} n} (g : α ⟹ β) (x : P (α ::: HpLuM P α))
+    : g <$$> mk x = mk ((g ::: (MvFunctor.map g)) <$$> x) := by
+  ext
+  simp
+
 instance inhabited
     {α : TypeVec _}
     [I : Inhabited P.A]

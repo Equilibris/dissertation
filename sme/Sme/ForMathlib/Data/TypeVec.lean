@@ -82,6 +82,16 @@ theorem arrow_uLift_appendFun {α' β'} {g : α' → β'}
   | .fz | .fs _ => rfl
 
 @[simp]
+theorem uLift_arrow_arrow_uLift
+    (h : TypeVec.uLift.{u, v} α ⟹ TypeVec.uLift.{w, x} β)
+    : h.uLift_arrow.arrow_uLift = h := rfl
+
+@[simp]
+theorem arrow_uLift_uLift_arrow
+    (h : α ⟹ β)
+    : h.arrow_uLift.uLift_arrow = h := rfl
+
+@[simp]
 theorem arrow_uLift_id
     : arrow_uLift (TypeVec.id (α := α)) = TypeVec.id := rfl
 

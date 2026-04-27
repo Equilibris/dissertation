@@ -14,10 +14,11 @@
   body,
 ) = {
   set document(author: author, title: title)
+  set page(margin: 2cm)
   set text(font: "New Computer Modern", lang: "en")
   show math.equation: set text(weight: 400)
   set heading(numbering: "1.1")
-  set math.equation(numbering: "1.1")
+  // set math.equation(numbering: "1.1")
   set par(justify: true)
   show raw: set text(font : "FiraCode Nerd Font")
   show raw.where(block: true): set text(size: 6pt)
@@ -26,6 +27,18 @@
   // TODO: Fix codly
   // show: codly-init.with()
   // codly(languages: codly-languages, number-format : none, display-name: false, zebra-fill: none)
+
+  show table.cell.where(y: 0): strong
+  set table(
+    stroke: (x, y) => if y == 0 {
+      (
+        bottom: 0.7pt + black,
+      )
+    },
+    align: (x, y) => (
+      { center }
+    )
+  )
 
   body
 }
@@ -52,13 +65,15 @@
   show heading: it => {
     if it.level == 1 {
       pagebreak()
-      v(4.5em)
+      // v(4.5em)
       set text(size: 25pt)
       if it.numbering == "1.1" {
         "Chapter "; chapternum(it.location())
         [: ]
-
         it.body
+        v(-.75em)
+        line(length:100%)
+        v(-.5em)
       }
       else {
         it

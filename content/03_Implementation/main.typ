@@ -19,29 +19,27 @@
 
 This chapter describes the implementation of each of the requirements stated in @sec:rq.
 I will break it down into a common section,
-then go by induvidual components.
-I will also mention which parts are in process of being upstreamed and which parts are already in @cite:mathlib.
+then go by individual components.
+I will also mention which parts are in process of being upstreamed and which parts are already in #MATHLIB.
 
 The Lean component of this repository,
 and how they relate to each of the requirements can be seen in the list below.
 Additionally the import graph can be seen in @rep:fg:import
 
-// TODO Make this take up less page space. Make it alternate between horizontal and vertical
-
-#let box(boxc) = node.with(snap: -1, fill: boxc.lighten(90%), stroke: boxc)
+#let fbox(boxc) = node.with(snap: -1, fill: boxc.lighten(90%), stroke: boxc)
 
 #let sl = 2
 #figure(
   diagram(
     cell-size: 4mm,
-    box(teal)(enclose : (<slib>, <dt>)),
+    fbox(teal)(enclose : (<slib>, <dt>)),
 
     node((1,1-sl), [PA Impl], name: <spa>),
     edge("->"),
     node((2,0-sl), [Equiv], name : <seq>),
     edge("<-"),
     node((2,1-sl), [SME Impl], name: <ssme>),
-    box(teal)(align(top + left)[Stream], enclose: (<spa>, <seq>, <ssme>, (0,-1)), snap: -1, name: <s>),
+    fbox(teal)(align(top + left)[Stream], enclose: (<spa>, <seq>, <ssme>, (0,-1)), snap: -1, name: <s>),
 
     node((1,1), [PreM], name: <prem>),
     edge("->"),
@@ -51,7 +49,7 @@ Additionally the import graph can be seen in @rep:fg:import
     edge("<-"),
     node((2,0), [Equiv], name: <peq>),
     edge(<sm>, <peq>, "->"),
-    box(teal)(align(top+left)[Polynomial], enclose: (<prem>,<sm>,<hplum>,<peq>, (0,1)),name : <slib>),
+    fbox(teal)(align(top+left)[Polynomial], enclose: (<prem>,<sm>,<hplum>,<peq>, (0,1)),name : <slib>),
 
     edge(<hplum>, (3,2), <dtd>, "->"),
 
@@ -60,7 +58,7 @@ Additionally the import graph can be seen in @rep:fg:import
     node((1,3), [DT Corec],name : <dtc>),
     edge(<dtd>,<dtf>,"->"),
     node((2,3), [DT Inject], name: <dtf>),
-    box(teal)(align(top+left)[Deep thunks], enclose: (<dtf>,<dtd>,<dtc>, (0,2)), name: <dt>),
+    fbox(teal)(align(top+left)[Deep thunks], enclose: (<dtf>,<dtd>,<dtc>, (0,2)), name: <dt>),
 
     edge(<hplum>, (3, 4), (2,4), <clib>, "->"),
     edge(<dtc>,   (1, 4), (2,4), <clib>, "->"),
@@ -70,7 +68,7 @@ Additionally the import graph can be seen in @rep:fg:import
 
     node((3, -1), [ABI], name: <abi>),
     edge(<abi>, <hplum>, "->"),
-    box(teal)([ABI], enclose: (<abi>,) ),
+    fbox(teal)([ABI], enclose: (<abi>,) ),
 
     edge(<abi>, (3.5, -1), <abil>, "->"),
     node((3.5,5), [ABI Type], name: <abil>),
@@ -90,77 +88,9 @@ Additionally the import graph can be seen in @rep:fg:import
     edge(<itm>, <wbsc>, "->",),
     edge(<iti>, <wbsi>, "->",),
 
-    box(teal)(enclose: (<itd>, <wbsi>) ),
+    fbox(teal)(enclose: (<itd>, <wbsi>) ),
   )
 )
-
-// #colorbox(title: [Main lean section])[
-// #tidy-tree-graph(
-//   draw-edge: tidy-tree-draws.horizontal-vertical-draw-edge
-// )[
-// - SME
-//   - ABI.lean
-//   // - Basic.lean
-//   // - Examples
-//   //   - AMP
-//   //     - Product.lean
-//   //     - Supo1.lean
-//   //   - FunctionPFunctor.lean
-//   - ITree @rq:it:impl, @rq:sme:itree
-//     - Bisim.lean @rq:it:sbisim
-//       - Interp.lean @rq:it:moni
-//         - KTree.lean @rq:it:kt
-//     - Monad.lean @rq:it:mon, @rq:it:lmon
-//       - MonadIter.lean
-//         - Combinators.lean @rq:it:comb
-//     - WBisim.lean @rq:it:wbisim
-//       - Congr.lean
-//         - Defs.lean
-//            - IterCongr.lean
-//               - Monad.lean
-//                 - Step.lean
-//   - M
-//     - DT.lean @rq:sme:prod
-//       - Defs.lean
-//         - DTSum.lean
-//           - Corec.lean
-//             - Bind.lean
-//               - Closed.lean
-//                 - Factorize.lean
-//                   - CorecEq.lean
-//                     - Flat.lean
-//                       - Inject.lean
-//                         - ULift.lean
-//     - PreM.lean @rq:sme:impl, @rq:sme:cind
-//       - SM.lean @rq:sme:impl, @rq:sme:cind
-//         - Equiv.lean @rq:sme:equiv
-//           - HpLuM.lean @rq:sme:abi, @rq:sme:cind
-//             - HpLuCofix.lean
-//   - NTMonad @rq:sme:ntm
-//   - PFunctor
-//     - EquivP.lean
-//       - NatIso.lean
-//         - Prj.lean
-//           - Utils.lean
-//   - Stream
-//     - Equiv.lean @rq:sme:stream:equiv
-//       - PDefs.lean
-//         - SDefs.lean @rq:sme:stream:impl
-//   - ForMathlib
-//     - Data
-//       - PFunctor
-//         - Multivariate
-//           - Basic.lean
-//           - M.lean
-//       // - QPF
-//       //   - Multivariate
-//       //     - Basic.lean
-//       //     - Constructions
-//       //       - Cofix.lean
-//       - TypeVec.lean
-//       - ULift.lean
-// ]
-// ]
 
 == Common
 
@@ -213,17 +143,17 @@ and made it possible to define a universe-polymorphic eliminator.
 
 During the feasability assesment I noticed that,
 in the current formalised theory of polynomials,
-the equivilence wouldn't even type-check.
+the equivalence wouldn't even type-check.
 This stemmed from a problem with the corecursive principle for the #MT in the old implementation.
 $"corec" : {alpha : "TypeVec".{cal(U)} n} arrow {beta : "Type" cal(U)} arrow (g : beta → P (alpha ::: beta)) arrow beta arrow M alpha$
-#footnote(link("https://github.com/leanprover-community/mathlib4/blob/7a60b315c7441b56020c4948c4be7b54c222247b/Mathlib/Data/PFunctor/Multivariate/M.lean#L152-L154")) @cite:mathlib.
+#footnote(link("https://github.com/leanprover-community/mathlib4/blob/7a60b315c7441b56020c4948c4be7b54c222247b/Mathlib/Data/PFunctor/Multivariate/M.lean#L152-L154")) #MATHLIB.
 The problem here is that both $alpha$ and $beta$ have to both reside in $cal(U)$.
 Solving this is done through the next two sections.
 
 ==== Universe lifting of polynomial functors.<sec:ulift_p>
 
 The main problem caused here comes from the fact that lean isnt cummulative.
-This means it is impossible to express a universe hetrogouns typevector.
+This means it is impossible to express a universe heterogeneous typevector.
 In other words $alpha ::: beta$ is only typable if $alpha : "TypeVec".{cal(U)} n$ and $beta : "Type" cal(U)$.
 The natural way of solving this is using the supremum in universe levels you get from
 $ULift : "Type" cal(U) arrow "Type" (max cal(U) cal(V))$.
@@ -244,10 +174,10 @@ thereby invalidating all the work we did in the previous section.
 Luckily lifting a PFunctor is relatively easy.
 We define it as $ULift P eq.delta chevron.l ULift P.1, lambda x mapsto ULift (P.2 x."down") chevron.r$.
 This works and now we can move on to generalizing the corecursor.
-#footnote[
-  TODO: Speak with JV / W to see if this might be done in the lit,
-  Ex : Locally presentable and accessable categories Adameck roshiski
-].
+// #footnote[
+//   TODO: Speak with JV / W to see if this might be done in the lit,
+//   Ex : Locally presentable and accessable categories Adameck roshiski
+// ].
 This defintion is also natural in the expected way.
 
 ==== Generalizing the corecursor
@@ -255,7 +185,7 @@ This defintion is also natural in the expected way.
 #impl([], "[UPSTREAMED],sme/Sme/PFunctor/ForMathlib/M.lean")
 
 Now with all the work in the previous section,
-first we generalize a helper function#footnote([Done in TODO: PR NUMBER ]),
+first we generalize a helper function#footnote[Done in PR #link("https://github.com/leanprover-community/mathlib4/pull/30400")[♯30400] to #MATHLIB ],
 then we can define
 $"corecU" : {alpha : "TypeVec".{cal(U)} n}
   arrow {beta : Type cal(V)}
@@ -274,9 +204,9 @@ This is more complex than it used to be as we now need to lower before we contin
 #impl([], "sme/Sme/PFunctor/EquivP.lean")
 
 Often when people talk about polynomials, they actually mean structures that are equivalent to polynomials.
-This is for example how @cite:keizer and other sources TODO FIND work.
+This is for example how @cite:keizer refers to polynomials.
 I found it useful to work like this as well,
-for this I made a type-class `EquivP` heavily inspired by how it was done in @cite:keizer @cite:mathlib.
+for this I made a type-class `EquivP` heavily inspired by how it was done in @cite:keizer #MATHLIB.
 I took the definition of curried type-functions (CTFs) from @cite:keizer and implemented coherences for these for the common polynomials.
 I used this to make it cleaner to work with ITrees when I reached that point.
 A key difference is that I implemented it using the output CTF as an outParam,
@@ -301,15 +231,15 @@ Using what I learnt in category theory, it was easy enough to prove the symmetri
 
 #impl([@rq:sme:stream:impl, @rq:sme:stream:equiv], "sme/Sme/Stream/*")
 
-As proving these equivleneces is challenging I decidede I would start by implementing it for the special case of streams.
+As proving these equivalences is challenging I decided I would start by implementing it for the special case of streams.
 Streams are the text-book coinductive datatype that most people know as mentioned in @sec:coind.
-Therefore I expected this to be pedogodical to implement.
+Therefore I expected this to be pedagogical to implement.
 
 === SME <sec:s:sme>
 #impl([@rq:sme:stream:impl], "sme/Sme/Stream/SDefs.lean")
 
 First I set up a class (can't be a #Type as it varies through universe levels) of prestreams,
-these correspond to the corecurisve principle holding their type.
+these correspond to the corecursive principle holding their type.
 
 I had to define hd and tl for streams here corresponding to the destructors of streams.
 Care had to be taken to ensure that the definition would work under a quotient as well.
@@ -330,7 +260,7 @@ The corecursor was simpler to define,
 it is just the constructor for PreStreams under a Quotient introduction.
 
 The next step was defining a coinduction principle,
-in the code this is called `bisim` to align to convention with @cite:mathlib.
+in the code this is called `bisim` to align to convention with #MATHLIB.
 The proof of this proceeds by Quotient soundness anc can be found in `SDefs.lean`.
 
 Parts of this definition can be seen in @stream:fg:sme.
@@ -375,7 +305,7 @@ This turned out to be harder than I expected for 2 reasons.
   This statement is actually dramatically harder to prove.
 2. When you look at the proofs,
   in the bisimilarity there are `rfl`s,
-  this is because the statements are *definitionaly* equal ($beta$,$eta$-equivalent).
+  this is because the statements are *definitionally* equal ($beta$,$eta$-equivalent).
   For general polynomials this will not be the case and also explode ever so slightly.
 
 #let pdef = read("../../sme/Sme/Stream/PDefs.lean")
@@ -399,14 +329,14 @@ This turned out to be harder than I expected for 2 reasons.
     caption: [Equivalence]
   ),
   <stream:fg:equiv>,
-  columns: (1fr, 1fr, 1fr),
+  columns: (auto, auto, auto),
   caption: [Key code involved in Stream equivlance]
 )
 ]
 
 ////////////////////////////////////////////////////////////////////////////////
 
-== State machine encoding of M-Types
+== State-machine encoding of M-Types<sec:impl-sm>
 
 #impl([@rq:sme:impl, @rq:sme:equiv], "sme/Sme/M/*")
 
@@ -421,7 +351,7 @@ make the object by quotienting this relation.
 #impl([@rq:sme:cind], "")
 
 Coming into this dissertation,
-I implemented almost all of it using the definition of bisimilarity given in @cite:mathlib as @bs:ls:mathlib.
+I implemented almost all of it using the definition of bisimilarity given in #MATHLIB as @bs:ls:mathlib.
 This definition turned out to be very hard to work with.
 Later in my dissertation I found an equivalent formulation using the universal property of the terminal object,
 since bisimilarity requires all but the last family to be equal,
@@ -434,7 +364,7 @@ One of the reasons for this is that all the proofs about mappings of polynomials
 This makes a lot of bisimilarity statements easier to work with.
 
 // For an arbitrarry polynomial we can define bisimilarities for its cofix point.
-// Mathlib has a definition for this for the PA encoding @cite:mathlib.
+// Mathlib has a definition for this for the PA encoding #MATHLIB.
 // This has the structure as seen in FIGURE.
 // I found this very challenging to work with;
 // Not only does this require using heterogeneous equalities,
@@ -460,7 +390,7 @@ def MvPFunctor.M.bisim (R : P.M α → P.M α → Prop)
           ∀ (i : (P.B a).last), R (f₁ i) (f₂ i))
   (x y : P.M α) (r : R x y) : x = y := ...
 ```,
-    caption: [@cite:mathlib definition]
+    caption: [#MATHLIB definition]
   ),
   <bs:ls:mathlib>,
   figure(
@@ -514,12 +444,12 @@ as we need to use this explicit cofixpoint construction to build the relation.
 
 Proving this is an equivalence relation is much harder than for the case of streams.
 The reason for this is the much more roundabound definition of bisimilarity.
-Luckily mathlib has a lemma for working with liftR and PFunctors.
+Luckily #MATHLIB has a lemma for working with liftR and PFunctors.
 These proofs can be found in `PreM.lean`.
 Once we have these we have that `PreM`s are setoids,
 and can proceed to define the quotiented version.
 
-== SM
+== SM <sec:sme:impl>
 #impl([@rq:sme:impl], "[UPSTREAMED],sme/Sme/{M/SM.lean,HEq.lean}")
 
 I expected implementing the SME $M$-types to go as smoothly as implementing SME streams.
@@ -534,15 +464,15 @@ and lifting the equality from bisimilarity for the other cases.
 
 Proving the coinduction principle was dramatically harder.
 The reason for this,
-as with most things in this disertation,
+as with most things in this dissertation,
 is heterogeneous equalities.
 Since hetrogenous equalities have very few congruences#footnote[
   An example is `(List A = List B) = (A = B)` is independent of lean.
 ],
 often I need to solve them on a case-by-case basis.
 As a consequence I ended up writing a few quite crucial lemmas,
-these include `dcongr_heq` which I upstreamed,
-along with `hfunext_iff` which I have an open PR with TODO UPSTREAM.
+these include `dcongr_heq` which I upstreamed.
+// along with `hfunext_iff` which I have an open PR with TODO UPSTREAM.
 As a consequence, this proof has both forward and backward sections.
 To save our sanity, I decided to rewrite it using @sec:bs,
 after doing this the proof simply fell out.
@@ -552,40 +482,18 @@ this involves lifting the state-machine state rather than any part of the polyno
 This is the universe lifting function we defined for PreM types.
 Universe lifting of this component is needed for proving the generalized equivalence we stated in @sec:s:equiv.
 
-// Noting the definition of corecU,
-// one might wonder if you could define M from first principles for this.
-// The problem one encounters is one of universes.
-// As seen in the definition above,
-// if one were to define a type whos construcor is directly the corecU definiton,
-// it would hold a $beta : "Type" cal(V)$.
-// This then forces the object to reside in
-// $"Type" max cal(U) (cal(V) + 1)$.
-// This is a problem as one loses most closure results as you will be lifting more and more.
-// The main beinifit from this is the performance aspect.
-// Going from reading to a depth $n$, to a depth $n+1$ is not $cal(O)(1)$ instead of $cal(O)(n)$.
-// This will be seen in @sec:smevpa.
-// We will henceforth refer to the datatype SME.PreM.
+// === Writing for performance
 //
-// === PreM
+// #impl([@rq:sme:fast, @rq:sme:zc], "sme/Sme/M/SM.lean")
 //
-// As we speak about in // TODO @pfunctofalg,
-// the M Type is the terminal object in the category of coalgebras.
-// We can see through reasoning (cumilatively) in this category that PreM is weakly terminal.
-// Looking at this category we want to force the incoming morphisms together.
-// This corresponds exactly to quotienting just as we saw for streams.
+// While conducting the evaluation for @rq:sme:fast,
+// I noticed that while calling a corecursor is zero-cost,
+// destructing one is not.
+// The problem for this seems to do with the interactions between inlining and partially applied functions.
+// I forked mathlib and added multiple inline directives to various functions.
+// TODO Continue this section
 
-=== Writing for performance
-
-#impl([@rq:sme:fast, @rq:sme:zc], "sme/Sme/M/SM.lean")
-
-While conducting the evaluation for @rq:sme:fast,
-I noticed that while calling a corecursor is zero-cost,
-destructing one is not.
-The problem for this seems to do with the interactions between inlining and partially applied functions.
-I forked mathlib and added multiple inline directives to various functions.
-TODO Continue this section
-
-== Proving the equivalence
+=== Proving the equivalence<sec:sme:equiv>
 
 #impl([@rq:sme:equiv], "sme/Sme/M/Equiv.lean")
 
@@ -593,15 +501,15 @@ Proving the equivalence on polynomials is much more challenging than proving it 
 We know at least from streams,
 each of the directions will be given by each of their corecursors.
 One might expect to follow the type signatures and mostly you do,
-but Lean couldn’t help with this,
-as it had to do higher order unification.
+but Lean couldn't help with this,
+as it had to do higher-order unification.
 When Lean finally type checked one could see the functions are obvious as seen in FIGURE.
 We now need to prove that the two functions are inverses.
 When I was proving these equalities I was not very familiar with bisimilarities,
 and tried tens of invariants.
 Finally I landed on simply forcing their equalities.
 Once this was found, I had to prove it was a bisimilarity.
-I picked the head of the first type and was lucky that they both definitioaly was of the same type.
+I picked the head of the first type and was lucky that they both definitionally was of the same type.
 This means the equality for the children is homogenous.
 The other direction followed analougesly.
 
@@ -622,24 +530,22 @@ and would help make high performance low universe #MTs (HpLuM)..
 == The ABI Type<sec:abi>
 #impl([@rq:abi:impl, @rq:abi:elim, @rq:abi:opt, @rq:abi:zc], "sme/Sme/ABI.lean")
 
-// TODO:
-// #show cite.where(<cite:mathlib>): [Mathlib @cite:mathlib]
 
-@cite:mathlib has a type called `Shrink`.
+#MATHLIB has a type called `Shrink`.
 This is a type which takes an equivalence between a `A : Type u` and a `B : Type v`,
 and returns a `Type u`.
 It has one constructor `B → Shrink A B`,
 and one destructor `Shrink A B → B`,
 which are inerses.
-The definition given in @cite:mathlib is non-computable using choice,
+The definition given in #MATHLIB is non-computable using choice,
 this makes it useless for us.
 Origionally I tried to make it computable by adding an `@[implemented_by]` to it,
 which turned out not to work.
 The reason this didnt work has to do with the fact that `Shrink` strangely satisfies the univalence axiom:
 given `Shrink A` and `Shrink B` along with `A ≃ B`,
 one can prove `Shrink A = Shrink B`.
-This follows from propositional extentionality as seen in FIGURE.
-Aaron Liu from the mathlib community used this in combination with quotients and trustCompiler to prove false.
+This follows from propositional extensionality as seen in FIGURE.
+Aaron Liu from the #MATHLIB community used this in combination with quotients and trustCompiler to prove false.
 From this I understood that I would have to make my own variation of the type.
 
 From this I decided to make my own variant I called the ABI type.
@@ -707,7 +613,7 @@ This let me eliminate into any universe independent of $cal(U)$ and $cal(V)$.
     )],
     caption:[Operations on Shrink]
   ),
-  columns: (1fr, 1fr),
+  columns: (auto, auto),
   caption: [Universe transforming types.]
 )
 
@@ -740,7 +646,7 @@ TODO
 
 ////////////////////////////////////////////////////////////////////////////////
 
-== HpLuM<sec:hplum>
+=== HpLuM<sec:sme:abi>
 #impl([@rq:sme:abi], "sme/Sme/M/HpLuM.lean")
 
 After implementing the `ABI` type, it is time to put it to use.
@@ -803,10 +709,11 @@ where they have a bind function that composes them.
 
 I implemented them using by simply taking the cofixpoint of the Sum functor.
 This was mainly just to test that I understood what was needed to implement ITrees,
+once I understood ITrees I rather implemented them.
+This is adequet as `NTMonad A = ITree EmptyE A`,
+so it would be a waste to dobule up the implementation.
 
-TODO complete this section
-
-== Interaction trees
+== Interaction trees<sec:itree>
 #impl([@rq:it:impl, @rq:it:sbisim, @rq:it:kt, @rq:it:coind], "sme/Sme/ITree/*")
 
 Interaction trees are the free-monad with non-termination as an effect @cite:itree.
@@ -851,14 +758,14 @@ here I have annotatted all of the functions I have implemented from the paper.
 A notable difference is that in the Lean implementation strong bisimilarity implies equality,
 this makes using some of the proofs easier.
 
-#let gbox(title, rowspan : 1, colspan: 1, body) = grid.cell(rowspan : rowspan, colspan: colspan)[ #colorbox(title : title, color: (stroke : teal, fill : rgb("#0000")))[#body] ]
+#let gfbox(title, rowspan : 1, colspan: 1, body) = grid.cell(rowspan : rowspan, colspan: colspan)[ #colorbox(title : title, color: (stroke : teal, fill : rgb("#0000")))[#body] ]
 
 #pad(x: -1cm)[
 #figure(
   grid(
-    columns: (1fr, 1fr),
+    columns: (auto, auto),
     gutter: 1em,
-    gbox([Interaction Tree Operations], rowspan: 2)[
+    gfbox([Interaction Tree Operations], rowspan: 2)[
       - `ITree E A : Type` #super[LR]
       - `tau : ITree E A → ITree E A`#super[LR]
       - `ret : A → ITree E A`#super[LR]
@@ -866,29 +773,24 @@ this makes using some of the proofs easier.
       - `bind : ITree E A → (A → ITree E B) → ITree E B`#super[LR]
       - `trigger : E A → ITree E A`#super[LR]
     ],
-    gbox([Hetrogenous weak bisimilarity])[
+    gfbox([Hetrogenous weak bisimilarity])[
       - `eutt (r : A → B → Prop) : ITree E A → ITree E B → Prop`#super[R]
     ],
-    gbox([Strong and weak bisimilarity])[
+    gfbox([Strong and weak bisimilarity])[
       - `_ ≅ _ : ITree E A → ITree E B → Prop`#super[LR]
       - `_ ≈ _ : ITree E A → ITree E B → Prop`#super[LR]
     ],
-    gbox([Events and subevents], rowspan: 2)[
+    gfbox([Events and subevents], rowspan: 2)[
       - `(e : E R)`#super[LR]                #h(1fr) `R` is the result of event `e`
       - `E +' F`#super[LR]                   #h(1fr) disjoint union of effects
       - `class E -< F`#super[LR]             #h(1fr) `E` is a subevent of `F`
       - `trigger [E -< F] : E ↝ ITree F` #super[R]
     ],
-    gbox([Parametric functions])[
+    gfbox([Parametric functions])[
       `E ↝ F := ∀ X, E X → F X` #super[LR]
     ],
-    gbox([Monadic interpretation])[
+    gfbox([Monadic interpretation])[
       `interp [Monad M] [MonadIter M] : (E ↝ M) → (ITreeE ↝ M)` #super[LR]
-    ],
-    gbox([Monad Laws])[
-      - `bind (ret v) k = k v`
-      - `bind t ret = t`
-      - `bind t ret = t`
     ],
   ),
   kind: table,
@@ -904,24 +806,24 @@ this makes using some of the proofs easier.
   grid(
     columns: (1.4fr, 1.1fr),
     gutter: 1em,
-    gbox([Structural Laws])[
+    gfbox([Structural Laws])[
       - `tau t ≈ t` #super[LR]
       - `t ≈ spin` -> `t = spin` #super[L]
       - `bind (tau t) k = tau (bind t k)` #super[LR\*]
       - `bind (vis e k₁) k₂ = vis e λy. bind (k₁ y) k₂` #super[LR\*]
     ],
-    gbox([Equivalence relation])[
+    gfbox([Equivalence relation])[
       - `a ≈ a` #super[LR]
       - `a ≈ b` -> `b ≈ a` #super[LR]
       - `a ≈ b` -> `b ≈ c` -> `a ≈ c` #super[LR]
     ],
-    gbox([Congruences])[
+    gfbox([Congruences])[
       - `t₁ ≈ t₂` -> `tau t₁ ≈ tau t₂` #super[LR]
       - `k₁ ≈ k₂` -> `vis e k₁ ≈ vis e k₂` #super[LR]
       - `t₁ ≈ t₂` -> `k₁ ≈ k₂` -> `bind t₁ k₂ ≈ bind t₂ k₂` #super[LR]
       - `k₁ ≈ k₂` -> `iter k₂ v ≈ iter k₂ v` #super[LR #sym.dagger]
     ],
-    gbox([Monad Laws])[
+    gfbox([Monad Laws])[
       - `(ret v) >>= k = k v` #super[LR\*]
       - `t >>= ret = t` #super[LR\*]
       - `x >>= f >>= g = x >>= (f · >>= g)` #super[LR\*]
@@ -938,7 +840,7 @@ this makes using some of the proofs easier.
 <itree:tb:eqs>
 ]
 
-=== The ITree Monad
+=== The ITree Monad<sec:itree:mon>
 #impl([@rq:it:mon, @rq:it:comb, @rq:it:lmon], "sme/Sme/ITree/Monad.lean")
 
 ITrees form a monad, where the binding operation corresponds to whenever an itree returns,
@@ -947,7 +849,7 @@ The return constructor is the monads unit.
 From this to ensure it is lawful there is a set of proof obligations,
 these can be seen in @itree:tb:eqs.
 
-=== Weak bisimilarity
+=== Weak bisimilarity<sec:itree:wbisim>
 #impl([@rq:it:wbisim], "sme/Sme/ITree/WBisim/*.lean")
 
 Bisimilarity is often not sufficent for proving program equivalences.
@@ -1014,16 +916,15 @@ This proof was highly indirect and required the creative step of coming up with 
 #impl([@rq:it:wbisim], "sme/Sme/ITree/WBisim/*.lean")
 
 One of the main use cases of Interaction Trees is program verification.
-To demonstrate this I implemented a simple imperative langauge IMP as seen in @itree:ls:istx,
-I give it the denotational semantic as @itree:ls:isem,
+To demonstrate this I implemented a simple imperative language IMP as seen in @itree:ls:istx,
+I give it the denotational semantics as @itree:ls:isem,
 then I define an optimization `simpl` @itree:ls:simpl on this.
 All `simpl` does is simplifies constant expressions,
 the proof of this respecting the semantics is provided in the code,
 and is an example of how weak-bisimilarity can help prove an optimization correct.
 
-#let i = partL(read("../../sme/Sme/ITree/Examples/Imp.lean"), 9, 25, 29, 72, 115)
+#let i = partL(read("../../sme/Sme/ITree/Examples/Imp.lean"), 9, 25, 28, 67, 114)
 
-#pad(x : -1cm)[
 #spg(
   figure(raw(i.at(1), block: true), caption: [`Imp` syntax]),
   <itree:ls:istx>,
@@ -1036,15 +937,16 @@ and is an example of how weak-bisimilarity can help prove an optimization correc
   caption: [`Imp` and `simpl`],
   label: <itree:ls:imp>,
 )
-]
-
 
 // Interaction trees (ITrees) are a coinductive datastructure detailed in @itrees_paper.
 
 ////////////////////////////////////////////////////////////////////////////////
 
-== Futumorphic Productivity
+== Futumorphic Productivity<sec:prod>
+
 #let FANTOMORPH = cite(<cite:fantomorph>, form: "prose")
+#let AK = "Alex Keizer"
+#let TG = "Tobias Grosser"
 
 // During my internship under AK and TG,
 // I made a structure I then called `DeepThunk`s.
@@ -1053,29 +955,127 @@ and is an example of how weak-bisimilarity can help prove an optimization correc
 As mentioned in @sec:coind, every corecursive function has to be productive.
 In the current library defintion,
 this means we need to define the function using the corecursor
-`corec {β α} : (β → P α β) → β → M P α`.
-This can be quite cumbersome as one can only define one layer of the coinductive datatype at one,
-#FANTOMORPH provides an alternative to this,
+`corec {β α} : (β → P (α ::: β)) → β → M P α`.
+This can be quite cumbersome as one can only define one layer of the coinductive datatype at one.
+During my internship under #AK and #TG,
+I had an Idea of how to solve this,
+unfortunately then I didnt have time to implement this fully.
+The idea came from thinking about what choices one had when creating layers.
+After the first layer (which is required for productivity),
+we have a choice to either `recall` the corecursor from that point,
+or `cont`inue a deeper structure.
+We also observe that the argument we have to provide to `recall` would be the carrier.
+Putting these ideas together I created the structure #AK named 'DeepThunk' (`DT` for short).
+This structure, `DT P (α ::: β)`, was given as a cofix point of `μ ρ. (P α (Sum β ρ))`
+(given in `sme/Sme/M/DT/Defs.lean`).
+With difficulty,
+I then made a universe polynomial corecursor I called `dtcorec {β} : (β → DT P (α ::: β)) → β → M P α`,
+an injector `inject β : M P α → DT P (α ::: β)`,
+and a flattener `flatten : DT P (α ::: M P α) → M P α`
+These were painful to prove results about,
+but in the end I successfully proved an unfolding lemma about the corecursor,
+where it corrresponds to doing a mapping operation then flattening.
 
+#let trl = sym.triangle.stroked.l
 
-Given a polynomial $bold(P) accent(alpha, macron) beta$,
-then the corecursor we get for $bold("M" P) accent(alpha, macron)$ is:
+Seeing how much potential DeepThunks had,
+I asked #AK whether he had seen a structure like this before,
+and he pointed me to #FANTOMORPH.
+In this paper discusses different kinds of morphisms to construct datatypes.
+In the table I found futumorphisms,
+which looked exactly like the structure I was looking for.
+These use the free monad and make a morphism `futu {β} : (β → P (α ::: Free P α β)) → M P α` @cite:fantomorph @cite:futu @cite:urs.
+The relationship betweem the `Free` monad and `DT` can be seen in @futu:fg:freedt#footnote[Here $trl$ is application as seen in OCaml.].
+This demonstrates that `P (α ::: Free α β)` is exactly `DT`.
+A crucial difference is that `Free` has a nice,
+well defined notion of constructor and eliminator,
+while `DT` has nothing equivalent.
+This means as I wrote around 1700 lines for `DT`,
+almost all this functionallity fit into 700 lines for the futumorphism.
 
-// $ "corec" : {beta} arrow.r (beta arrow.r bold(P) accent(alpha, macron) beta) arrow.r beta arrow.r bold("M" P) accent(alpha, macron) $
+TODO Show layers
+//
+// #let rlap(content1, content2) = context {
+// 	let w1 = measure(content1).width
+// 	let w2 = measure(content2).width
+// 	// content1
+// 	repr(w1)
+// 	repr(w2)
+// 	// content2
+// }
+//
+// $ underbracket(
+//   rlap(
+//     (P α -) trl (beta plus.o -) trl (P α -) trl (beta plus.o -) trl ...,
+//     (P α -) trl (beta plus.o -) trl (P α -) trl (beta plus.o -) trl ...,
+//     // (P α -) trl overbracket((beta plus.o -) trl (P α -) trl (beta plus.o -) trl ..., "Free monad"), 
+// )
+//   , "DeepThunk") $
+//
+// #let rlap(c1, ..cc) = context {
+//     let cc = cc.pos()
+// 	let w1 = measure(c1).width
+//     let mx = cc.fold(w1, (acc, x) => measure(x).width)
+// 	c1
+// 	h(-w1)
+//     for v in cc {
+//       v
+//       h(-measure(v).width)
+//     }
+// 	// content2
+// 	h(mx)
+// }
+//
+// #let mbox(v) = v
+// $ underbracket(
+//   rlap(
+//     triangle.l,
+//     // trl (beta plus.o -) trl (P α -) trl (beta plus.o -) trl ...,
+//     triangle.l,
+//     // trl (beta plus.o -) trl (P α -) trl (beta plus.o -) trl ...,
+//     // (P α -) trl overbracket((beta plus.o -) trl (P α -) trl (beta plus.o -) trl ..., "Free monad"), 
+// )
+//   , "DeepThunk") $
+//
+//
+#figure(
+  $ underbracket((P α -) trl overbracket((beta plus.o -) trl (P α -) trl (beta plus.o -) trl ..., "Free monad"), "DeepThunk") $,
+  caption: [Relationship between `Free` monad and `DT`],
+)<futu:fg:freedt>
 
-Often this is adequet,
-but one has a few drawbacks that can be summarised as:
-it has to emit exacly one 'layer' of the final structure.
-The end goal would be to allow it to emit anything from layer 1 to the entire structure.
-One can think of this as taking the most general choice of $beta$.
-The structure that solves this is $bold("PT" P) accent(alpha, macron) beta eq.delta bold("M")_xi bold(P) accent(alpha, macron) (beta plus.o xi)$.
-From here we construct two unique functions, inject and dtcorec:
+For the `Free` monad,
 
-$ "inject" : { beta } arrow.r bold("M" P) accent(alpha, macron) arrow.r bold("PT" P) accent(alpha, macron) beta 
-colon.eq "corec"_(bold("PT" P)) ("map"_(bold("M" P)) (bb(1) ::: iota_r) compose "dest") $
+#figure(
+  grid(
+    columns: (1fr, 1fr, 1fr),
+    gutter: 1em,
+    gfbox([Free Monad Operations], colspan: 2, rowspan: 2)[
+      - `Free P α β : Type`
+      - `recall : β → Free P α β`
+      - `cont' : P (α ::: Free P α β) → Free P α β`\*
+      - `dest' : Free P α β → β ⊕ P (α ::: Free P α β)`\*
+      - `corec' : (γ → β ⊕ P (α ::: γ)) → γ → Free P α β`\*
+      - `map : Free P α β → (β → γ) → Free P α γ`
+      - `bind : Free P α β → (β → Free P α γ) → Free P α γ`
+      - `inject β : HpLuM P α → Free P α β`
+      - `flatten : Free P α (HpLuM P α) → HpLuM P α`
+      - `futu' : (β → P (α ::: Free P α β)) → β → HpLuM P α`\*
+    ],
+    gfbox[Monad Laws][
+      - `(recall v) >>= k = k v`
+      - `t >>= recall = t`
+      - `x >>= f >>= g` #linebreak() `= x >>= (f · >>= g)`
+    ],
+    gfbox[Functor Laws][
+      - `id <$> x = x`
+      - `(f ∘ g) <$> x`#linebreak()`= f <$> g <$> g`
+    ],
 
-$ "dtcorec" { beta } (g : beta arrow.r bold("PT" P) accent(alpha, macron) beta) : beta arrow.r bold("M" P) accent(alpha, macron)
-colon.eq "corec"_(bold("M" P)) (("map"_(bold("M" P)) (bb(1) ::: [g, bb(1)]) ) compose "dest") compose g $
-
-
+    // gfbox[Bisimilarity][
+    //   `eutt (r : A → B → Prop) : ITree E A → ITree E B → Prop`#super[R]
+    // ],
+  ),
+  kind: table,
+  caption: [Functions implemented for the Free monad]
+)
 

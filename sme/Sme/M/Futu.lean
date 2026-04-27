@@ -275,7 +275,7 @@ theorem bisim {a b : Free P α β}
     rw [cast_sigma_snd (p := by
       ext (_|_|_|_)
       any_goals rfl
-      simp
+      simp only [Nat.reduceAdd, Vec.append1.get_fz]
       congr
       ext (_|_)
       congr)]
@@ -734,6 +734,172 @@ theorem futu'_flatten_mk
   · left
     simp
     rfl
+
+section mvmap
+
+variable {α' : TypeVec _} {f : α.uLift ⟹ TypeVec.uLift.{u, _} α'}
+
+@[simp]
+theorem mvmap_recall {v : β} : (f <$$> recall (P := P) (α := α) v) = recall v := by
+  apply ext
+  simp [dest, recall, comp.map_mk]
+
+@[simp]
+theorem mvmap_cont {v} : (f <$$> cont (P := P) (β := β) v)
+    = cont ((f ::: fun x ↦ f <$$> x) <$$> v) := by
+  apply ext
+  simp [dest, cont, comp.map_mk]
+
+@[simp]
+theorem mvmap_cont' {v} : (f <$$> cont' (P := P) (β := β) v)
+    = cont' ((f.uLift_arrow ::: fun x ↦ f <$$> x) <$$> v) := by
+  apply ext
+  simp [dest, cont', cont, comp.map_mk, map_upMap', upMap_map]
+
+@[simp]
+theorem dest_mvmap {v : Free P α β}
+    : dest (f <$$> v)
+    = (dest v).map id (MvFunctor.map (f ::: (MvFunctor.map f))) := by
+  cases v using cases <;> simp
+
+@[simp]
+theorem mvmap_map {β'}
+    {f : α.uLift ⟹ α'.uLift} {g : β → β'}
+    {v : Free P α β}
+    : f <$$> map g v
+    = map g (f <$$> v) := by
+  apply bisim (fun a b => ∃ v, a = f <$$> map g v ∧ b = map g (f <$$> v)) ⟨_, rfl, rfl⟩
+  rintro _ _ ⟨v, rfl, rfl⟩
+  simp only [dest_mvmap, dest_map, Sum.map_map, Function.id_comp, Function.comp_id]
+  cases v using cases
+  · simp only [dest_cont, Sum.map_inr, Function.comp_apply, transliterateMap_eq_map, map_map,
+      TypeVec.appendFun_comp', TypeVec.comp_id, TypeVec.id_comp, Sum.liftRel_inr_inr, map_fst,
+      map_snd, TypeVec.comp.get, TypeVec.append1_get_fz, TypeVec.appendFun.get_fz, cast_eq,
+      Function.const_comp, exists_prop]
+    use rfl
+    intro v
+    refine ⟨_, rfl,rfl⟩
+  · simp
+
+@[simp]
+theorem mvmap_bind {β'}
+    {f : α.uLift ⟹ α'.uLift} {g : β → Free P α β'}
+    {v : Free P α β}
+    : f <$$> bind v g
+    = bind (f <$$> v) (MvFunctor.map f ∘ g)  := by
+  apply bisim
+    (fun a b => a = b ∨ ∃ v, (a = f <$$> bind v g) ∧ b = (bind (f <$$> v) (MvFunctor.map f ∘ g))) 
+    <| .inr ⟨v, rfl, rfl⟩
+  rintro s _ (rfl|⟨v, rfl, rfl⟩)
+  · cases s using cases <;> simp
+  simp only [dest_mvmap, dest_bind]
+  cases v using cases
+  · simp only [dest_cont, Sum.elim_inr, Function.comp_apply, transliterateMap_eq_map, Sum.map_inr,
+      map_map, TypeVec.appendFun_comp', TypeVec.comp_id, TypeVec.id_comp, Sum.liftRel_inr_inr,
+      map_fst, map_snd, TypeVec.comp.get, TypeVec.append1_get_fz, TypeVec.appendFun.get_fz, cast_eq,
+      Function.const_comp, exists_prop]
+    use rfl
+    intro v
+    right
+    refine ⟨_, rfl, rfl⟩
+  case hRecall v =>
+    simp only [dest_recall, Sum.elim_inl, Function.comp_apply, Sum.map_inl, id_eq, dest_mvmap]
+    cases g v using cases <;> simp
+
+@[simp]
+theorem mvmap_flatten
+    {f : α ⟹ α'}
+    {v : Free P α (HpLuM P α)}
+    : f <$$> flatten (P := P) v
+    = flatten (map (MvFunctor.map f) (f.arrow_uLift <$$> v)) := by
+  apply HpLuM.bisim_map
+    (fun a b => a = b 
+      ∨ ∃ v, a = f <$$> flatten v ∧ b = flatten (map (MvFunctor.map f) (f.arrow_uLift <$$> v)))
+    <| .inr ⟨v, rfl, rfl⟩
+  rintro _ _ (rfl|⟨v, rfl, rfl⟩)
+  · simp
+  simp only [map_fst, HpLuM.dest_map, dest_flatten, MvFunctor.map_map, TypeVec.appendFun_comp',
+    TypeVec.id_comp, Function.const_comp, dest'_map, Sum.elim_map]
+  cases v using cases
+  · simp only [dest'_cont, Sum.elim_inr, MvFunctor.map_map, TypeVec.appendFun_comp',
+      TypeVec.comp_id, Function.const_comp, mvmap_cont, downMap_map',
+      TypeVec.Arrow.arrow_uLift_uLift_arrow, Function.id_comp, Function.comp_apply, TypeVec.id_comp,
+      Function.comp_id]
+    rw! [map_downMap', map_downMap']
+    simp only [Function.comp_id, Function.const_comp]
+    use rfl
+    intro v
+    right
+    rw! (castMode := .all) [flatten_cont, HpLuM.dest_map, HpLuM.mk_dest]
+    simp only [downMap, map_snd, uLift_down_fst, map_fst, uLift_down_snd, TypeVec.comp.get,
+      TypeVec.append1_get_fz, TypeVec.appendFun.get_fz, TypeVec.uLift_arrow.get, TypeVec.mp.get,
+      Function.comp_apply, cast_eq]
+    refine ⟨_, rfl, ?_⟩
+    rw! (castMode := .all) [dest_flatten, dest'_map]
+    rw! (castMode := .all) [mvmap_cont, dest'_cont]
+    simp only [Sum.map_inr, Sum.elim_inr, map_fst, cast_eq, map_snd, TypeVec.comp.get,
+      TypeVec.append1_get_fz, TypeVec.appendFun.get_fz, Function.comp_apply]
+    rfl
+  · simp only [dest'_recall, Sum.elim_inl, mvmap_recall, Function.comp_apply, HpLuM.dest_map,
+      map_map, TypeVec.appendFun_comp', TypeVec.id_comp, Function.const_comp, exists_true_left]
+    intro v
+    left
+    rw! (castMode := .all) [mvmap_recall, map_recall, ]
+    rw! (castMode := .all) [flatten_recall, ]
+    symm
+    rw! (castMode := .all) [flatten_recall, ]
+    rw! (castMode := .all) [flatten_recall, ]
+    simp only [cast_eq]
+
+@[simp]
+theorem mvmap_inject
+    {v : HpLuM P α}
+    : (f <$$> inject.{u, v} (P := P) β v)
+    = inject β (f.uLift_arrow <$$> v) := by
+  apply bisim (∃ v, · = f <$$> inject β v ∧ · = inject β (f.uLift_arrow <$$> v)) ⟨v, rfl, rfl⟩
+  rintro _ _ ⟨v, rfl, rfl⟩
+  simp only [dest_mvmap, dest_inject, Sum.map_inr, map_upMap', upMap_map, Function.comp_id,
+    HpLuM.dest_map, Sum.liftRel_inr_inr, cast_eq, Function.const_comp, TypeVec.Arrow.ulift_arrow_id,
+    MvFunctor.map_map, TypeVec.appendFun_comp', TypeVec.id_comp, exists_const]
+  intro v
+  simp only [upMap, TypeVec.mpr_eq_mp, map_snd, uLift_up_fst, map_fst, uLift_up_snd,
+    TypeVec.comp.get, TypeVec.append1_get_fz, TypeVec.appendFun.get_fz, TypeVec.mp.get,
+    TypeVec.arrow_uLift.get, Function.id_comp, Function.comp_apply, cast_eq]
+  refine ⟨_, rfl, rfl⟩
+
+theorem mvmap_futu
+    (f : α ⟹ α')
+    (g : β → P.uLift (α.uLift ::: Free P α β))
+    (seed : β)
+    : f <$$> futu g seed
+    = futu (MvFunctor.map (f.arrow_uLift ::: MvFunctor.map f.arrow_uLift) ∘ g) seed := by
+  rw [futu_flatten_mk, futu_flatten_mk, HpLuM.map_mk]
+  dsimp
+  rw [downMap_map', map_downMap]
+  simp only [TypeVec.Arrow.arrow_uLift_uLift_arrow]
+  apply HpLuM.bisim_map (∃ v,
+    · = HpLuM.mk ((f ::: id) <$$> downMap (MvFunctor.map f ∘ flatten ∘ map (futu g)) v) ∧
+    · = HpLuM.mk ((f ::: id) <$$> downMap
+        (flatten ∘ map (futu (MvFunctor.map (f.arrow_uLift ::: MvFunctor.map f.arrow_uLift) ∘ g)) ∘
+          MvFunctor.map f.arrow_uLift)
+        v)
+    ) ⟨_, rfl, rfl⟩
+  rintro _ _ ⟨v, rfl, rfl⟩
+  simp only [map_downMap', Function.id_comp, map_fst, HpLuM.mk_dest, Function.const_comp,
+    TypeVec.Arrow.arrow_uLift_id, map_map, TypeVec.appendFun_comp', TypeVec.id_comp,
+    Function.comp_id]
+  use rfl
+  intro v
+  rw! (castMode := .all) [HpLuM.mk_dest]
+  conv => 
+    rhs; intro v;
+    lhs
+    rhs
+    skip
+  sorry
+    
+
+end mvmap
 
 end Free
 

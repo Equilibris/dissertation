@@ -193,12 +193,30 @@ theorem downMap_map {α' : TypeVec _} {β γ β'}
   Sigma.ext rfl <| heq_of_eq <| funext₂ fun
     | .fz, _ | .fs _, _ => rfl
 
+theorem downMap_map' {α' : TypeVec _} {β γ β'}
+    {f : α.uLift ⟹ α'.uLift}
+    {f' : β → β'}
+    {g : β' → γ}
+    (x : P.uLift (α.uLift ::: β))
+    : downMap g ((f ::: f') <$$> x) = (f.uLift_arrow ::: id) <$$> downMap (g ∘ f') x :=
+  Sigma.ext rfl <| heq_of_eq <| funext₂ fun
+    | .fz, _ | .fs _, _ => rfl
+
 theorem map_downMap {α' : TypeVec _} {β γ β'}
     {f : α ⟹ α'}
     {g : β → β'}
     {f' : β' → γ}
     (x : P.uLift (α.uLift ::: β))
     : (f ::: f') <$$> downMap g x = (f ::: id) <$$> downMap (f' ∘ g) x :=
+  Sigma.ext rfl <| heq_of_eq <| funext₂ fun
+    | .fz, _ | .fs _, _ => rfl
+
+theorem map_downMap' {α' : TypeVec _} {β γ β'}
+    {f : α ⟹ α'}
+    {g : β → β'}
+    {f' : β' → γ}
+    (x : P.uLift (α.uLift ::: β))
+    : (f ::: f') <$$> downMap g x = downMap (f' ∘ g) ((f.arrow_uLift ::: id) <$$> x) :=
   Sigma.ext rfl <| heq_of_eq <| funext₂ fun
     | .fz, _ | .fs _, _ => rfl
 
@@ -212,12 +230,31 @@ theorem map_upMap
   Sigma.ext rfl <| heq_of_eq <| funext₂ fun
     | .fz, _ | .fs _, _ => rfl
 
+theorem map_upMap'
+    {α' : TypeVec _} {β γ β'}
+    {f : α.uLift ⟹ α'.uLift}
+    {f' : β' → γ}
+    {g : β → β'}
+    (x : P (α ::: β))
+    : (f ::: f') <$$> upMap.{u, v} g x = upMap (f' ∘ g) ((f.uLift_arrow ::: id) <$$> x) :=
+  Sigma.ext rfl <| heq_of_eq <| funext₂ fun
+    | .fz, _ | .fs _, _ => rfl
+
 theorem upMap_map {α' : TypeVec _} {β γ β'}
     {f : α ⟹ α'}
     {f' : β → β'}
     {g : β' → γ}
     (x : P (α ::: β))
     : upMap g ((f ::: f') <$$> x) = upMap (g ∘ f') ((f ::: id) <$$> x) :=
+  Sigma.ext rfl <| heq_of_eq <| funext₂ fun
+    | .fz, _ | .fs _, _ => rfl
+
+theorem upMap_map' {α' : TypeVec _} {β γ β'}
+    {f : α ⟹ α'}
+    {f' : β → β'}
+    {g : β' → γ}
+    (x : P (α ::: β))
+    : upMap g ((f ::: f') <$$> x) = (f.arrow_uLift ::: id) <$$> upMap (g ∘ f') x :=
   Sigma.ext rfl <| heq_of_eq <| funext₂ fun
     | .fz, _ | .fs _, _ => rfl
 

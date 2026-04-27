@@ -67,7 +67,7 @@
 
 #lorem(1000)
 
-#include "content/Appendix/graph_pfunctor.typ"
+// #include "content/Appendix/graph_pfunctor.typ"
 #include "content/Appendix/igraph.typ"
 
 = Proposal

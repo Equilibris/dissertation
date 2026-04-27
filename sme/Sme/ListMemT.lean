@@ -36,9 +36,4 @@ def map {A B v} {f : A → B}
   | _ :: _, .hd => .hd
   | _ :: _, .tl h => .tl h.map
 
-/- def mapo {f : A → B} -/
-/-     : {l : List A} -/
-/-     → l.MemT v -/
-/-     → (l.map f).MemT (f v) -/
-
 end List.MemT

@@ -7,3 +7,5 @@
   args.zip(args.slice(1)).map(((a,b)) => f.slice(a,b).join("\n"))
 }
 
+#let MATHLIB = [Mathlib @cite:mathlib]
+
