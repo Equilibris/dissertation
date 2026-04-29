@@ -8,4 +8,11 @@
 }
 
 #let MATHLIB = [Mathlib @cite:mathlib]
+#let FANTOMORPH = cite(<cite:fantomorph>, form: "prose")
+
+#let JV = "Jamie Vicary"
+#let AK = "Alex Keizer"
+#let TG = "Tobias Grosser"
+#let NC = "Nicolas Chappe"
+#let MS = cite(<cite:mslc>, form:"prose")
 
