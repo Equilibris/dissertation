@@ -140,7 +140,7 @@ theorem elim_recall {α : TypeVec _} {β} (l : α .fz → β) (r : α (.fs .fz) 
 
 theorem elim_comp {α : TypeVec _} {β γ} {f : β → γ} (l : α .fz → β) (r : α (.fs .fz) → β) {v}
     : f (elim l r v) = elim (f ∘ l) (f ∘ r) v := by
-  induction v using cases
+  cases v using cases
   · simp
   · simp
 

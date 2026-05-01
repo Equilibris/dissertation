@@ -1,0 +1,3 @@
+[submodule "ista-plv-coinductive"]
+	path = ista-plv-coinductive
+	url = https://github.com/Equilibris/ista-plv-coinductive

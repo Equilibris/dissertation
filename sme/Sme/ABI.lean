@@ -411,10 +411,15 @@ open NonOmegaABI.ABIRepr.carry
 
 variable {eq : A ≃ B}
 
+section fns
+set_option trace.Compiler.result true
+
 @[inline] def mkA : A → ABI A B eq := carry.mkA
 @[inline] def mkB : B → ABI A B eq := carry.mkB
 @[inline] def destA : ABI A B eq → A := carry.destA
 @[inline] def destB : ABI A B eq → B := carry.destB
+
+end fns
 
 section eqs
 
@@ -502,6 +507,7 @@ end eqs
 
 section
 
+set_option trace.Compiler.result true in
 @[elab_as_elim, inline] def rec
     : {motive : ABI.{u, v} A B eq → Sort x}
     → (hLog : (z : A) → motive (mkA z))

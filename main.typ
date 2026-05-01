@@ -13,10 +13,29 @@
   // Insert your abstract after the colon, wrapped in brackets.
   // Example: `abstract: [This is my abstract...]`
   proforma: [
-*Word count:* #total-words
+/ Word count: #total-words
+/ Line count: 8701 + PR
+/ Year: 2026
+/ Project originator : The candidate
+/ Day-to-day supervisor : Alex Keizer, Tobias Grosser
+/ Marking supervisor : Jamie Vicary
+/ Ethics approval : N / A
+
+== Project Aims
+
+== Work completed
+
+
+
+== Special difficulties
+
+My Supervisor had to take a break half way through the project.
+
+My grandfather Stein-Ulf Sørensen Passed away (2025-10-28),
+my aunt Asbjørg Johanne Raanes Passed away (2025-12-19).
 
   ],
-  acknowledgements: lorem(59),
+  acknowledgements: [],
   date: "May 15, 2026",
   college: "Gonville & Caius College",
   logo: "cst_logo.svg")

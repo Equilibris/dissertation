@@ -38,12 +38,13 @@ def numsSl : QStreamSl Nat :=
 /-   .corec' (fun n => ⟨.unit, fun | .fz, .unit => n.succ | .fs .fz, .unit => n⟩) Nat.zero -/
 
 def numsHp : QStreamHp.{0} Nat :=
-  .corec (fun n => ⟨
+  HpLuM.corec.{0,0} (fun n => ⟨
     .up .unit,
-    fun | .fz, .up .unit => .up <| .up <| n.down.succ | .fs .fz, .up .unit => n⟩) <| .up Nat.zero
+    fun | .fz, .up .unit => .up <| .up <| n.down.succ | .fs .fz, .up .unit => n⟩)
+    <| ULift.up Nat.zero
 
 def numsPreM : QStreamPreM.{0} Nat :=
-  .corec (fun n => ⟨
+  PreM.corec.{0,0} (fun n => ⟨
     .up .unit,
     fun | .fz, .up .unit => .up <| .up <| n.down.succ | .fs .fz, .up .unit => n⟩) <| .up Nat.zero
 
@@ -101,15 +102,15 @@ def runTests : IO Unit := do
   let testBig  := fun n _ => do if (numsBig.getNth n) ≠ n then println! "NEQ!";
 
   let n := 200
-  let s := 10
+  let s := 3
 
   let sl := (List.range n).map (time ∘ testSl)
 
-  /- let runs := fun io => (List.replicate s io).mapM id -/
-  /-  -/
-  /- println! "slRuns = " -/
-  /- let res ← runs <| sl.mapM id -/
-  /- println! res -/
+  let runs := fun io => (List.replicate s io).mapM id
+
+  println! "slRuns = "
+  let res ← runs <| sl.mapM id
+  println! res
 
   let n := 5000
   let s := 3
@@ -138,8 +139,6 @@ def runTests : IO Unit := do
   println! res
 
   return ()
-
-
 
 /- def runTestsHp : IO Unit := do -/
 /-   let testHp := fun n _ => do if (QStreamHp.getNth numsHp n) ≠ n then println! "NEQ!"; -/

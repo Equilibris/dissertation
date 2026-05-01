@@ -202,7 +202,11 @@ theorem dest'_corec' {γ : Type _}
       ((.mp _ ⊚ ((_ ::: _) ⊚ (_ ::: _) ⊚ (_ ::: _)) ⊚ .mp _) <$$>
         uLift_up.{u, u} _) = _
     simp only [TypeVec.appendFun_comp', TypeVec.comp_id]
-    change uLift_down.{u, u} ((.mp _ ⊚ ((TypeVec.id.arrow_uLift ::: (ULift.up ∘ _ ∘ ULift.down ))) ⊚ .mpr TypeVec.uLift_append1_ULift_uLift) <$$> uLift_up.{u, u} _) = _
+    change uLift_down.{u, u} (
+      (.mp _
+        ⊚ ((TypeVec.id.arrow_uLift ::: (ULift.up ∘ _ ∘ ULift.down )))
+        ⊚ .mpr TypeVec.uLift_append1_ULift_uLift)
+      <$$> uLift_up.{u, u} _) = _
     rw [←TypeVec.Arrow.arrow_uLift_appendFun, ←uLift_down_nat]
     simp
     rfl
