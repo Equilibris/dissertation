@@ -1,5 +1,4 @@
 #import "template.typ": *
-#import "typ/todo.typ": todo, show-todos
 #import "@preview/wordometer:0.1.5": word-count, total-words
 
 // Take a look at the file `template.typ` in the file panel
@@ -84,10 +83,11 @@ my aunt Asbjørg Johanne Raanes Passed away (2025-12-19).
 #[
 = Appendicies
 
-#lorem(1000)
-
-// #include "content/Appendix/graph_pfunctor.typ"
 #include "content/Appendix/igraph.typ"
+#pagebreak()
+#include "content/Appendix/pred.typ"
+#pagebreak()
+#include "content/Appendix/cardmod.typ"
 
 = Proposal
 

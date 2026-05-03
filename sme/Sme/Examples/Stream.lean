@@ -19,16 +19,34 @@ instance : EquivP (1 + 1) Prod SS.Base where
     right_inv := fun ⟨_, _⟩ => rfl
   }
 
-def SS α := HpLuM SS.Base (fun _ => α)
+def SS α := HpLuM SS.Base !![α]
 
 namespace SS
 
-def cons {α} (hd : α) : SS α → SS α := (.mkE <| Prod.mk · hd)
-def dest {α} (v : SS α) : α × SS α := Prod.swap v.destE
+variable {α} (hd : α) (v : SS α)
+
+def cons : SS α := (.mkE <| Prod.mk v hd)
+def dest : α × SS α := Prod.swap v.destE
 
 @[simp]
 theorem dest_cons {α} {hd : α} {tl : SS α} : dest (cons hd tl) = ⟨hd, tl⟩ := by
   simp [cons, dest]
+
+open scoped MvFunctor
+
+theorem map_cons {β} {f : !![α] ⟹ !![β]}
+    : f <$$> cons hd v = cons (f .fz hd) (f <$$> v) := by
+  ext
+  simp only [Nat.reduceAdd, HpLuM.destE, Nat.succ_eq_add_one, cons, HpLuM.mkE, TypeVec.last_eq,
+    TypeVec.append1_get_fz, TypeVec.drop_append1_simp, Vec.append1.get_fz, Function.comp_apply,
+    HpLuM.map_mk, HpLuM.mk_dest, Equiv.apply_symm_apply]
+  apply Prod.ext <;> rfl
+
+def take (v : SS α) : Nat → List α
+  | 0 => []
+  | n+1 =>
+    have ⟨hd, tl⟩ := v.dest
+    hd :: take tl n
 
 end SS
 

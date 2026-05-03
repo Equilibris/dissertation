@@ -565,17 +565,15 @@ theorem inject_injective : Function.Injective (inject (P := P) (α := α) β) :=
   rcases s with ⟨sh, st⟩
   rcases t with ⟨th, tt⟩
   simp only [dest_inject, HpLuM.mk_dest, Sum.inr.injEq] at this ⊢
-  obtain rfl : _ := (ULift.up.injEq _ _).mp (Sigma.ext_iff.mp this).1
-  have := eq_of_heq (Sigma.ext_iff.mp this).2
-  dsimp at this
+  obtain rfl : sh = th := (ULift.up.injEq _ _).mp (Sigma.ext_iff.mp this).1
+  have h' := funext_iff.mp <| eq_of_heq (Sigma.ext_iff.mp this).2
   rw! [HpLuM.mk_dest, HpLuM.mk_dest]
   simp only [map_mk, cast_eq, exists_prop]
-  refine ⟨?_, ?_⟩
-  · refine Sigma.ext rfl <| heq_of_eq <| funext₂ fun | .fz, h | .fs i, h => ?_
-    · rfl
-    · exact (ULift.up.injEq _ _).mp <| funext_iff.mp (funext_iff.mp this i.fs) <| .up h
-  intro v
-  exact funext_iff.mp (funext_iff.mp this .fz) (.up v)
+  refine ⟨Sigma.ext rfl <| heq_of_eq <| funext₂ fun
+    | .fz, h => rfl
+    | .fs i, h => (ULift.up.injEq _ _).mp <| funext_iff.mp (h' i.fs) <| .up h,
+    (funext_iff.mp (h' .fz) <| .up ·)
+  ⟩
 
 def flatten : Free P α (HpLuM P α) → HpLuM P α :=
   .corec' body ∘ Sum.inl (β := HpLuM P α)
@@ -588,7 +586,7 @@ where
     handle
   handle := MvFunctor.map (TypeVec.id ::: .inr) ∘ HpLuM.dest
 
-theorem flatten_inr : HpLuM.corec' (P := P) (α := α) flatten.body ∘ Sum.inr = id := by 
+theorem flatten_inr : HpLuM.corec' (P := P) (α := α) flatten.body ∘ Sum.inr = id := by
   funext x
   dsimp
   apply HpLuM.bisim_map (fun a b => .corec' flatten.body (.inr b) = a) rfl
@@ -634,7 +632,7 @@ theorem flatten_cont' {x}
   ext
   simp
 
-@[simp]
+@[simp high]
 theorem flatten_inject {x : HpLuM P α} : flatten (inject _ x) = x := by
   apply HpLuM.bisim_map (fun a b => flatten (inject _ b) = a) rfl
   rintro _ x rfl
@@ -711,8 +709,8 @@ theorem futu_flatten
 theorem futu'_flatten_mk
     (f : β → P (α ::: Free P α β))
     (seed : β)
-    : futu' f seed = .mk ((TypeVec.id ::: flatten ∘ map (futu' f)) <$$> (f seed)) := by
-  dsimp [futu']
+    : futu' f seed = .mk ((TypeVec.id ::: flatten ∘ map (futu' f)) <$$> f seed) := by
+  change HpLuM.corec' _ (f seed) = _
   apply HpLuM.bisim_map (fun a b =>
     a = b
     ∨ ∃ x, a = HpLuM.corec' (MvFunctor.map (TypeVec.id ::: Sum.elim f id ∘ dest')) x ∧
@@ -726,10 +724,7 @@ theorem futu'_flatten_mk
   rw! (castMode := .all) [HpLuM.dest_corec', HpLuM.mk_dest]
   simp only [eqRec_eq_cast, map_fst, map_snd, TypeVec.comp.get, TypeVec.append1_get_fz,
     TypeVec.appendFun.get_fz, Function.comp_apply, cast_eq]
-  generalize_proofs p
-  generalize (x.snd Fin2.fz (cast p v)) = x
-  clear *-
-  dsimp at x
+  generalize_proofs p; generalize (x.snd Fin2.fz (cast p v)) = x; clear *-
   cases x using cases'
   · right
     simp only [dest'_cont', Sum.elim_inr, id_eq, map_cont', flatten_cont', map_map,
@@ -739,32 +734,48 @@ theorem futu'_flatten_mk
     simp
     rfl
 
+@[simp]
+theorem futu'_flatten
+    (f : β → P (α ::: Free P α β))
+    (seed : β)
+    : (futu' f seed).dest
+    = (TypeVec.id ::: flatten ∘ map.{u} (futu' f))
+    <$$> f seed := by
+  rw [futu'_flatten_mk, HpLuM.mk_dest]
+
 section mvmap
 
 variable {α' : TypeVec _} {f : α.uLift ⟹ TypeVec.uLift.{u, _} α'}
 
 @[simp]
-theorem mvmap_recall {v : β} : (f <$$> recall (P := P) (α := α) v) = recall v := by
+theorem mvmap_recall {v : β} : f <$$> recall (P := P) (α := α) v = recall v := by
   apply ext
   simp [dest, recall, comp.map_mk]
 
 @[simp]
-theorem mvmap_cont {v} : (f <$$> cont (P := P) (β := β) v)
-    = cont ((f ::: fun x ↦ f <$$> x) <$$> v) := by
+theorem mvmap_cont {v}
+    : f <$$> cont (P := P) (β := β) v
+    = cont ((f ::: MvFunctor.map f) <$$> v) := by
   apply ext
   simp [dest, cont, comp.map_mk]
 
 @[simp]
-theorem mvmap_cont' {v} : (f <$$> cont' (P := P) (β := β) v)
-    = cont' ((f.uLift_arrow ::: fun x ↦ f <$$> x) <$$> v) := by
+theorem mvmap_cont' {v} : f <$$> cont' (P := P) (β := β) v
+    = cont' ((f.uLift_arrow ::: MvFunctor.map f) <$$> v) := by
   apply ext
   simp [dest, cont', cont, comp.map_mk, map_upMap', upMap_map]
 
 @[simp]
 theorem dest_mvmap {v : Free P α β}
     : dest (f <$$> v)
-    = (dest v).map id (MvFunctor.map (f ::: (MvFunctor.map f))) := by
+    = (dest v).map id (MvFunctor.map (f ::: MvFunctor.map f)) := by
   cases v using cases <;> simp
+
+@[simp]
+theorem dest'_mvmap {v : Free P α β}
+    : dest' (f <$$> v)
+    = (dest' v).map id (MvFunctor.map (f.uLift_arrow ::: MvFunctor.map f)) := by
+  cases v using cases' <;> simp
 
 @[simp]
 theorem mvmap_map {β'}
@@ -817,7 +828,7 @@ theorem mvmap_flatten
     : f <$$> flatten (P := P) v
     = flatten (map (MvFunctor.map f) (f.arrow_uLift <$$> v)) := by
   apply HpLuM.bisim_map
-    (fun a b => a = b 
+    (fun a b => a = b
       ∨ ∃ v, a = f <$$> flatten v ∧ b = flatten (map (MvFunctor.map f) (f.arrow_uLift <$$> v)))
     <| .inr ⟨v, rfl, rfl⟩
   rintro _ _ (rfl|⟨v, rfl, rfl⟩)
@@ -848,11 +859,9 @@ theorem mvmap_flatten
       map_map, TypeVec.appendFun_comp', TypeVec.id_comp, Function.const_comp, exists_true_left]
     intro v
     left
-    rw! (castMode := .all) [mvmap_recall, map_recall, ]
-    rw! (castMode := .all) [flatten_recall, ]
+    rw! (castMode := .all) [mvmap_recall, map_recall, flatten_recall]
     symm
-    rw! (castMode := .all) [flatten_recall, ]
-    rw! (castMode := .all) [flatten_recall, ]
+    rw! (castMode := .all) [flatten_recall]
     simp only [cast_eq]
 
 @[simp]
@@ -871,41 +880,7 @@ theorem mvmap_inject
     TypeVec.arrow_uLift.get, Function.id_comp, Function.comp_apply, cast_eq]
   refine ⟨_, rfl, rfl⟩
 
-theorem mvmap_futu
-    (f : α ⟹ α')
-    (g : β → P.uLift (α.uLift ::: Free P α β))
-    (seed : β)
-    : f <$$> futu g seed
-    = futu (MvFunctor.map (f.arrow_uLift ::: MvFunctor.map f.arrow_uLift) ∘ g) seed := by
-  rw [futu_flatten_mk, futu_flatten_mk, HpLuM.map_mk]
-  dsimp
-  rw [downMap_map', map_downMap]
-  simp only [TypeVec.Arrow.arrow_uLift_uLift_arrow]
-  apply HpLuM.bisim_map (∃ v,
-    · = HpLuM.mk ((f ::: id) <$$> downMap (MvFunctor.map f ∘ flatten ∘ map (futu g)) v) ∧
-    · = HpLuM.mk ((f ::: id) <$$> downMap
-        (flatten ∘ map (futu (MvFunctor.map (f.arrow_uLift ::: MvFunctor.map f.arrow_uLift) ∘ g)) ∘
-          MvFunctor.map f.arrow_uLift)
-        v)
-    ) ⟨_, rfl, rfl⟩
-  rintro _ _ ⟨v, rfl, rfl⟩
-  simp only [map_downMap', Function.id_comp, map_fst, HpLuM.mk_dest, Function.const_comp,
-    TypeVec.Arrow.arrow_uLift_id, map_map, TypeVec.appendFun_comp', TypeVec.id_comp,
-    Function.comp_id]
-  use rfl
-  intro v
-  rw! (castMode := .all) [HpLuM.mk_dest]
-  conv => 
-    rhs; intro v;
-    lhs
-    rhs
-    skip
-  sorry
-    
-
 end mvmap
 
-end Free
-
-end Sme
+end Sme.Free
 

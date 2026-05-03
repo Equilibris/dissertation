@@ -1,5 +1,6 @@
-#import "@preview/codly:1.3.0": *
-#import "@preview/codly-languages:0.1.8": *
+// #import "@preview/codly:1.3.0": *
+// #import "@preview/codly-languages:0.1.8": *
+// #import "@preview/codelst:2.0.2": sourcecode
 #import "@preview/itemize:0.2.0" as el
 
 #let common(
@@ -20,13 +21,15 @@
   set heading(numbering: "1.1")
   // set math.equation(numbering: "1.1")
   set par(justify: true)
-  show raw: set text(font : "FiraCode Nerd Font")
+  set raw(syntaxes: "./content/Rocq.sublime-syntax")
+  show raw: set text(font : (name: "FiraCode Nerd Font"))
   show raw.where(block: true): set text(size: 6pt)
   show: el.default-enum-list
   show: el.config.ref
   // TODO: Fix codly
   // show: codly-init.with()
   // codly(languages: codly-languages, number-format : none, display-name: false, zebra-fill: none)
+  // show raw: (code) => sourcecode(code)
 
   show table.cell.where(y: 0): strong
   set table(

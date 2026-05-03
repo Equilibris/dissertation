@@ -1,18 +1,20 @@
 #import "@preview/subpar:0.2.2" as subpar: grid as spg
 #import "../utils.typ": *
 
+#set raw(lang: "lean")
+
 This chapter will discuss and evaluate each of the components of the dissertation.
 As mentioned in @sec:method,
 I have been writing proofs verifying the correctness of my different components.
 I refer to these throughout this chapter.
 // TODO: Refer to these throughout the chapter
 // Type signatures often are unable to encode performance (other than maybe something substructural),
-Type signatures do not encode performance,
-therefore I write benchmarks and read LCNF to evaluate these features.
+Type signatures alone do not encode performance guarantees;
+therefore, I write benchmarks and read LCNF to evaluate these features.
 There will be a comparison of coinductive and ITree implementations,
 and finally an assessment of the ergonomics of futumorphic and deep-thunk productivity.
 
-An overview of all the requirements laid out can be viewed @eval:tb:state.
+An overview of all the requirements laid out can be viewed in @eval:tb:state.
 
 #let rqtable(..args) = table(
   columns: 4,
@@ -20,7 +22,6 @@ An overview of all the requirements laid out can be viewed @eval:tb:state.
   ..args
 )
 
-#pad(x: -1cm)[
 #spg(
   grid.cell(
     rowspan: 2,
@@ -46,7 +47,7 @@ An overview of all the requirements laid out can be viewed @eval:tb:state.
       [@rq:ntm:impl], [Y],   [@sec:impl-sm], [`NTMonad/Defs.lean`],
       [@rq:ntm:mon],  [Y\*], [@sec:itnt],    [`ITree/Monad.lean`],
       [@rq:ntm:lfm],  [Y\*], [@sec:itnt],    [`ITree/Monad.lean`],
-      [@rq:ntm:prod], [Y],   [@sec:futu:case], [`NTMonad/Defs.lean`],
+      [@rq:ntm:prod], [Y],   [TODO sec:futu:case], [`NTMonad/Defs.lean`],
     ),
     caption: [NT Monad],
   ),
@@ -81,7 +82,7 @@ An overview of all the requirements laid out can be viewed @eval:tb:state.
   caption: [Requirements and completion],
   label: <eval:tb:state>
 )
-]
+
 
 // As a main focus we will do an analysis of the asymptotics of the SM v PA encodings.
 
@@ -107,18 +108,18 @@ we now have the ability to compare the performance between 4 representations:
 The HpLuM implementation,
 the PA encoding,
 and the PreM and quotiented representations SM as theoretical optima.
-For @rq:sme:zc to be the case the HpLuM would have to be within 1$sigma$ of the PreM encoding.
+For @rq:sme:zc to be the case, the HpLuM would have to be within 1$sigma$ of the PreM encoding.
 // The SME would be in the same ballpark for @rq:sme:zc to be the case.
 
 I implemented streams for the different encodings,
-then I measured, using a monotonic clock, how long it took to sample destructure $n$-layers of the stream of natural numbers,
+then I measured, using a monotonic clock, how long it took to destructure $n$-layers of the stream of natural numbers,
 I repeated this experiment 3 times.
-For the PA I swept $n in [0,200]$,
+For the PA, I swept $n in [0,200]$,
 and for HpLuM and PreM, SM encodings $n in [0, 5000]$.
 I fit polynomials for each of these implementations,
 then I plot samples, along with the fit.
 This generates the plot @ev:fg:perf.
-As we can see there is a discrepancy between the HpLuM and PreM encodings.
+As we can see, there is a discrepancy between the HpLuM and PreM encodings.
 For an unknown reason the variance along each of these graphs pulsates,
 this effect is relatively minor, but unexplainable.
 
@@ -132,28 +133,39 @@ This is in line with the expected theoretical performance.
   caption: [Performance of PA, HpLuM, and SM #sym.amp PreM representation]
 )<ev:fg:perf>
 
-The SM and PreM implementations are drawn from the same distrubution TODO: PROVE.
-On the other hand the HpLuM is 1.5x slower TODO: Prove.
+The SM and PreM implementations are drawn from the same distribution TODO: PROVE.
+On the other hand, the HpLuM is 1.5x slower TODO: Prove.
 The issue causing this has to do with the destructor function needing to do a universe lowering.
 This adds a fixed cost at each iteration,
 compared to the PreM which calls the destructor function.
 
 === Comparison of corecursor implementations
 
-TODO
+In this section, I compare the different implementations of coinductives across several aspects:
+performance, and ergonomics of object construction and usage.
+
+#figure(
+  table(
+    columns: 4,
+    table.header[][Diss.][#MATHLIB][#MS],
+    [`dest` performance], $cal(O)(1)$, $cal(O)(n)$, $cal(O)(n)$,
+    [Type Macro], [N], [Y#footnote[For Lean v4.25]], [N],
+    [Function definitions], [`futu`], [`corec`], [`partial_fixpoint`],
+  )
+)
 
 == ABI Type<sec:eabi>
 
 When it comes to the ABI type,
 we have it implemented @rq:abi:impl,
 and we have an eliminator @rq:abi:elim.
-We now have to assess weather or not it is zero cost @rq:abi:zc.
+We now have to assess whether or not it is zero cost @rq:abi:zc.
 To do this, rather than testing the performance,
 I inspect the generated code for each of the 5 functions.
 The 3 functions we care about are `destB` @eabi:ls:destB,
 `mkB` @eabi:ls:mkB, and `rec` @eabi:ls:rec.
 // TODO: check each of these are, v each of these is
-Additionally each of these are marked with an `@[inline]` hint,
+Additionally, each of these are marked with an `@[inline]` hint,
 meaning that in compiled code they do not appear.
 As we see in each of these,
 the functions have become the identity.
@@ -236,7 +248,7 @@ def ABI.mkA A B eq a.1 : lcAny :=
 For evaluating interaction trees,
 there are 3 main aspects to evaluate.
 These are function coverage, proof coverage, and performance.
-For performance it is inherited directly from the performance of the $M$-Type,
+For performance, it is inherited directly from the performance of the $M$-Type,
 so I will focus on function and proof coverage.
 
 Function coverage can be found in @itree:tb:fns and proof coverage @itree:tb:eqs.
@@ -279,64 +291,85 @@ Writing the project, #JV, #TG, #AK and I decided implementing interaction trees 
 For this we decided to make it an extension instead,
 and rather reason about the simpler structure being the non-termination monad.
 Once implementing the SME was done, I moved over to implementing the non-termination monad.
-Here I focused on getting an as ergonomic experience as possible using `mkE` and `destE` for polynomial equialents.
-In doing this I realised the expectation of ITrees being much harder was false.
+Here I focused on getting as ergonomic an experience as possible using `mkE` and `destE` for polynomial equivalents.
+In doing this, I realised the expectation of ITrees being much harder was false.
 I then stopped working on the NTMonad after just implementing @rq:ntm:impl,
 as NTMonad is a special case of ITrees with the empty event.
 I am counting @rq:ntm:lfm and @rq:ntm:mon as completed,
 as the generalization encompasses it.
 
-Later I come back to working on it for evaluating futumorphic productivity then completing @rq:ntm:prod.
+Later I came back to working on it for evaluating futumorphic productivity then completing @rq:ntm:prod.
 
 == Futumorphic productivity
 
-Reasoning about futumorphic productivity is mainly an aestetic argument.
+By inspecting the table @futu:tb:free,
+we can see we have implemented @rq:ft:corec and @rq:ft:inject.
+In the code one can also find the cross universe futumorphism solving @rq:ft:corecu.
+We also have theorems about flattening, mapping and injection proven in the code,
+these are all implemented to fill out a `simp`-set for futumorphism.
+The result of this is that when an end-user uses a futumorphism,
+all they have to provide is a mapping over constructor lemma,
+and the rest will automatically solve.
+The main theorems that make this possible,
+is the unfolding of futumorphism lemmas.
+For the case of `futu'`, the statement can be seen in @futu:ls:unf.
+With this implemented we have @rq:ft:unfold.
+Furthermore, I added theorems stating `inject` is an injection,
+and `flatten` is `inject`'s left-inverse#footnote[These two are not equivalent statements.].
 
-=== Case studies<sec:futu:case>
+#figure(
+  raw(takeL(read("../../sme/Sme/M/Futu.lean"), 737, 745), block: true),
+  caption: [Futumorphic unfolding lemma]
+)<futu:ls:unf>
 
-TODO
+=== Comparing function definitions
 
-// #figure(
-//   ```lean
-// def QStream.Base : MvPFunctor 2 := ⟨
-//   Unit,
-//   fun _ _ => Unit
-// ⟩
-//
-// def QStreamSl α := M QStream.Base (fun _ => α)
-// def QStreamHp α := HpLuM QStream.Base (fun _ => α)
-//
-// structure QStreamBig.{u} (α : Type _) where
-//   corec ::
-//     {t : Type u}
-//     (functor : t → Nat × t)
-//     (obj : t)
-//
-// def numsSl : QStreamSl Nat :=
-//   .corec _ (fun n => ⟨.unit, fun | .fz, .unit => n.succ | .fs .fz, .unit => n⟩) Nat.zero
-//
-// def numsHp : QStreamHp Nat :=
-//   .corec' (fun n => ⟨.unit, fun | .fz, .unit => n.succ | .fs .fz, .unit => n⟩) Nat.zero
-//
-// def numsBig : QStreamBig Nat :=
-//   QStreamBig.corec (fun n => ⟨n, n + 1⟩) 0
-//
-// def QStreamBig.getNth (x : QStreamBig Nat) : Nat → Nat
-//   | 0 => x.dest.fst
-//   | n+1 => x.dest.snd.getNth n
-//
-// def QStreamSl.getNth (x : QStreamSl Nat) : Nat → Nat
-//   | 0 => match x.dest with
-//     | ⟨.unit, v⟩ => v (.fs .fz) .unit
-//   | n+1 => match x.dest with
-//     | ⟨.unit, v⟩ => QStreamSl.getNth (v .fz .unit) n
-//
-// def QStreamHp.getNth (x : QStreamHp Nat) : Nat → Nat
-//   | 0 => match x.dest with
-//     | ⟨.unit, v⟩ => v (.fs .fz) .unit
-//   | n+1 => match x.dest with
-//     | ⟨.unit, v⟩ => QStreamHp.getNth (v .fz .unit) n
-//   ```
-// )<perfcode>
+For evaluating the futumorphism, it is best to put practice over promise,
+for this we can look at some functions written using the current 3 possible styles of writing functions.
+These are directly using the corecursor and using a futumorphism.
+I also tried to compare it to #MS,
+but the fixpoint turned out to try to compute the entire definition in finite memory,
+crashing my compiler,
+this means these functions would not be useful to compute with.
 
+The main use of a futumorphism,
+is moving any recursive component of a corecursor out of the state domain,
+and into an explicit function.
+Doing this transformation lets the function be written exactly as one would expect to write a normal inductive function,
+just inserting corecursive calls as `recall` constructors.
+Three good examples of this can be seen in @futu:ls:ilc, @futu:ls:stutter and @futu:ls:rle.
+This fact means that a productive function,
+is exactly a function who's generating function to the futumorphism is terminating.
+
+// A function where it is immediately noticeably from both a readability perspective,
+// is interlacing with a constant @futu:ls:ilc and stuttering @futu:ls:stutter.
+
+#let ffile = partL(read("../../sme/Sme/Examples/Futu.lean"), 14, 26, 36, 50, 60, 73)
+
+#spg(
+  figure(raw(ffile.at(1), block: true), caption: [Corec definition]),
+  figure(raw(ffile.at(2), block: true), caption: [Futu definition]),
+  columns: (auto,auto),
+  caption: [Interlace constant],
+  kind : raw,
+  label: <futu:ls:ilc>
+)
+
+#spg(
+  figure(raw(ffile.at(3), block: true), caption: [Corec definition]),
+  figure(raw(ffile.at(4), block: true), caption: [Futu definition]),
+  columns: (auto,auto),
+  caption: [Stutter constant],
+  kind : raw,
+  label: <futu:ls:stutter>
+)
+
+#spg(
+  figure(raw(ffile.at(5), block: true), caption: [Corec definition]),
+  figure(raw(ffile.at(6), block: true), caption: [Futu definition]),
+  columns: (auto,auto),
+  caption: [Run-length encoding],
+  kind : raw,
+  label: <futu:ls:rle>
+)
 

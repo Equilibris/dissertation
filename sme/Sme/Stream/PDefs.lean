@@ -6,10 +6,6 @@ universe u v
 
 namespace PDef
 
--- PUnit because its exacly one constructor.
-/- inductive Stream.Base' (α β : Type u) := -/
-/-   | cons (hd : α) (tl : β) -/
-
 def PStream.Base : MvPFunctor 2 :=
   ⟨PUnit, fun _ _ => PUnit⟩
 
@@ -26,7 +22,11 @@ def hd (x : PStream A) : A :=
 def tl (x : PStream A) : PStream A :=
   x.dest.snd .fz .unit
 
-coinductive Bisim (A : Type _) : PStream A → PStream A → Prop
+coinductive Bisim
+    (A : Type _)
+    : PStream A
+    → PStream A
+    → Prop
   | step {a b : PStream A}
     (cont : Bisim a.tl b.tl)
     (h : a.hd = b.hd)
@@ -40,27 +40,22 @@ theorem dest_eq (a : PStream A) : a.dest = ⟨.unit, fun | .fz, _ => a.tl | .fs 
   · change hd a = hd a
     rfl
 
-theorem bisim {a b} (h : Bisim A a b) : a = b := by
-  rcases h with ⟨r, his, holds⟩
-  refine MvPFunctor.M.bisim _ r ?_ a b holds
-  intro a b rab
-  rcases his rab with ⟨htl, hhd⟩
-  rw [dest_eq, dest_eq]
-  use .unit, fun | .fz, .unit => hd a
-  use fun .unit => tl a, fun .unit => tl b
-  refine ⟨?_, ?_, fun .unit => htl⟩
+theorem bisim {a b} : Bisim A a b → a = b := by
+  refine fun ⟨r, his, holds⟩ => MvPFunctor.M.bisim _ r
+    (fun a b rab => ⟨.unit, fun | .fz, .unit => hd a, fun .unit => tl a, ?_⟩) a b holds
+  have ⟨htl, hhd⟩ := his rab
+  refine ⟨fun .unit => tl b, ?_, ?_, fun .unit => htl⟩
   <;> refine Sigma.ext rfl <| heq_of_eq <| funext₂ fun | .fz, .unit | .fs .fz, .unit => ?_
-  · change tl a = tl a; rfl
-  · change hd a = hd a; rfl
-  · change tl b = tl b; rfl
-  · change hd b = hd a
-    exact hhd.symm
+  any_goals rfl
+  change hd b = hd a
+  exact hhd.symm
 
-def corec {A Gen : Type _} (gen : Gen → A × Gen) : Gen → PStream A :=
-  .corecU _ (fun g =>
-      ⟨.up .unit, fun
-        | .fz,     .up .unit => .up (gen g).snd
-        | .fs .fz, .up .unit => .up (gen g).fst⟩)
+def corec {A Gen : Type _}
+    (gen : Gen → A × Gen)
+    : Gen → PStream A :=
+  .corecU _ (fun g => ⟨.up .unit, fun
+    | .fz,     .up .unit => .up (gen g).snd
+    | .fs .fz, .up .unit => .up (gen g).fst⟩)
 
 @[simp]
 theorem corec.hd {A Gen : Type _} {gen : Gen → A × Gen} {g : Gen}

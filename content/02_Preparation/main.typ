@@ -1,5 +1,4 @@
 #import "../utils.typ" : *
-#import "../../typ/pfunc.typ" as pfunc: show_map, show_obj, show_decl
 #import "@preview/curryst:0.6.0": rule, prooftree
 #import "@preview/subpar:0.2.2" as subpar: grid as spg
 #import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
@@ -7,7 +6,7 @@
 
 #set raw(lang: "lean")
 
-// TODO: Dont use (co)inductives, write (co)inductive types instead
+// TODO: embed fonts
 
 // TODO: Fill out a chapter introduction.
 // Talk more about the background that is needed
@@ -18,38 +17,22 @@ I will discuss the background needed to understand the state-machine encoding,
 and other relevant topics.
 
 #set terms(tight: true)
-// Run by jamie this list.
 
-TODO: Integrate these terms
-
-/ Propositionally extensionality: $forall (P Q : "Prop"). (P arrow.l.r Q) -> (P = Q)$
-/ Univalence: $forall (P Q : "Type"). (P tilde.eq Q) -> (P = Q)$
-/ Axiom K: Every equality $p : a = a$, can only be reflexivity.
-
-////////////////////////////////////////////////////////////////////////////////
-
-== Dependent type theory
+== Dependent type theory<sec:dependent>
 
 // TODO: Rephrase this
 // We can start by adding a type for Types,
 // giving us a higher order logic.
-Recall back to discrete maths @cite:dm,
-how functions between sets $A, B : Type$ $,A -> B$ correspond with a form of arbitrary product,
-$B^A eq.triple product_(x : A) B$.
-We can generalize this by changing $B$ to be a function $B : A -> Type$,
-then letting us write the #box[$Pi$-type]#footnote([
-  Some call this a 'dependent product',
-  or 'dependent function',
-  but this sometimes confuses people so I will call it either a Pi,
-  or a forall.
-]) $product_(x : A) B(x)$.
+Given functions between sets $A, B : Type$ $,A -> B$,
+we can generalize this by changing $B : Type$ to be a function $B : A -> Type$,
+then letting us write the dependent function $(x : A) -> B(x)$.
 We can also do the dual construction,
-and get #box[$Sigma$-types].
+and get dependent pairs.
 The inference rules for these can be seen in @dtt:fg:psir.
 These rules should be familiar as they are the analogous to the rules for $forall, exists$ from the natural deduction system,
 their relationship can be seen in @dtt:eq:pt.
 If you are unfamiliar with dependent types,
-I recommend viewing them using this relationship.
+it is often helpful to view them through this relationship.
 For a more in depth look at dependent type theory,
 read @cite:hottbook.
 
@@ -66,7 +49,7 @@ read @cite:hottbook.
         name : [$Pi$f],
         [$A : Type$],
         [$B : A -> Type$],
-        [$product_(x : A) B(x)$]
+        [$(x : A) -> B(x)$]
       )
     ),
     caption: [$Pi$-forming rule]
@@ -76,7 +59,7 @@ read @cite:hottbook.
       rule(
         name : [$Pi$i],
         [$Gamma, x : A tack.r v : B(x)$],
-        [$Gamma tack.r lambda x. v : product_(x : A) B(x)$]
+        [$Gamma tack.r lambda x. v : (x : A) -> B(x)$]
       )
     ),
     caption: [$Pi$-intro rule]
@@ -85,7 +68,7 @@ read @cite:hottbook.
     prooftree(
       rule(
         name : [$Pi$e],
-        [$Gamma tack.r f : product_(x : A) B(x)$],
+        [$Gamma tack.r f : (x : A) -> B(x)$],
         [$Gamma tack.r v : A$],
         [$Gamma tack.r f v : B[x "/" v]$]
       )
@@ -98,7 +81,7 @@ read @cite:hottbook.
         name : [$Sigma$f],
         [$A : Type$],
         [$B : A -> Type$],
-        [$sum_(x : A) B(x)$]
+        [$(x : A) times B(x)$]
       )
     ),
     caption: [$Sigma$-forming rule]
@@ -109,7 +92,7 @@ read @cite:hottbook.
         name : [$Sigma$i],
         [$Gamma tack.r a : A$],
         [$Gamma tack.r b : B[x "/" a]$],
-        [$Gamma tack.r chevron.l a, b, chevron.r : sum_(x : A) B(x)$]
+        [$Gamma tack.r chevron.l a, b, chevron.r : (x : A) times B(x)$]
       )
     ),
     caption: [$Sigma$-intro rule]
@@ -118,7 +101,7 @@ read @cite:hottbook.
     prooftree(
       rule(
         name : [$Sigma$e],
-        [$Gamma tack.r v : sum_(a : A) B(a)$],
+        [$Gamma tack.r v : (a : A) times B(a)$],
         [$Gamma tack.r a : A, b : B[x "/" b] tack.r x : C$],
         [$Gamma tack.r "let" chevron.l a, b chevron.r := v "in" x : C$]
       )
@@ -243,22 +226,15 @@ demonstrating how the logical and computation definitions diverge.
   caption: [Gcd as Source, Kernel and LCNF]
 )]
 
-// TODO: Rephrase as passive voice
-// Ex what inspired this project over what inspired _me_ to start tihgs project.
-
 This general trick inspired the project,
 as it demonstrates that there is precedent in Lean4 to have separate logical and executional models.
 This is further highlighted by the existence of the `@[implemented_by]` attribute,
 which lets you off-load the runtime behaviour of a function to another possibly unsafe definition.
-When a definition is marked as `@[implemented_by]`,
-the codegenerator treats it as the other function when compiling the code.
-// TODO: Rephrase ^
+When a definition is marked as `@[implemented_by x]`,
+the codegenerator treats it as `x` when compiling the code.
 // The semantics of `@[implemented_by]` is simply calling the alternative function when not evaluating in the kernel.
 Safety of programs using `@[implemented_by]` is a complex endeavour to verify,
 as Lean has a tactic called `native_decide` that runs the generated code outside of the kernel.
-// TODO:
-// I have been told by some of the maintainers of @cite:mathlib,
-// that all definitions that use `@[implemented_by]` should also be `@[irreducible]`.
 
 When talking about lean we also use the term _definitionally equal_ to mean $beta$,$eta$-equivalent,
 and _propositionally equal_ if two terms are identified by a gADT.
@@ -266,9 +242,7 @@ Additionally we have _heterogeneous equality_ where the types are only propositi
 
 == Polynomial functors<sec:poly>
 
-// TODO: Explain what a functor is.
-
-A functor is a function `(α : Type) → F α` sending types to types,
+A functor is pair of function `(α : Type) → F α` sending types to types,
 and a map between types to functions between the functor at those types `(α β : Type) → (α → β) → F α → F β`,
 such that the map distributes over composition and preserves identities.
 
@@ -290,9 +264,8 @@ A polynomial functor applied at type $alpha$,
 is a sigma-type of the head,
 and the child family
 @nlab:polynomial_functor.
-// TODO: Include some of this
-// An object of a polynomial functor is a select head type,
-// and a function form the corresponding child parameterised by the head as seen in 
+As seen in @sec:dependent,
+the object of this type will be a pair of a head and child functions.
 
 This is a univariate polynomial functor,
 this dissertation will mainly focus on multivariate polynomial functors.
@@ -306,30 +279,22 @@ and cofixed-points as `coinductive`s @cite:keizer @cite:qpf. // #cite(<cite:keiz
 // the fix point corresponds to .
 In the figures there are ellipsies,
 in reality multivariate polynomials operate on Type-vectors which come from the category formed by the products $Type^n$ for some $n : NN$,
-// TODO: This was not ergonomic to write
-// ... these can be painful to use
-these are a pain to work with as will be discussed in the implementation#footnote[TODO: Add exact section when it is written].
+these are not ergonomic to work.
 // The justification for writing polynomials using an inductive notation can be found in 
-
 // For an explanation of the notation see @a:gpfunctors.
 
 === Common polynomials
 
-// TODO: Some examples of polynomials are prj fig ... ...
 Some examples of common polynomials are projection @pf:fg:prj,
 constant functors @pf:fg:const,
 binary products @pf:fg:prod,
 and binary sums @pf:fg:sum.
-One crucial polynomial I am not providing code for which is complex to define here,
-is composition.
-// TODO: For those familiar
-// TODO: give the signature and fig of composition
-// TODO: Give a concrete example of a composition.
+One crucial polynomial not shown here is composition whos code is not very insightful.
 Composition takes an $n$-polynomial, and $n$ lots of $m$-polynomials, and outputs an $m$-polynomial.
-For example, taking the 3-polynomial $F$ and 3 2-polynomial $G_1,G_2,G_3$,
-we get that the constructor of the composition takes a $F (G_1 alpha beta) (G_2 alpha beta) (G_3 alpha beta)$.
+For example, taking the 3-polynomial $F$ and 3 2-polynomials $G_1$,$G_2$,$G_3$,
+the constructor of the composition takes a $F (G_1 alpha beta) (G_2 alpha beta) (G_3 alpha beta)$.
 The polynomial notation for this can be found in @cite:mathlib @cite:qpf.
-For those familiar, the composition polynomial works exactly like composition in primitive recursive functions,
+For those familiar, the composition polynomial works exactly like composition in primitive recursive functions.
 
 // We can, using these functors,
 // make a polynomial compiler from any syntax of the form `P :: var | P × P | P + P | const n` where `var` ranges over named variables.
@@ -401,8 +366,7 @@ inductive Sum (A B : Type) where
 
 #set raw(lang: "ocaml")
 
-// TODO:
-Recall algebraic datatypes from your favourite language (OCaml, Haskell, Rust).
+Recalling algebraic datatypes from your favourite language (OCaml, Haskell, Rust).
 These are structures freely generated from a set of constructors.
 The classic example is a list,
 given as two constructors,
@@ -413,7 +377,7 @@ We write this as seen in @cr:ls:list.
 // in lean we care about termination.
 // If we restrict ourselfs to well-founded trees.
 Inductive datatypes are well-founded trees of constructors#footnote[
-  In OCaml, Haskell and Rust, datatypes do not correspond directly to inductives since we can have non-well-founded trees,
+  In OCaml, Haskell and Rust, datatypes do not correspond directly to inductive types since we can have non-well-founded trees,
   an example is `let rec degen = Cons((), degen)`.
 ].
 Any pure function that terminates,
@@ -444,33 +408,27 @@ This means we can unfold $mu F$.
 // This is exactly what we want,
 // as expanding the definition or $L_A (B)$ and distrubuting this over the arrows we get the signature above.
 //
-== Corecursion and coinductives<sec:coind>
+== Corecursion and coinductive types<sec:coind>
 
 Coinductive datatypes are datatypes we allow to be infinitely deep.
 Where inductive datatypes have a `fold : (('a, 'b) f → 'b) → (('a, 'g) f as 'g) → 'b` (rec) to consume them,
-coinductives have an `unfold : ('b → ('a, 'b) f) → 'b → (('a, 'g) f as 'g)` (corec) to produce them.
-Intuitively, is to view it as if a fix F yields a bounded structure,
-then cofix F yields a potentially infinite X#footnote[
+coinductive types have an `unfold : ('b → ('a, 'b) f) → 'b → (('a, 'g) f as 'g)` (corec) to produce them.
+Intuitively, view it as if a fix F yields a bounded structure,
+then cofix F yields an unbounded structure#footnote[
   That is $"fix" (1 + (A times -))$ gives lists,
   then $"cofix" (1 + (A times -))$ gives potentially infinite lists.
 ].
-Another way to view coinductives are as a state-machine,
+Another way to view coinductive types are as a state-machine,
 here the corecursor takes center stage,
 we can say a coinductive datatype is a datatype generated by some corecursor state-machine.
 
 === In OCaml <sec:cf:ocaml>
 
-// TODO: Uncambridgeify, for example write In OCaml
-We can think back to what we did in Foundations of Computer Science,
-we made lazy lists by thunking recursive occurrences,
+We can make lazy lists by thunking recursive occurrences,
 this thunking allows infinite structures to exist in finite memory.
-This happens because OCaml is call-by-value.
-// If we were in Haskell (or any call by name / push-value language),
-// the definition of icolist (see @cr:ls:colist) would be that of ilist.
 Then all we need to do is add a definition of `unfold`, `mk` and `dest`.
 All these can be seen in @cr:ls:colist.
-We also have constructors and destructors forming inverses as for recursive datatypes.
-// We have a coinductive version of Lambek's theorem @cite:lambek now too.
+We also have constructors and destructors forming inverses as for recursive datatypes#footnote[The dual of Lambek's theorem @cite:lambek].
 
 #figure(
   raw(ilc, lang: "ocaml", block: true),
@@ -479,15 +437,12 @@ We also have constructors and destructors forming inverses as for recursive data
 
 The keen eyed will notice and call out that `unfold` is not structurally recursive,
 nor even decreasing at all.
-This is the key difference between inductives and coinductives;
-coinductives can be 'infinitely big'.
+This is the key difference between inductive types and coinductive types;
+coinductive types can be 'infinitely big'.
 Despite not being terminating,
 the definition is _productive_.
 Termination is having a complete structure in finite time,
-// TODO: 
-productivity is growing in finite time.
-
-// TODO: Make this into one big section,
+productivity is being able to always compute the next layer in finite time.
 
 === Streams
 
@@ -566,7 +521,6 @@ We will give concrete implementations of them for each of the encodings as follo
 
 === The #MT <sec:m>
 
-// The $M$ type is the name given to the types who's semantics are terminal $F$-coalgebra;
 The cofixed-point of a polynomial functor, is called an #MT
 #footnote[Often phrased as types who's semantics are terminal $F$-coalgebra.] ;
 possibly infinitely deep trees in which each layer is an unfolding of $F$.
@@ -577,7 +531,6 @@ These are the functions mentioned in @sec:cf:ocaml.
 Often we also want to ship a way to `mk` a new layer,
 but we can define this from the two operators above.
 
-// TODO: Invert
 There are different approaches to encode #MTs in Lean.
 We will focus on two encodings of #MT's,
 the state-machine encoding @sec:m:sme and Progressive Approximation @sec:m:pa (as seen in @cite:mathlib).
@@ -585,12 +538,11 @@ the state-machine encoding @sec:m:sme and Progressive Approximation @sec:m:pa (a
 ==== Progressive approximation encoding <sec:m:pa>
 
 A simple way to encode #MTs,
-// TODO: they are finite trees that grow
-are as functions emitting trees that must at every level agree.
+are as functions emitting finite and growing trees that must at every level agree.
 This corresponds to the limit over the natural number category as the dual of #cite(<cite:adamek>, form: "prose") (see section "Free algebra algorithm").
 Agreement is given by them being the same up to the previous depth as seen in @m:fg:agree.
-I like to think about agreement as the structure 'crystalizing',
-since it can only 'grow' from the ends.
+Agreement can be thought of as the structure 'crystalizing',
+since it exclusively 'grow' from the crystal edge.
 
 #figure(
   diagram(cell-size:5mm, $
@@ -603,108 +555,64 @@ since it can only 'grow' from the ends.
   caption: [Agreement of two trees of height 1 and 2]
 )<m:fg:agree>
 
-In Lean, this encoding is easy to set up.
-It can be seen in @m:ls:pa.
-The main component which is hard to define is a coinduction theorem (@sec:bisim).
-#cite(<cite:bisim>, form: "prose") is an insightful read on this topic.
-Luckily for us we do not need to worry about implementing and proving this as @cite:mathlib already provides an implementation of this.
-This was ported to Lean4 as part of @cite:keizer.
+#let streamf = partL(read("./Stream.lean"), 12, 13, 26, 36)
 
-A major problem with this implementation is the complexity of access.
-As you can see in @m:ls:pa in the definition of `corec.o`,
-we have to regenerate the entire tree to get a corecursor to the next depth.
-There are a few different approaches to solve this that we will compare and contrast in @sec:smevpa.
+In Lean, for a spesific functor,
+we begin setting up the definition of approximation.
+With this we define the coinductive type as the agreeing functions.
 
-#let streamf = read("./Stream.lean")
-// TODO: Intersperse code and prose.
 #figure(
-  raw(streamf, lang: "lean", block: true),
-  caption: [PA Stream in Lean]
-)<m:ls:pa>
-
-=== State-machine encoding <sec:m:sme>
-
-// TODO: Move this to implementation
-
-// TODO: show code here,
-// TODO: Dont call naïve
-The state-machine encoding is the naïve way to implement the #MT.
-Given some polynomial functor $F$,
-the state-machine encoding is given by:
-some type $alpha : "Type"$,
-a function $f : alpha arrow.r F alpha$,
-and some witness $a : alpha$.
-Once this is done there are 3 key problems:
-// TODO: these are the same problem
-1. The object constructed is only weakly terminal,
-2. the object created has no coinduction principle,
-3. the object resides in a higher universe.
-Let us focus on the first two problems (the 3rd problem is tackled in @sec:abi),
-both of these are solved by quotienting over bisimilarity.
-The reason this works has to do with how bisimilarity 'hides' the generating type,
-making the only operation you can do to access the data a destructure.
-
-// TODO: This is just a distraction.
-// TODO: Too vauge.
-
-== Inductive predicate
-
-// TODO: remove this section 
-
-An inductive predicate is a least fixed point;
-a universal quantification over all relations of a given shape.
-An example of an inductive predicate is evenness.
-This is defined as a higher-order predicate called the `Shape` in this case,
-we use this to restrict the relations we are talking about.
-Then we take the universal over this shape and we get what is shown in @ipred:fg:iseven.
-It can be shown that this definition is equal to the one generated by the expected Lean code.
-
-#code-math(raw(read("./IsEven.lean"), lang: "lean", block: true),
-  ccode: [],
-  $
-  "shape"_P  &eq.delta P 0 and forall n, P n -> P (n + 2) \
-  "Even" (n) &eq.delta forall P, "shape"_P -> P n \
-  e_0 : "Even" 0 &eq.delta lambda P "hP". pi_1 ("hP")
-  $,
-  cmath: [],
-  [Evenness inductive predicate, from first principles],
-  lab: <ipred:fg:iseven>
+  raw(streamf.at(0), lang: "lean", block: true),
+  caption: [Definition of approx for stream]
 )
 
-== Coinductive predicate <sec:coindp>
+For the corecursor, we need to implement a function to emit the finite and growing trees,
+and a proof that the trees agree.
+This is also where the performance hit is incurred,
+as we have to regenerate the tree every time we want to reach the new depth.
 
-// TODO: remove this section 
+#figure(
+  raw(streamf.at(2), lang: "lean", block: true),
+  caption: [Objects of the corecursor for streams]
+)
 
-Given what we saw in the last section and how we have seen the duality for coinductive and inductive data;
-all we must do is dualize this construction.
-So we change the universal to an existential, disjuncts to conjuncts,
-and flip the arrows (each of these swap left and right adjoints).
-This gives us a proof principal with three components.
-We now need to define an invariant,
-we need to prove the invariant satisfies the restriction,
-and that our value is contained in the invariant.
+The destructor builds an instance of the functor,
+where the correct path is selected from the corecursor.
 
-Proving coinductive predicates is challenging as it requires coming up with the invariant.
-This is a kind of proof I had no experience in,
-and it took a while to pick up.
-An additional difficulty is,
-if you get the invariant wrong,
-you have to start completely again and try to come up with something better.
-This means that for some of my proofs I wrote hundreds of lines of code that have not made it into the dissertation.
+#figure(
+  raw(streamf.at(3), lang: "lean", block: true),
+  caption: [Destructor for streams]
+)
 
-Some languages have facilities to make this better,
-these are collectively known as coinduction-up-to.
-These are techniques where you can reuse earlier proofs and automatically expand the invariant.
-For Rocq a popular library for this is Paco#footnote[TODO CITE],
-a lot of harder coinduction proofs use this technique.
-Lean does not have this feature,
-and it is out of scope for the dissertation.
-In its place I spend a lot of time picking the shape of the Invariant I need.
+Proving a coinduction principle (@sec:bisim) is harder,
+Luckily for us we do not need to worry about implementing and proving this as #MATHLIB @cite:keizer already provides an implementation of this.
 
-=== Bisimilarity <sec:bisim>
+=== State-Machine encoding <sec:m:sme>
+
+The State-Machine encoding is the new alternative implementation.
+First one defines a class of preobject,
+followed by a definition of bisimilarity that we then quotient over.
+This definition will be expanded on in @sec:s:sme, and again @sec:impl-sm.
+
+// Given some polynomial functor $P$,
+// the state-machine encoding is given by:
+// some carrier type $alpha : "Type"$,
+// a function $f : alpha arrow.r P alpha$,
+// and some witness $a : alpha$.
+// Once this is done there are 3 key problems:
+// // TODO: these are the same problem
+// 1. The object constructed is only weakly terminal,
+// 2. the object created has no coinduction principle,
+// 3. the object resides in a higher universe.
+// Let us focus on the first two problems (the 3rd problem is tackled in @sec:abi),
+// both of these are solved by quotienting over bisimilarity.
+// The reason this works has to do with how bisimilarity 'hides' the generating type,
+// making the only operation you can do to access the data a destructure.
+
+== Bisimilarity <sec:bisim>
 
 Bisimilarity is an equivalence relation on coinductive types.
-Two coinductives are bisimilar if,
+Two coinductive objects are bisimilar if,
 for every possible choice in a structure A,
 there exists a corresponding choice in structure B,
 such that you can repeat this procedure.
@@ -773,13 +681,50 @@ digraph ab_ab_star_star_nfa {
 )
 ]
 
-// TODO: unfluff, give leancode, do something with both code and prose
-On streams, bisimilarity corresponds to saying that the heads of the streams are equal and then the tails are bisimilar.
-// TODO: Rephrase, a coindutive type has a coinduction principle 
-A coinductive type has a coinduction principle if bisimilarity implies equality.
-Streams and in general cofixed-points of polynomials satisfy this.
+On streams, a bisimulation equates heads, and relates tails.
+This can be seen in @bs:ls:sbs.
+Coinductive types have coinduction principle `bisim : Bisim a b → a = b`#footnote[In Rocq this has to be an axiom, in lean it is provable.].
+#cite(<cite:bisim>, form: "prose") is an insightful read on this topic.
+
+#figure(
+  raw(takeL(read("../../sme/Sme/Stream/SDefs.lean"), 68, 74), block: true),
+  caption: [Bisimilarity on streams]
+)<bs:ls:sbs>
 
 ////////////////////////////////////////////////////////////////////////////////
+
+== Interaction trees
+
+Denotational semantics stands as an alternative to operational semantics,
+where rather than having some relation of program steps,
+one maps syntax to some mathematical object which can reason about directly.
+For lambda calculi we have categorical semantics,
+but for imperative languages it can be much harder to find a denotational object.
+
+Interaction trees @cite:itree are a form of free-monad,
+in which you have a set of visible effects.
+ITrees have 3 constructors, returning a value (monad unit),
+having a silent transition (for non-termination),
+and emitting a visible effect.
+The Rocq definition can be seen in @it:ls:rocq.
+The effects of the ITree correspond to the effects of the imperative language.
+Some examples could be printing, reading and writing to variables, and reading user input.
+ITrees have a 'monadic interpretation' where the effects are transformed to operations in some monad.
+Further, ITrees have an equivalence relation called Weak Bisimilarity,
+this is bisimilarity modulo silent steps,
+two objects are related if they have the same visible effects and return values.
+
+We will speak more about ITrees in @sec:itree
+
+#figure(
+```Coq
+CoInductive itree (E: Type -> Type) (R: Type): Type :=
+| Ret (r: R)
+| Tau (t: itree E R)
+| Vis {A: Type} (e : E A) (k : A -> itree E R)
+```,
+    caption: [Rocq defintion from @cite:itree]
+)<it:ls:rocq>
 
 == Methodology<sec:method>
 
@@ -789,7 +734,7 @@ Streams and in general cofixed-points of polynomials satisfy this.
 Writing in a proof assistant is different to writing in a general purpose language,
 this is especially the case in Lean as it is a hybrid of both styles.
 A notable and immediate difference is the prevalence of software testing of programs.
-Instead of having tests that can be flakey or incomplete,
+Instead of having tests that can be flakey and sparse,
 in Lean you have checked proofs.
 
 In a conventional programming language,
@@ -850,15 +795,16 @@ The dissertation is written in #typst as it is a feature rich, well documented, 
 
 To expand on the success criteria given in the proposal,
 I specified the project using MoSCoW.
+This will be used to reference what sections implement what features of the project.
 Here the success criteria have become MUSTs,
-and improvements have become SHOULD.
+and improvements have become SHOULD and COULD.
 I have done this for the core and each of the extensions of the project.
 
 // TODO: Meantion original critrea
 
 #let moscow(nm, m, s, c, x) = [
 // #let f(l) = (n) => box(width: 3em)[#strong(nm + l + [#n])]
-// TODO: Make this look more like whats above 
+// TODO: Make this look more like whats above
 #let f(l) = nm + l + "1"
 #set enum(numbering: f("M"))
 #m
@@ -918,7 +864,7 @@ I have done this for the core and each of the extensions of the project.
 // +
 ])
 
-=== Interaction Trees (Extention)<pl:sec:itree>
+=== Interaction Trees (Extension)<pl:sec:itree>
 
 #moscow("\u{0406}", [
 + ITrees MUST be implemented. <rq:it:impl>
@@ -936,20 +882,20 @@ I have done this for the core and each of the extensions of the project.
 + ITrees WONT implement the family of effects put forward in @cite:itree. <rq:it:eff> 
 ])
 
-=== Futumorphic productivity (Extention)<pl:sec:prod>
+=== Futumorphic productivity (Extension)<pl:sec:prod>
 
 #moscow("F", [
-+ Futumorphic productivity MUST have an in-universe corecursor.
-+ Futumorphic productivity MUST have an injector.
++ Futumorphic productivity MUST have an in-universe futumorphism. <rq:ft:corec>
++ Futumorphic productivity MUST have an injector. <rq:ft:inject>
 ], [
-+ Futumorphic productivity SHOULD have proof-principles for unfolding the corecursor.
-+ Futumorphic productivity SHOULD have proof-principles for the injector.
++ Futumorphic productivity SHOULD have proof-principles for unfolding the futumorphism. <rq:ft:unfold>
++ Futumorphic productivity SHOULD have proof-principles for the injector. <rq:ft:pinject>
 ], [
-+ Futumorphic productivity COULD have a cross universe corecursor.
-+ Futumorphic productivity COULD have a universe transliterator.
-+ Futumorphic productivity COULD have the ability to reason about _closed_ trees.
++ Futumorphic productivity COULD have a cross universe futumorphism. <rq:ft:corecu>
+// + Futumorphic productivity COULD have a universe transliterator. rq:ft:corecu
+// + Futumorphic productivity COULD have the ability to reason about _closed_ trees.
 ], [
-+ Futumorphic productivity WONT be as expressive as @cite:coco.
++ Futumorphic productivity WONT be hetrogenous @cite:coco.
 ])
 
 // === Choice Trees (Extention)<pl:sec:ctree>

@@ -10,19 +10,18 @@ namespace Sme.SM
 
 universe u v w
 
-variable {n : Nat} {P : MvPFunctor.{u} (n + 1)} {α : TypeVec.{u} n}
+variable {n} {P : MvPFunctor.{u} (n + 1)} {α : TypeVec.{u} n}
 
 def equivP : SM.{u, max u v} P α ≃ M.{u} P α :=
-  let msm := (MvFunctor.map (TypeVec.id ::: ULift.up.{u, max u v + 1}) ∘ SM.dest)
+  let msm := MvFunctor.map (TypeVec.id ::: ULift.up.{u, max u v + 1}) ∘ SM.dest
   let mpa := liftAppend.{u, max u v} ∘ M.dest P ∘ ULift.down.{max u v, u}
-  ⟨
-    .corecU P msm,
-    .corec mpa ∘ ULift.up,
-    fun x => SM.bisim ⟨
+  {
+    toFun  := .corecU P msm,
+    invFun := .corec mpa ∘ ULift.up,
+    left_inv := fun x => SM.bisim ⟨
       (· = (.corec mpa ∘ ULift.up ∘ .corecU _ msm) ·),
       by
         rintro _ ⟨⟨gen, g⟩⟩ rfl
-        dsimp
         exact (MvPFunctor.liftR_iff _ _ _).mpr ⟨
           .up (gen g).fst.down,
           fun
@@ -40,7 +39,7 @@ def equivP : SM.{u, max u v} P α ≃ M.{u} P α :=
         ⟩,
       rfl
     ⟩,
-    fun x => M.bisim _
+    right_inv := fun x => M.bisim _
       (· = (.corecU _ msm ∘ .corec mpa ∘ .up) ·)
       (fun a b => (· ▸ ⟨
         (corec mpa <| .up b).dest.fst.down,
@@ -53,7 +52,7 @@ def equivP : SM.{u, max u v} P α ≃ M.{u} P α :=
       ⟩))
       _ _
       rfl,
-  ⟩
+  }
 
 /-- info: 'Sme.SM.equivP' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in

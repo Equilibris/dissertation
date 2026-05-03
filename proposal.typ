@@ -134,7 +134,7 @@ Agreement is given by them being the same up to the previous depth as seen in @a
 
 `Cofix` is the terminal coalgebra in QPFs,
 // (possibly) infinitely big quotiented trees.
-These are simply a quotient over $M$ types lifting the quotient from the source QPF.
+These are a quotient over $M$ types lifting the quotient from the source QPF.
 // This is the slightly concerning part of the project and by far the highest risk section as working with `Quot` in Lean is a painful experience.
 
 == The equivalence <equiv>
@@ -285,7 +285,7 @@ The work should lay the groundwork for the next proofs.
 The next step will be generalising the univariate implementation,
 the same structure of the proof should be the same for the multivariate case.
 The main difficulty here comes from working with `TypeVec`s.
-These are quite difficult to reason about.
+These are difficult to reason about.
 
 == `Cofix` (2026-01-24 6w 2026-03-06)
 
