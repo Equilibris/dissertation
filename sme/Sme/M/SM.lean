@@ -108,14 +108,11 @@ def Bisim : SM.{u, v} P α → SM.{u, v} P α → Prop :=
 
 variable {a b : SM P α}
 
-theorem bisim (h : Bisim a b) : a = b := by
-  cases a, b using Quotient.ind₂
-  apply Quot.sound
-  change PreM.Bisim _ _
-  rcases h with ⟨r, his, hhold⟩
-  refine ⟨fun x y => r (.mk _ x) (.mk _ y), ?_ , hhold⟩
-  clear *-his
-  intro s t rst
+theorem bisim : Bisim a b → a = b := by
+  rintro ⟨r, his, hhold⟩
+  cases a, b using Quotient.ind₂; apply Quot.sound; change PreM.Bisim _ _
+  refine ⟨fun x y => r (.mk _ x) (.mk _ y), fun s t rst => ?_ , hhold⟩
+  clear *-his rst
   have ⟨hm, h⟩ := IsBisim.Alt_eq.mp his _ _ rst
   dsimp [dest] at hm h
   rw [MvFunctor.map_map, MvFunctor.map_map, TypeVec.appendFun_comp'] at hm
@@ -128,21 +125,6 @@ def uLift : SM.{u, v} P α → SM.{u, max v w} P α :=
       Quot.sound ⟨
         (∃ x y, x.uLift = · ∧ y.uLift = · ∧ r x y),
         by
-          /- clear *-his hr -/
-          /- rintro _ _ ⟨a,b,rfl,rfl,h⟩ -/
-          /- have ⟨h, hrel⟩ := his _ _ hr -/
-          /- refine ⟨?_, ?_⟩ -/
-          /- · simp only [PreM.uLift, ULift.transliterate_down, PreM.dest_corec, transliterate, -/
-          /-     transliterateMap, map_map, TypeVec.appendFun_comp', TypeVec.comp_id, -/
-          /-     Function.const_comp] -/
-          /-   change Sigma.mk _ _ = Sigma.mk _ _ -/
-          /-   simp [← TypeVec.comp_assoc, TypeVec.appendFun_comp', transliterate, transliterateMap] -/
-          /-   sorry -/
-          /- intro ⟨v⟩ -/
-          /- dsimp [PreM.uLift] at v -/
-          /- refine ⟨_, ?_, ?_, hrel <| .up v⟩ -/
-          /- simp -/
-          /- stop -/
           rw [PreM.IsBisim.Alt_eq] at his ⊢
           rintro _ _ ⟨a,b,rfl,rfl,h⟩
           have ⟨v,f₀,f₁,hx, h, rst⟩ := (MvPFunctor.liftR_iff _ _ _).mp <| his _ _ h

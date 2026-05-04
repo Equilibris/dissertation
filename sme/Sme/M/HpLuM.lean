@@ -1,4 +1,4 @@
-import Sme.ABI
+import Sme.AltRepr
 import Sme.HEq
 import Sme.M.Equiv
 import Sme.PFunctor.EquivP
@@ -21,7 +21,7 @@ open SM
 def equivXU : SM.{u, max u v} P α ≃ SM.{u, max u w} P α :=
   equivP.trans equivP.symm
 
-namespace equivXU 
+namespace equivXU
 
 theorem inv'
     {x : SM.{u, max u v} P α}
@@ -77,11 +77,11 @@ attribute [irreducible, implemented_by equivXUImpl, inline] equivXU
 end
 
 def HpLuM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Type u :=
-  ABI _ _ (SM.equivP.{u, u} (P := P) (α := α)).symm
+  AltRepr _ _ (SM.equivP.{u, u} (P := P) (α := α)).symm
 
 namespace HpLuM
 
-def equivM : HpLuM P α ≃ M P α := ABI.equivA.symm
+def equivM : HpLuM P α ≃ M P α := AltRepr.equivA.symm
 
 set_option trace.compiler.ir.result true in
 @[inline]
@@ -98,17 +98,17 @@ def corec
 set_option trace.compiler.ir.result true in
 @[specialize n P α]
 def dest : HpLuM P α → P (α ::: HpLuM P α) :=
-  ABI.rec
-    ((TypeVec.id ::: ABI.mkA) <$$> M.dest P ·)
+  AltRepr.rec
+    ((TypeVec.id ::: AltRepr.mkA) <$$> M.dest P ·)
     (MvPFunctor.uLift_down
       <| (.mp TypeVec.uLift_append1_ULift_uLift ⊚ (TypeVec.id ::: .up ∘ .mkB)) <$$> ·.dest)
     (fun _ =>
       heq_of_eq <| Sigma.ext rfl <| heq_of_eq <| funext fun
-        | .fz => funext fun _ => ABI.mkA_mkB_iff_eq.mpr rfl
+        | .fz => funext fun _ => AltRepr.mkA_mkB_iff_eq.mpr rfl
         | .fs _ => rfl)
     (fun _ =>
       heq_of_eq <| Sigma.ext rfl <| heq_of_eq <| funext fun
-        | .fz => funext fun _ => Eq.symm <| ABI.mkA_mkB_iff_eq_symm.mpr rfl
+        | .fz => funext fun _ => Eq.symm <| AltRepr.mkA_mkB_iff_eq_symm.mpr rfl
         | .fs _ => rfl)
 
 @[simp]
@@ -122,7 +122,7 @@ theorem dest_corec
         <$$> gen g
       ) := by
   dsimp [dest, uLift_down, map_fst, map_snd, corec]
-  rw [ABI.recCheap, transform_dest]
+  rw [AltRepr.recCheap, transform_dest]
   refine Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => rfl
 
 section bisim
@@ -139,7 +139,7 @@ theorem bisim' {a b : HpLuM.{u} P α} : Bisim a b → a = b := by
   refine SM.bisim ⟨(fun a b => r (.mkB a) (.mkB b)), ?_, rab⟩
   clear a b rab; intro a b rab
   have := (MvPFunctor.liftR_iff _ _ _).mp <| ris (.mkB a) (.mkB b) rab
-  simp only [dest, ABI.recCheap] at this
+  simp only [dest, AltRepr.recCheap] at this
   rcases this with ⟨a,f₀,f₁, ha, hb, rst⟩; rcases ha
   have ⟨h₁, h₂⟩ := Sigma.mk.inj_iff.mp hb
   simp only [map_fst, ULift.down_inj, TypeVec.Arrow.uLift_arrow, map_snd] at h₁ h₂; clear hb
@@ -149,7 +149,7 @@ theorem bisim' {a b : HpLuM.{u} P α} : Bisim a b → a = b := by
     rw [Sigma.ext_iff, Sigma.ext_iff]
   dsimp only
   refine ⟨_, _, ?_, ⟨rfl, heq_of_eq rfl⟩, ⟨h₁, ?_⟩, ?_⟩
-  · exact (TypeVec.Arrow.uLift_up.{u, u + 1} ::: ABI.destB)
+  · exact (TypeVec.Arrow.uLift_up.{u, u + 1} ::: AltRepr.destB)
       ⊚ f₁
       ⊚ TypeVec.Arrow.uLift_down.{u, u + 1}
   · rw! [←h₂]
@@ -177,13 +177,13 @@ theorem bisim' {a b : HpLuM.{u} P α} : Bisim a b → a = b := by
       TypeVec.append1_get_fs, TypeVec.appendFun.get_fs]
     <;> rw [dcastFn (by rw [h₁]) fun _ _ _ => by rfl]
     <;> simp only [TypeVec.append1_get_fz, TypeVec.Arrow.mp, eq_mp_eq_cast, cast_cast, cast_eq,
-      Function.comp_apply, ABI.mkB_destB']
+      Function.comp_apply, AltRepr.mkB_destB']
     · rfl
   · intro i ⟨h⟩
     specialize rst i h
     rcases i with (_|i)
     · simp only [TypeVec.RelLast, map_fst, TypeVec.comp.get, TypeVec.append1_get_fz,
-        TypeVec.appendFun.get_fz, TypeVec.uLift_down.get, Function.comp_apply, ABI.destB_mkB']
+        TypeVec.appendFun.get_fz, TypeVec.uLift_down.get, Function.comp_apply, AltRepr.destB_mkB']
       exact rst
     · exact ULift.down_inj.mp rst
 

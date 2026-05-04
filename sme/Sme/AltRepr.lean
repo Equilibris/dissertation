@@ -1,5 +1,7 @@
+module
+
+public import Mathlib.Logic.Equiv.Defs
 import Batteries.Tactic.GeneralizeProofs
-import Mathlib.Logic.Equiv.Defs
 import Mathlib.Tactic.DepRewrite
 import Mathlib.Tactic.CongrExclamation
 
@@ -7,10 +9,10 @@ universe u v w x y z
 
 variable {A : Type u} {B : Type v}
 
-namespace NonOmegaABI
+namespace NonOmegaAltRepr
 
-@[pp_with_univ]
-structure ABIRepr.{low, hi, e} (A : Type low) (B : Type hi) (eq : A ≃ B)
+/- @[pp_with_univ] -/
+structure AltReprInternal.{low, hi, e} (A : Type low) (B : Type hi) (eq : A ≃ B)
     : Type max hi (e + 1) (low + 1) where
   intro ::
   carry : Type low
@@ -67,8 +69,8 @@ unsafe abbrev unsafeOut : unsafeCast B → B := unsafeCast
 end corruptionSurface
 
 @[inline]
-private unsafe def ABIImpl (A : Type u) (B : Type v) (eq : A ≃ B)
-    : ABIRepr.{u, v, w} A B eq := {
+private unsafe def AltReprImpl (A : Type u) (B : Type v) (eq : A ≃ B)
+    : AltReprInternal.{u, v, w} A B eq := {
   carry := unsafeCast B,
   mkA := unsafeIn ∘ eq,
   mkB := unsafeIn,
@@ -111,9 +113,9 @@ private unsafe def ABIImpl (A : Type u) (B : Type v) (eq : A ≃ B)
     rw [unsafeCastComp, unsafeCastNoop]
 }
 
-@[implemented_by ABIImpl, inline]
-opaque ABI (A : Type u) (B : Type v) (eq : A ≃ B)
-    : ABIRepr.{u, v, w} A B eq := {
+@[implemented_by AltReprImpl, inline]
+opaque AltRepr (A : Type u) (B : Type v) (eq : A ≃ B)
+    : AltReprInternal.{u, v, w} A B eq := {
   carry := A,
   mkA := id,
   mkB := eq.invFun,
@@ -132,11 +134,11 @@ opaque ABI (A : Type u) (B : Type v) (eq : A ≃ B)
   elimCheap := fun {_ _ _ _ eqB x} => eq_of_heq ((eqB x).symm)
 }
 
-namespace ABIRepr
+namespace AltReprInternal
 
-attribute [elab_as_elim, inline] ABIRepr.elim
+attribute [elab_as_elim, inline] AltReprInternal.elim
 
-variable {eq : A ≃ B} {r : ABIRepr.{u, v, w} A B eq}
+variable {eq : A ≃ B} {r : AltReprInternal.{u, v, w} A B eq}
 
 def equivA : A ≃ r.carry where
   toFun  := r.mkA
@@ -220,7 +222,7 @@ section eqs
 
 end eqs
 
-variable {r : ABIRepr.{_, _, max w x} A B eq}
+variable {r : AltReprInternal.{_, _, max w x} A B eq}
 
 @[inline]
 def elim {motive : r.carry → Sort x}
@@ -255,7 +257,7 @@ theorem elimLog {motive : r.carry → Sort x}
      {eqB : ∀ z, hCheap z ≍ hLog (eq.symm z)}
      z : elim hLog hCheap eqA eqB (mkA z) = hLog z := by
   dsimp [elim, mkA]
-  rw! [ABIRepr.elimLog r z]
+  rw! [AltReprInternal.elimLog r z]
   rfl
 
 theorem elimCheap {motive : r.carry → Sort x}
@@ -265,30 +267,30 @@ theorem elimCheap {motive : r.carry → Sort x}
      {eqB : ∀ z, hCheap z ≍ hLog (eq.symm z)}
     z : elim hLog hCheap eqA eqB (mkB z) = hCheap z := by
   dsimp [elim, mkB]
-  rw! [ABIRepr.elimCheap r z]
+  rw! [AltReprInternal.elimCheap r z]
   rfl
 
 -- Hide the impl
 attribute [irreducible] elim
 
-instance : CoeSort (ABIRepr A B eq) (Type _) := ⟨ABIRepr.carry⟩
+instance : CoeSort (AltReprInternal A B eq) (Type _) := ⟨AltReprInternal.carry⟩
 
 -- TODO: Make a version where a and b dont both reside in w
 @[ext]
 theorem extB
-    {a : ABI.{u, v, w} _ _ eq} {b : ABI.{u, v, w} _ _ eq}
+    {a : AltRepr.{u, v, w} _ _ eq} {b : AltRepr.{u, v, w} _ _ eq}
     (h : a.destB = b.destB)
     : a = b := by
-  induction a using ABIRepr.carry.elim <;> induction b using ABIRepr.carry.elim
+  induction a using AltReprInternal.carry.elim <;> induction b using AltReprInternal.carry.elim
   any_goals simp only [carry.mkB_destB', carry.destB_mkA_toFun', EmbeddingLike.apply_eq_iff_eq] at h
   any_goals subst h
   any_goals simp
 
 theorem extA
-    {a : ABI.{u, v, w} _ _ eq} {b : ABI.{u, v, w} _ _ eq}
+    {a : AltRepr.{u, v, w} _ _ eq} {b : AltRepr.{u, v, w} _ _ eq}
     (h : a.destA = b.destA)
     : a = b := by
-  induction a using ABIRepr.carry.elim <;> induction b using ABIRepr.carry.elim
+  induction a using AltReprInternal.carry.elim <;> induction b using AltReprInternal.carry.elim
   any_goals simp only [carry.mkA_destA', EmbeddingLike.apply_eq_iff_eq, carry.destA_mkB_toInv'] at h
   any_goals subst h
   any_goals simp
@@ -300,8 +302,8 @@ section transliterate
 def transliterateB.{a, b, u', v'}
     {A B}
     {eq : A ≃ B}
-    (a : ABI.{u', v', a} _ _ eq)
-    : ABI.{u', v', b} _ _ eq := .mkB a.destB
+    (a : AltRepr.{u', v', a} _ _ eq)
+    : AltRepr.{u', v', b} _ _ eq := .mkB a.destB
 
 @[simp] theorem transliterateB_mkA : transliterateB ∘ .mkA (eq := eq) = .mkA := by
   change _ ∘ carry.destB ∘ _ = _; simp
@@ -353,7 +355,7 @@ end transliterate
 section freeelim
 
 @[elab_as_elim, inline]
-def rec {motive : ABI.{u, v, w} A B eq → Sort x}
+def rec {motive : AltRepr.{u, v, w} A B eq → Sort x}
      (hLog : (z : A) → motive (mkA z))
      (hCheap : (z : B) → motive (mkB z))
      (eqA : ∀ z, hLog z ≍ hCheap (eq z))
@@ -368,7 +370,7 @@ def rec {motive : ABI.{u, v, w} A B eq → Sort x}
   · simp [eqA]
   · simp [eqB]
 
-theorem recLog {motive : ABI.{u, v, w} A B eq → Sort x}
+theorem recLog {motive : AltRepr.{u, v, w} A B eq → Sort x}
      {hLog : (z : A) → motive (mkA z)}
      {hCheap : (z : B) → motive (mkB z)}
      {eqA : ∀ z, hLog z ≍ hCheap (eq z)}
@@ -381,7 +383,7 @@ theorem recLog {motive : ABI.{u, v, w} A B eq → Sort x}
   change elim _ _ _ _ (transliterateB (carry.mkA _)) ≍ _
   rw [transliterateB_mkA', carry.elimLog]
   exact cast_heq _ _
-theorem recCheap {motive : ABI.{u, v, w} A B eq → Sort x}
+theorem recCheap {motive : AltRepr.{u, v, w} A B eq → Sort x}
      {hLog : (z : A) → motive (mkA z)}
      {hCheap : (z : B) → motive (mkB z)}
      {eqA : ∀ z, hLog z ≍ hCheap (eq z)}
@@ -399,25 +401,25 @@ attribute [irreducible, inline] rec
 
 end freeelim
 
-end NonOmegaABI.ABIRepr.carry
+end NonOmegaAltRepr.AltReprInternal.carry
+public section
 
-@[pp_with_univ]
-def ABI A B eq := (NonOmegaABI.ABI.{u, v, 0} A B eq).carry
+def AltRepr A B eq := (NonOmegaAltRepr.AltRepr.{u, v, 0} A B eq).carry
 
-namespace ABI
+namespace AltRepr
 
-open NonOmegaABI.ABIRepr
-open NonOmegaABI.ABIRepr.carry
+open NonOmegaAltRepr.AltReprInternal
+open NonOmegaAltRepr.AltReprInternal.carry
 
 variable {eq : A ≃ B}
 
 section fns
-set_option trace.Compiler.result true
+/- set_option trace.Compiler.result true -/
 
-@[inline] def mkA : A → ABI A B eq := carry.mkA
-@[inline] def mkB : B → ABI A B eq := carry.mkB
-@[inline] def destA : ABI A B eq → A := carry.destA
-@[inline] def destB : ABI A B eq → B := carry.destB
+@[inline] def mkA : A → AltRepr A B eq := carry.mkA
+@[inline] def mkB : B → AltRepr A B eq := carry.mkB
+@[inline] def destA : AltRepr A B eq → A := carry.destA
+@[inline] def destB : AltRepr A B eq → B := carry.destB
 
 end fns
 
@@ -483,9 +485,9 @@ theorem mkA_mkB_iff_eq_symm {a : A} {b : B} : mkA (eq := eq) a = mkB b ↔ a = e
     rw [h, destA_mkB_toInv', invFun_mkA_mkB', destA_mkB_toInv']
   mpr h := by rw [h, invFun_mkA_mkB']
 
-def equivA : A ≃ ABI _ _ eq where
-  toFun  := ABI.mkA
-  invFun := ABI.destA
+def equivA : A ≃ AltRepr _ _ eq where
+  toFun  := AltRepr.mkA
+  invFun := AltRepr.destA
   left_inv  := fun a => by
     change (carry.destA ∘ carry.mkA) a = id _
     rw [carry.mkA_destA]
@@ -493,9 +495,9 @@ def equivA : A ≃ ABI _ _ eq where
     change (carry.mkA ∘ carry.destA) a = id _
     rw [carry.destA_mkA]
 
-def equivB : B ≃ ABI _ _ eq where
-  toFun  := ABI.mkB
-  invFun := ABI.destB
+def equivB : B ≃ AltRepr _ _ eq where
+  toFun  := AltRepr.mkB
+  invFun := AltRepr.destB
   left_inv  := fun a => by
     change (carry.destB ∘ carry.mkB) a = id _
     rw [carry.mkB_destB]
@@ -509,7 +511,7 @@ section
 
 set_option trace.Compiler.result true in
 @[elab_as_elim, inline] def rec
-    : {motive : ABI.{u, v} A B eq → Sort x}
+    : {motive : AltRepr.{u, v} A B eq → Sort x}
     → (hLog : (z : A) → motive (mkA z))
     → (hCheap : (z : B) → motive (mkB z))
     → (eqA : ∀ z, (hLog z) ≍ (hCheap (eq z)))
@@ -517,7 +519,7 @@ set_option trace.Compiler.result true in
     → (v : _) → motive v := carry.rec
 
 @[simp] theorem recLog
-    : {motive : ABI.{u, v} A B eq → Sort x}
+    : {motive : AltRepr.{u, v} A B eq → Sort x}
     → {hLog : (z : A) → motive (mkA z)}
     → {hCheap : (z : B) → motive (mkB z)}
     → {eqA : ∀ z, hLog z ≍ hCheap (eq z)}
@@ -525,7 +527,7 @@ set_option trace.Compiler.result true in
     → (z : _)
     → rec hLog hCheap eqA eqB (mkA z) = hLog z := carry.recLog
 @[simp] theorem recCheap
-    : {motive : ABI.{u, v} A B eq → Sort x}
+    : {motive : AltRepr.{u, v} A B eq → Sort x}
     → {hLog : (z : A) → motive (mkA z)}
     → {hCheap : (z : B) → motive (mkB z)}
     → {eqA : ∀ z, hLog z ≍ hCheap (eq z)}
@@ -535,18 +537,19 @@ set_option trace.Compiler.result true in
 
 end
 
-theorem extB' {a b : ABI.{u, v} _ _ eq} : a.destB = b.destB → a = b := carry.extB
-theorem extA' {a b : ABI.{u, v} _ _ eq} : a.destA = b.destA → a = b := carry.extA
+theorem extB' {a b : AltRepr.{u, v} _ _ eq} : a.destB = b.destB → a = b := carry.extB
+theorem extA' {a b : AltRepr.{u, v} _ _ eq} : a.destA = b.destA → a = b := carry.extA
 
 theorem extB
-    {a b : ABI.{u, v} _ _ eq}
+    {a b : AltRepr.{u, v} _ _ eq}
     : (∀ x y, a = .mkB x → b = .mkB y → x = y) → a = b :=
   fun h => extB' <| h (destB a) (destB b) destB_mkB'.symm destB_mkB'.symm
 theorem extA
-    {a b : ABI.{u, v} _ _ eq}
+    {a b : AltRepr.{u, v} _ _ eq}
     : (∀ x y, a = .mkA x → b = .mkA y → x = y) → a = b :=
   fun h => extA' <| h (destA a) (destA b) destA_mkA'.symm destA_mkA'.symm
 
+set_option allowUnsafeReducibility true in
 attribute [irreducible] rec mkA mkB destA destB
 
 section
@@ -556,7 +559,7 @@ def lift {motive : Sort x}
     (fb : B → motive)
     (eqa : fa = fb ∘ eq)
     (eqb : fb = fa ∘ eq.symm)
-    : ABI _ _ eq → motive :=
+    : AltRepr _ _ eq → motive :=
   rec fa fb
     (heq_of_eq <| congrFun eqa ·)
     (heq_of_eq <| congrFun eqb ·)
@@ -572,5 +575,7 @@ def lift {motive : Sort x}
 
 end
 
-end ABI
+end AltRepr
+
+end
 

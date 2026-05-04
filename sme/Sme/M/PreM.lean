@@ -24,28 +24,30 @@ set_option trace.Compiler.result true in
 /-- Destructor of PreM types -/
 @[inline, specialize P]
 def dest (x : PreM.{u, v} P α)
-    : MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::: PreM.{u, v} P α) :=
+    : MvPFunctor.uLift P 
+      (TypeVec.uLift.{_, v + 1} α ::: PreM.{u, v} P α) :=
   map (TypeVec.id ::: (PreM.corec x.gen ·.down))
     <| transliterate.{u, v, v+1}
     <| x.gen x.g
 
 @[simp]
 theorem dest_corec
-    (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
+    (gen : β →
+      MvPFunctor.uLift.{u, v} P
+        (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (g : β)
     : (corec gen g).dest
-    = map (TypeVec.id ::: (corec gen ∘ ULift.down))
+    = (TypeVec.id ::: (corec gen ∘ ULift.down)) <$$>
       (transliterate.{u,v,v+1} <| gen g) := rfl
 
-/-- Bisimilarity shape for PreM types,
+/-- Bisimulation for PreM types,
     defined using the new bisim definition. -/
 def IsBisim (R : PreM.{u, v} P α → PreM.{u, v} P α → Prop) :=
     ∀ s t, R s t →
       ∃ h : (TypeVec.id ::: Function.const _ PUnit.unit) <$$> s.dest
           = (TypeVec.id ::: Function.const _ PUnit.unit) <$$> t.dest,
       ∀ v, R (s.dest.snd .fz v) (t.dest.snd .fz (cast (by
-        have : s.dest.fst = t.dest.fst := (Sigma.ext_iff.mp h).1
-        rw [this]
+        rw [show s.dest.fst = t.dest.fst from (Sigma.ext_iff.mp h).1]
       ) v))
 
 /-- Legacy bisimilarity shape definition -/
@@ -91,24 +93,22 @@ def Bisim : PreM.{u, v} P α → PreM.{u, v} P α → Prop :=
 
 namespace Bisim
 
+variable {a b c : PreM.{u, v} P α}
+
 theorem refl (x : PreM.{u, v} P α) : Bisim x x :=
   ⟨Eq, fun | _, _, .refl _ => ⟨rfl, fun v => rfl⟩, rfl⟩
 
-variable {a b c : PreM.{u, v} P α}
-
 theorem symm (h : Bisim a b) : Bisim b a :=
   have ⟨r, his, rab⟩ := h
-  ⟨(fun a b => r b a),
-    fun a b h =>
-      have ⟨h, hrel⟩ := his _ _ h
-      ⟨h.symm, fun v => by
-        have := (hrel <| cast (by
-          have : b.dest.fst = a.dest.fst := (Sigma.ext_iff.mp h).1
-          rw [this]) v)
-        rw [cast_cast, cast_eq] at this
-        exact this
-      ⟩
-      , rab⟩
+  ⟨(fun a b => r b a), fun a b h =>
+    have ⟨h, hrel⟩ := his _ _ h
+    ⟨h.symm, fun v => by
+      have := hrel <| cast (by
+        rw [show b.dest.fst = a.dest.fst
+          from (Sigma.ext_iff.mp h).1]) v
+      rw [cast_cast, cast_eq] at this
+      exact this
+    ⟩ , rab⟩
 
 theorem trans (hab : Bisim a b) (hbc : Bisim b c) : Bisim a c :=
   have ⟨r₁, hisAb, rab⟩ := hab
@@ -118,9 +118,9 @@ theorem trans (hab : Bisim a b) (hbc : Bisim b c) : Bisim a c :=
       have ⟨hxy, hxyrel⟩ := hisAb _ _ rxy
       have ⟨hyz, hyzrel⟩ := hisBc _ _ ryz
       refine ⟨hxy.trans hyz, fun v => ⟨_, (hxyrel v), ?_⟩⟩
-      have := (hyzrel <| cast (by 
-          have : x.dest.fst = y.dest.fst := (Sigma.ext_iff.mp hxy).1
-          rw [this]) v)
+      have := (hyzrel <| cast (by
+        rw [show x.dest.fst = y.dest.fst 
+          from (Sigma.ext_iff.mp hxy).1]) v)
       rw [cast_cast] at this
       exact this
     ), ⟨b, rab, rbc⟩⟩
@@ -137,10 +137,7 @@ def setoid (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Setoid (PreM P α
 def uLift (a : PreM.{u, v} P α) : PreM.{u, max v w} P α :=
   .corec (fun x =>
     have v := a.gen x.down
-    ⟨
-      v.fst.transliterate,
-      (.transliterate ::: .up ∘ .transliterate) ⊚ v.snd ⊚ .transliterate
-    ⟩
+    ⟨v.fst.transliterate, (.transliterate ::: .up ∘ .transliterate) ⊚ v.snd ⊚ .transliterate⟩
   ) (ULift.up.{w} a.g)
 
 theorem uLift_dest {a : PreM P α} : (uLift.{u,v,w} a).dest =
