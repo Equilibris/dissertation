@@ -3,6 +3,8 @@
 
 #set raw(lang: "lean")
 
+// TODO: Talk about validation
+
 This chapter will discuss and evaluate each of the components of the dissertation.
 As mentioned in @sec:method,
 I have been writing proofs verifying the correctness of my different components.
@@ -53,12 +55,12 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
   ),
   figure(
     rqtable(
-      [@rq:abi:impl], [Y], [@sec:impl-sm], [`ABI.lean`],
-      [@rq:abi:elim], [Y], [@sec:impl-sm], [`ABI.lean`],
-      [@rq:abi:opt],  [Y], [@sec:eabi],    [`ABI.lean`],
-      [@rq:abi:zc],   [Y], [@sec:eabi],    [`ABI.lean`],
+      [@rq:abi:impl], [Y], [@sec:impl-sm], [`AltRepr.lean`],
+      [@rq:abi:elim], [Y], [@sec:impl-sm], [`AltRepr.lean`],
+      [@rq:abi:opt],  [Y], [@sec:eabi],    [`AltRepr.lean`],
+      [@rq:abi:zc],   [Y], [@sec:eabi],    [`AltRepr.lean`],
     ),
-    caption: [ABI Type],
+    caption: [AltRepr Type],
   ),
   grid.cell(
     colspan: 2,
@@ -103,7 +105,7 @@ I will speak more about this when evaluating the futumorphic productivity.
 
 // TODO: Update this wording
 After building the equivalence,
-and instantiating `ABI`,
+and instantiating `AltRepr`,
 we now have the ability to compare the performance between 4 representations:
 The HpLuM implementation,
 the PA encoding,
@@ -133,8 +135,8 @@ This is in line with the expected theoretical performance.
   caption: [Performance of PA, HpLuM, and SM #sym.amp PreM representation]
 )<ev:fg:perf>
 
-The SM and PreM implementations are drawn from the same distribution TODO: PROVE.
-On the other hand, the HpLuM is 1.5x slower TODO: Prove.
+The SM and PreM implementations are drawn from the same distribution/* TODO: PROVE */.
+On the other hand, the HpLuM is 1.5x slower/* TODO: Prove*/.
 The issue causing this has to do with the destructor function needing to do a universe lowering.
 This adds a fixed cost at each iteration,
 compared to the PreM which calls the destructor function.
@@ -154,9 +156,9 @@ performance, and ergonomics of object construction and usage.
   )
 )
 
-== ABI Type<sec:eabi>
+== AltRepr Type<sec:eabi>
 
-When it comes to the ABI type,
+When it comes to the AltRepr type,
 we have it implemented @rq:abi:impl,
 and we have an eliminator @rq:abi:elim.
 We now have to assess whether or not it is zero cost @rq:abi:zc.
@@ -174,25 +176,25 @@ For the case of `mkA` @eabi:ls:mkA and
 they compile into the expected call to the equivalence.
 This also lets us verify that we have the behaviour of the type `B` @rq:abi:opt.
 
-This means all criteria for the ABI Type are met.
+This means all criteria for the AltRepr Type are met.
 
 #spg(
   figure(
 ```lean
 [Compiler.result] size: 0
-def ABI.destB A B eq a.1 : lcAny :=
+def AltRepr.destB A B eq a.1 : lcAny :=
   return a.1
 ```,
-    caption: [LCNF `ABI.destB`],
+    caption: [LCNF `AltRepr.destB`],
   ),
   <eabi:ls:destB>,
   figure(
 ```lean
 [Compiler.result] size: 0
-def ABI.mkB A B eq a.1 : lcAny :=
+def AltRepr.mkB A B eq a.1 : lcAny :=
   return a.1
 ```,
-    caption: [LCNF `ABI.mkB`],
+    caption: [LCNF `AltRepr.mkB`],
   ),
   <eabi:ls:mkB>,
   grid.cell(rowspan : 2)[
@@ -200,11 +202,11 @@ def ABI.mkB A B eq a.1 : lcAny :=
     #figure(
 ```lean
 [Compiler.result] size: 1
-def ABI.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
+def AltRepr.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
   let _x.2 := hCheap v;
   return _x.2
 ```,
-    caption: [LCNF `ABI.rec`],
+    caption: [LCNF `AltRepr.rec`],
   )
   <eabi:ls:rec> ]
 
@@ -213,32 +215,32 @@ def ABI.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
   figure(
 ```lean
 [Compiler.result] size: 4
-def ABI.destA A B eq a.1 : lcAny :=
+def AltRepr.destA A B eq a.1 : lcAny :=
   let _x.2 := Equiv.symm._redArg eq;
   cases _x.2 : lcAny
   | Equiv.mk toFun invFun left_inv right_inv =>
     let _x.3 := toFun a.1;
     return _x.3
 ```,
-    caption: [LCNF `ABI.destA`],
+    caption: [LCNF `AltRepr.destA`],
   ),
   <eabi:ls:destA>,
   figure(
 ```lean
 [Compiler.result] size: 3
-def ABI.mkA A B eq a.1 : lcAny :=
+def AltRepr.mkA A B eq a.1 : lcAny :=
   cases eq : lcAny
   | Equiv.mk toFun invFun left_inv right_inv =>
     let _x.2 := toFun a.1;
     return _x.2
 ```,
-    caption: [LCNF `ABI.mkA`],
+    caption: [LCNF `AltRepr.mkA`],
   ),
   <eabi:ls:mkA>,
   label: <eabi:ls:code>,
   kind: raw,
   columns: (2fr, 2fr, 1.3fr),
-  caption: [LCNF for functions on the ABI Type],
+  caption: [LCNF for functions on the AltRepr Type],
 )
 
 == Interaction trees
@@ -287,9 +289,6 @@ From this regard both implementations have their merits.
 
 // TODO: unjournalify
 
-Writing the project, #JV, #TG, #AK and I decided implementing interaction trees would be too ambitious.
-For this we decided to make it an extension instead,
-and rather reason about the simpler structure being the non-termination monad.
 Once implementing the SME was done, I moved over to implementing the non-termination monad.
 Here I focused on getting as ergonomic an experience as possible using `mkE` and `destE` for polynomial equivalents.
 In doing this, I realised the expectation of ITrees being much harder was false.

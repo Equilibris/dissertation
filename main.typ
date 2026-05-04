@@ -83,11 +83,16 @@ my aunt Asbjørg Johanne Raanes Passed away (2025-12-19).
 #[
 = Appendicies
 
+#[
+
+#context counter(figure).update(n => 1)
+#show: figure.with(numbering : "A")
+
 #include "content/Appendix/igraph.typ"
-#pagebreak()
 #include "content/Appendix/pred.typ"
-#pagebreak()
 #include "content/Appendix/cardmod.typ"
+
+]
 
 = Proposal
 

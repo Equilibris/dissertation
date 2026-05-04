@@ -12,7 +12,7 @@
   // title-color: rgb("#DD3025") // Cambridge scarlet
   count: "dot-section"
 )
-#show raw: set text(font : "FiraCode Nerd Font")
+#show raw: set text(font : "FiraCode Nerd Font", features: ())
 #show: codly-init.with()
 #codly(languages: codly-languages)
 #set heading(numbering: (.., last) => "")

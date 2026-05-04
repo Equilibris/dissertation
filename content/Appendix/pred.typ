@@ -1,4 +1,3 @@
-
 #import "../utils.typ" : *
 #import "@preview/curryst:0.6.0": rule, prooftree
 #import "@preview/subpar:0.2.2" as subpar: grid as spg

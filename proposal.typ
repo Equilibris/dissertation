@@ -112,7 +112,7 @@ The baseline implementation of this should be straight-forward.
 === Progressive approximation encoding <progapprox>
 
 The other way is to generate them by progressive approximation where earlier trees must "agree" with the later ones.
-Agreement is given by them being the same up to the previous depth as seen in @agree.
+Two trees agree when they are the same up to the previous depth as seen in @agree.
 
 #figure(
   diagram(cell-size:5mm, $

@@ -2,6 +2,7 @@
 // #import "@preview/codly-languages:0.1.8": *
 // #import "@preview/codelst:2.0.2": sourcecode
 #import "@preview/itemize:0.2.0" as el
+#import "@preview/ctheorems:1.1.3": *
 
 #let common(
   title: "My Dissertation",
@@ -26,6 +27,7 @@
   show raw.where(block: true): set text(size: 6pt)
   show: el.default-enum-list
   show: el.config.ref
+  show: thmrules.with(qed-symbol: $square$)
   // TODO: Fix codly
   // show: codly-init.with()
   // codly(languages: codly-languages, number-format : none, display-name: false, zebra-fill: none)
@@ -83,7 +85,7 @@
       }
       v(.5em)
     }
-    else if it.level < 4 {
+    else if it.level < 5 {
       v(1em)
       it
       v(0.5em)

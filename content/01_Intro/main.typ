@@ -1,10 +1,11 @@
 
-Lean @cite:lean is a pure and total functional language.
-Meaning all functions must terminate.
-Often, a problem in programming requires leaving the finite.
-It would be nonsensical to require these to terminate.
-For data like this we use something called a _coinductive_.
-In general purpose programming, these appear all the time, for example Streams.
+Lean @cite:lean is a pure and total functional language,
+meaning all functions must terminate.
+Problems such as program simulation,
+or production of streams of data,
+often requires leaving the finite.
+It would limit expressivity requiring these to terminate.
+We call data like this _coinductive_.
 Researchers working on program verification are also interested in this,
 they use structures called interaction trees as a denotational semantic @cite:itree.
 
@@ -13,8 +14,8 @@ These are implemented as a series of progressive approximations.
 We will refer to this as the PA encoding.
 As a limitation of this encoding unfolding a layer of a coinductive,
 takes time proportional to the depth of the layer.
-A consequence of this is getting a stream to depth $n$ takes $cal(O)(n)$ time,
-this gets dramatically worse as you map streams,
+A consequence of this is getting a stream to depth $n$ takes $cal(O)(n)$ time.
+This gets dramatically worse as you map streams,
 becoming intractable for most programs.
 An alternative encoding stores a generating function,
 parameterized by some carrier, and an initial state.
@@ -28,6 +29,11 @@ prove it is equivalent to the PA encoding,
 and use this to construct an efficient coinduction library.
 Additionally we will implement interaction trees,
 with an equivalence relation that can be used to find contextually equivalent programs.
+
+// TODO:
+// Writing the project, #JV, #TG, #AK and I decided implementing interaction trees would be too ambitious.
+// For this we decided to make it an extension instead,
+// and rather reason about the simpler structure being the non-termination monad.
 
 // This dissertation will prove these structures are equivalent,
 // and use this 

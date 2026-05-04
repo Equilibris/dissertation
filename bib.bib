@@ -306,4 +306,38 @@ keywords = {Rocq, coinduction, compositionality, corecursion, interactive theore
   url     = {https://agda.readthedocs.io/en/v2.8.0-r3/language/universe-levels.html},
   urldate = {2026-05-03}
 }
+@inproceedings{cite:paco,
+    author = {Zakowski, Yannick and He, Paul and Hur, Chung-Kil and Zdancewic, Steve},
+    title = {An equational theory for weak bisimulation via generalized parameterized coinduction},
+    year = {2020},
+    isbn = {9781450370974},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3372885.3373813},
+    doi = {10.1145/3372885.3373813},
+    abstract = {Coinductive reasoning about infinitary structures such as streams is widely applicable. However, practical frameworks for developing coinductive proofs and finding reasoning principles that help structure such proofs remain a challenge, especially in the context of machine-checked formalization. This paper gives a novel presentation of an equational theory for reasoning about structures up to weak bisimulation. The theory is both compositional, making it suitable for defining general-purpose lemmas, and also incremental, meaning that the bisimulation can be created interactively. To prove the theory’s soundness, this paper also introduces generalized parameterized coinduction, which addresses expressivity problems of earlier works and provides a practical framework for coinductive reasoning. The paper presents the resulting equational theory for streams, but the technique applies to other structures too. All of the results in this paper have been proved in Coq, and the generalized parameterized coinduction framework is available as a Coq library.},
+    booktitle = {Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs},
+    pages = {71–84},
+    numpages = {14},
+    keywords = {Coq, coinduction, equational theory, up-to techniques, weak bisimulation},
+    location = {New Orleans, LA, USA},
+    series = {CPP 2020}
+}
+@inproceedings{cite:coind-up-to,
+author = {Pous, Damien},
+title = {Coinduction All the Way Up},
+year = {2016},
+isbn = {9781450343916},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2933575.2934564},
+doi = {10.1145/2933575.2934564},
+abstract = {We revisit coinductive proof principles from a lattice theoretic point of view. By associating to any monotone function a function which we call the companion, we give a new presentation of both Knaster-Tarski's seminal result, and of the more recent theory of enhancements of the coinductive proof method (up-to techniques).The resulting theory encompasses parameterized coinduction, as recently proposed by Hur et al., and second-order reasoning, i.e., the ability to reason coinductively about the enhancements themselves. It moreover resolves a historical peculiarity about up-to context techniques.Based on these results, we present an open-ended proof system allowing one to perform proofs on-the-fly and to neatly separate inductive and coinductive phases.},
+booktitle = {Proceedings of the 31st Annual ACM/IEEE Symposium on Logic in Computer Science},
+pages = {307–316},
+numpages = {10},
+keywords = {Coinduction, Complete lattices, Enhancements, GSOS, Parameterized coinduction},
+location = {New York, NY, USA},
+series = {LICS '16}
+}
 
