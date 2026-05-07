@@ -49,7 +49,6 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
       [@rq:ntm:impl], [Y],   [@sec:impl-sm], [`NTMonad/Defs.lean`],
       [@rq:ntm:mon],  [Y\*], [@sec:itnt],    [`ITree/Monad.lean`],
       [@rq:ntm:lfm],  [Y\*], [@sec:itnt],    [`ITree/Monad.lean`],
-      [@rq:ntm:prod], [Y],   [TODO sec:futu:case], [`NTMonad/Defs.lean`],
     ),
     caption: [NT Monad],
   ),
@@ -88,14 +87,17 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
 
 // As a main focus we will do an analysis of the asymptotics of the SM v PA encodings.
 
-== State-machine encoding
+== State-Machine encoding
 
 For the state-machine encoding,
 there are multiple aspects to evaluate.
+// TODO: 
 For example performance, expressivity, and safety when compared to other implementations.
-The implementations I will test are the PA encoding from #MATHLIB,
-a mathematically optimal encoding,
-and an implementation by #cite(<cite:mslc>, form: "prose") which was started during this project.
+The implementations I will test are:
+1. The PA encoding from #MATHLIB,
+// TODO: Change this to be the PreM
+2. the PreM (@sec:sme:prem) and SM (@sec:sme:impl) encodings as standing in as the optimal encodings,
+3. an implementation by #MS which was started during this project.
 Notably this final implementation is built on domain theoretic methods,
 meaning that instead of requiring productivity,
 all it requires is monotonicity.
@@ -107,76 +109,63 @@ I will speak more about this when evaluating the futumorphic productivity.
 After building the equivalence,
 and instantiating `AltRepr`,
 we now have the ability to compare the performance between 4 representations:
-The HpLuM implementation,
+The #TM,
 the PA encoding,
 and the PreM and quotiented representations SM as theoretical optima.
-For @rq:sme:zc to be the case, the HpLuM would have to be within 1$sigma$ of the PreM encoding.
+For @rq:sme:zc to be the case, the #TM would have to be within 1$sigma$ of the PreM encoding.
 // The SME would be in the same ballpark for @rq:sme:zc to be the case.
 
 I implemented streams for the different encodings,
 then I measured, using a monotonic clock, how long it took to destructure $n$-layers of the stream of natural numbers,
 I repeated this experiment 3 times.
 For the PA, I swept $n in [0,200]$,
-and for HpLuM and PreM, SM encodings $n in [0, 5000]$.
+and for #TM and PreM, SM encodings $n in [0, 5000]$.
 I fit polynomials for each of these implementations,
 then I plot samples, along with the fit.
 This generates the plot @ev:fg:perf.
-As we can see, there is a discrepancy between the HpLuM and PreM encodings.
-For an unknown reason the variance along each of these graphs pulsates,
-this effect is relatively minor, but unexplainable.
+As we can see, there is a discrepancy between the #TM and PreM encodings.
 
 Reviewing the output plot we can see that
 the SME is $cal(O)(1)$ under destructuring,
 as opposed to the PA encoding which is $cal(O)(n)$.
 This is in line with the expected theoretical performance.
 
+// TODO!: state that
+// TODO!: Mention pointer indirection.
+// TODO!: In theory this could be addressed using unsafe cast,
+// but i did nt want more potneital undoundess.
+
 #figure(
   image("../../data/plot.png", width: 6in),
-  caption: [Performance of PA, HpLuM, and SM #sym.amp PreM representation]
+  caption: [Performance of PA, #TM, and SM #sym.amp PreM representation]
 )<ev:fg:perf>
 
 The SM and PreM implementations are drawn from the same distribution/* TODO: PROVE */.
-On the other hand, the HpLuM is 1.5x slower/* TODO: Prove*/.
+On the other hand, the #TM is 1.5x slower/* TODO: Prove*/.
+// TODO: ULift.down
 The issue causing this has to do with the destructor function needing to do a universe lowering.
+In practice this means the #TM adds two pointer indirections over the `PreM`.
 This adds a fixed cost at each iteration,
 compared to the PreM which calls the destructor function.
 
-=== Comparison of corecursor implementations
-
-In this section, I compare the different implementations of coinductives across several aspects:
-performance, and ergonomics of object construction and usage.
-
-#figure(
-  table(
-    columns: 4,
-    table.header[][Diss.][#MATHLIB][#MS],
-    [`dest` performance], $cal(O)(1)$, $cal(O)(n)$, $cal(O)(n)$,
-    [Type Macro], [N], [Y#footnote[For Lean v4.25]], [N],
-    [Function definitions], [`futu`], [`corec`], [`partial_fixpoint`],
-  )
-)
-
 == AltRepr Type<sec:eabi>
 
-When it comes to the AltRepr type,
-we have it implemented @rq:abi:impl,
-and we have an eliminator @rq:abi:elim.
-We now have to assess whether or not it is zero cost @rq:abi:zc.
-To do this, rather than testing the performance,
-I inspect the generated code for each of the 5 functions.
-The 3 functions we care about are `destB` @eabi:ls:destB,
-`mkB` @eabi:ls:mkB, and `rec` @eabi:ls:rec.
-// TODO: check each of these are, v each of these is
-Additionally, each of these are marked with an `@[inline]` hint,
-meaning that in compiled code they do not appear.
-As we see in each of these,
-the functions have become the identity.
-For the case of `mkA` @eabi:ls:mkA and
-`destA` @eabi:ls:destA,
-they compile into the expected call to the equivalence.
-This also lets us verify that we have the behaviour of the type `B` @rq:abi:opt.
+// When it comes to the AltRepr type,
+Going through the requirements of the AltRepr type,
+I implemented it (@rq:abi:impl),
+and added an eliminator (@rq:abi:elim).
+We now have to assess whether usage zero cost (@rq:abi:zc).
 
-This means all criteria for the AltRepr Type are met.
+It is not clear how one would test the performance of the AltRepr type.
+So rather we can read the generated intermediate representation for the functions we care about.
+Inspecting the performance of `mkB` @eabi:ls:mkB and `destB` @eabi:ls:destB,
+we can see they have become the identity.
+The eliminator `rec` has also compiled into simply calling the efficient implementation.
+Additionally, each of these are marked with an `@[inline]` hint,
+meaning that in compiled code they do not even appear.
+This also lets us verify that we have the behaviour of the type `B` (@rq:abi:opt).
+
+This means all success criteria for the AltRepr Type are met.
 
 #spg(
   figure(
@@ -197,9 +186,7 @@ def AltRepr.mkB A B eq a.1 : lcAny :=
     caption: [LCNF `AltRepr.mkB`],
   ),
   <eabi:ls:mkB>,
-  grid.cell(rowspan : 2)[
-    #box[
-    #figure(
+    figure(
 ```lean
 [Compiler.result] size: 1
 def AltRepr.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
@@ -207,43 +194,57 @@ def AltRepr.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
   return _x.2
 ```,
     caption: [LCNF `AltRepr.rec`],
-  )
-  <eabi:ls:rec> ]
+  ),
+  <eabi:ls:rec>,
 
-    #"\n"
-  ],
-  figure(
-```lean
-[Compiler.result] size: 4
-def AltRepr.destA A B eq a.1 : lcAny :=
-  let _x.2 := Equiv.symm._redArg eq;
-  cases _x.2 : lcAny
-  | Equiv.mk toFun invFun left_inv right_inv =>
-    let _x.3 := toFun a.1;
-    return _x.3
-```,
-    caption: [LCNF `AltRepr.destA`],
-  ),
-  <eabi:ls:destA>,
-  figure(
-```lean
-[Compiler.result] size: 3
-def AltRepr.mkA A B eq a.1 : lcAny :=
-  cases eq : lcAny
-  | Equiv.mk toFun invFun left_inv right_inv =>
-    let _x.2 := toFun a.1;
-    return _x.2
-```,
-    caption: [LCNF `AltRepr.mkA`],
-  ),
-  <eabi:ls:mkA>,
+//   grid.cell(rowspan : 2)[
+//     #box[
+//     #figure(
+// ```lean
+// [Compiler.result] size: 1
+// def AltRepr.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
+//   let _x.2 := hCheap v;
+//   return _x.2
+// ```,
+//     caption: [LCNF `AltRepr.rec`],
+//   )
+//   <eabi:ls:rec> ]
+//
+//     #"\n"
+//   ],
+  // TODO: get rid of destA mkA
+//   figure(
+// ```lean
+// [Compiler.result] size: 4
+// def AltRepr.destA A B eq a.1 : lcAny :=
+//   let _x.2 := Equiv.symm._redArg eq;
+//   cases _x.2 : lcAny
+//   | Equiv.mk toFun invFun left_inv right_inv =>
+//     let _x.3 := toFun a.1;
+//     return _x.3
+// ```,
+//     caption: [LCNF `AltRepr.destA`],
+//   ),
+//   <eabi:ls:destA>,
+//   figure(
+// ```lean
+// [Compiler.result] size: 3
+// def AltRepr.mkA A B eq a.1 : lcAny :=
+//   cases eq : lcAny
+//   | Equiv.mk toFun invFun left_inv right_inv =>
+//     let _x.2 := toFun a.1;
+//     return _x.2
+// ```,
+//     caption: [LCNF `AltRepr.mkA`],
+//   ),
+//   <eabi:ls:mkA>,
   label: <eabi:ls:code>,
   kind: raw,
-  columns: (2fr, 2fr, 1.3fr),
+  columns: (auto, auto, auto),
   caption: [LCNF for functions on the AltRepr Type],
 )
 
-== Interaction trees
+== Interaction Trees
 
 // TODO: unjournalify
 
@@ -260,8 +261,6 @@ he informed me of some of the additions to the interaction tree library for Rocq
 These include relations such as simulation up to taus (sutt),
 and relation up to taus (rutt).
 These relations turn out to be useful for compiler verification in for example compcert @cite:compcert.
-One of the reasons for this has to do with undefined behaviour in C,
-specifically non-termination.
 In C, a non-terminating function is UB and therefore should be able to be related to any other function.
 This is in line with the fact that the spinning ITree can be simulated by any other ITree.
 This is as opposed to how the spinning ITree is unique up to weak bisimulation.
@@ -275,34 +274,39 @@ All positive requirements are met
 
 During the production of this dissertation,
 #MS also started work on an interaction tree library.
-This is done using his implementation of coinductives using domain theoretic means.
-This also means that his definition of `iter` is not guaranteed to be productive,
-but also has a nicer unfolding lemma.
+This is done using his implementation of coinductive types using the progressive approximation encoding and domain theoretic means.
+This also means that his definition of `iter` is not required to be productive.
 The reason for this has to do with trying to avoid weak bisimilarity,
 and therefore has no implementation of the relation.
-The primary difference between this dissertation and #MS,
-is he has a much greater focus on effects and interpretation.
-This is something I explicitly avoided stated in @rq:it:eff.
+
+The domain construction of the coinductive datatypes allow for very natural function definitions,
+though unfortunately the definition is still slow.
 From this regard both implementations have their merits.
 
 == Non Termination Monad <sec:itnt>
 
 // TODO: unjournalify
 
-Once implementing the SME was done, I moved over to implementing the non-termination monad.
-Here I focused on getting as ergonomic an experience as possible using `mkE` and `destE` for polynomial equivalents.
-In doing this, I realised the expectation of ITrees being much harder was false.
-I then stopped working on the NTMonad after just implementing @rq:ntm:impl,
-as NTMonad is a special case of ITrees with the empty event.
-I am counting @rq:ntm:lfm and @rq:ntm:mon as completed,
-as the generalization encompasses it.
+The non-termination monad is a special case of interaction trees with no visible events.
+As a consequence of this,
+I will rather let the user implement the non termination monad using interaction trees.
+As stated above interaction trees form a lawful monad,
+thereby through the generalization completing the requirements @rq:ntm:mon and @rq:ntm:lfm.
 
-Later I came back to working on it for evaluating futumorphic productivity then completing @rq:ntm:prod.
+All requirements of the non termination monad are completed by interaction trees.
+
+// Once implementing the SME was done, I moved over to implementing the non-termination monad.
+// Here I focused on getting as ergonomic an experience as possible using `mkE` and `destE` for polynomial equivalents.
+// In doing this, I realised the expectation of ITrees being much harder was false.
+// I then stopped working on the NTMonad after just implementing @rq:ntm:impl,
+// as NTMonad is a special case of ITrees with the empty event.
+// I am counting @rq:ntm:lfm and @rq:ntm:mon as completed,
+// as the generalization encompasses it.
 
 == Futumorphic productivity
 
-By inspecting the table @futu:tb:free,
-we can see we have implemented @rq:ft:corec and @rq:ft:inject.
+By inspecting the @futu:tb:free,
+we can see we have implemented a futumorphism (@rq:ft:corec) and an injection (@rq:ft:inject).
 In the code one can also find the cross universe futumorphism solving @rq:ft:corecu.
 We also have theorems about flattening, mapping and injection proven in the code,
 these are all implemented to fill out a `simp`-set for futumorphism.
@@ -322,6 +326,8 @@ and `flatten` is `inject`'s left-inverse#footnote[These two are not equivalent s
 )<futu:ls:unf>
 
 === Comparing function definitions
+
+// TODO: Dont direclty use requirements.
 
 For evaluating the futumorphism, it is best to put practice over promise,
 for this we can look at some functions written using the current 3 possible styles of writing functions.

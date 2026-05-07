@@ -1,12 +1,13 @@
-import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt, rc
 import numpy as np
 from data import slRuns, hpRuns, bigRuns, preMRuns, smRuns, msRuns
+
+# rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 
 X_LAB = "Stream Index"
 Y_LAB = "Runtime (ms)"
 
-HP = "HpLuM"
+HP = "State machine M-Type"
 PA = "PA encoding"
 BIG = "Big"
 PREM = "PreM-type"
@@ -14,11 +15,12 @@ SM = "SM encoding"
 MS = "MS implementation"
 
 data = {
-    PREM : preMRuns[:3],
-    SM : smRuns[:3],
-    HP : hpRuns[:3],
-    MS : [i[:200] for i in msRuns[:3]],
+    MS : [i[:240] for i in msRuns[:3]],
     PA : slRuns[:3],
+
+    HP : hpRuns[:3],
+    SM : smRuns[:3],
+    PREM : preMRuns[:3],
     # BIG : bigRuns[:3],
 }
 degrees = {
@@ -45,7 +47,7 @@ def plot_performance_comparison(data, fname):
     fig, ax1 = plt.subplots(1, 1, figsize=(8, 4), dpi = 200)
 
     for k, mean in means.items():
-        alpha = .02
+        alpha = 1
         # v = ax1.plot(means, label=k, alpha = alpha)
 
         arr = arrays[k]
@@ -53,12 +55,16 @@ def plot_performance_comparison(data, fname):
         model = models[k]
         lab = show[degrees[k]](model.convert().coef)
 
-        v = ax1.plot([model(i) for i in range(len(mean))], label=lab)
+        v = ax1.plot([model(i) for i in range(len(mean))], 
+            # label=lab
+        )
         col = v[0].get_color()
 
         xs = np.concat([np.arange(len(x)) for x in arr])
         ys = np.concat(arr)
-        ax1.scatter(xs, ys, label=k, color=col, alpha=alpha, s=.5)
+        ax1.scatter(xs, ys, label=k,
+            color=col,
+            alpha=alpha, s=1)
 
     ax1.set_xlabel(X_LAB)
     ax1.set_ylabel(Y_LAB)

@@ -24,14 +24,13 @@
 
 == Work completed
 
-
-
 == Special difficulties
 
 My Supervisor had to take a break half way through the project.
 
 My grandfather Stein-Ulf Sørensen Passed away (2025-10-28),
 my aunt Asbjørg Johanne Raanes Passed away (2025-12-19).
+I missed term for both the funerals.
 
   ],
   acknowledgements: [],
@@ -85,12 +84,13 @@ my aunt Asbjørg Johanne Raanes Passed away (2025-12-19).
 
 #[
 
-#context counter(figure).update(n => 1)
-#show: figure.with(numbering : "A")
+// #context counter(figure).update(n => 1)
+// #show: figure.with(numbering : "A")
 
-#include "content/Appendix/igraph.typ"
 #include "content/Appendix/pred.typ"
+#include "content/Appendix/bench.typ"
 #include "content/Appendix/cardmod.typ"
+#include "content/Appendix/igraph.typ"
 
 ]
 

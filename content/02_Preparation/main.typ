@@ -22,18 +22,17 @@ and other relevant topics.
 
 // TODO: Rephrase this
 // We can start by adding a type for Types,
-// giving us a higher order logic.
+// giving us a higher-order logic.
 Given functions between sets $A, B : Type$ $,A -> B$,
 we can generalize this by changing $B : Type$ to be a function $B : A -> Type$,
 then letting us write the dependent function $(x : A) -> B(x)$.
 We can also do the dual construction,
 and get dependent pairs.
 The inference rules for these can be seen in @dtt:fg:psir.
-These rules should be familiar as they are the analogous to the rules for $forall, exists$ from the natural deduction system,
-their relationship can be seen in @dtt:eq:pt.
+These rules should be familiar as they are analogous to the rules for $forall, exists$ from the natural deduction system; their relationship can be seen in @dtt:eq:pt.
 If you are unfamiliar with dependent types,
 it is often helpful to view them through this relationship.
-For a more in depth look at dependent type theory,
+For a more in-depth look at dependent type theory,
 read @cite:hottbook.
 
 // TODO: You would rather understand a general notion of a dependent type,
@@ -124,7 +123,7 @@ read @cite:hottbook.
 ])
 #figure(
   $ Pi, Sigma stretch(harpoons.rtlb)^("propositional truncation")_("Categorification"^ch) forall, exists $,
-  caption: [Curry-Howard correspondance]
+  caption: [Curry-Howard correspondence]
 )<dtt:eq:pt>
 
 // === Categorically
@@ -139,6 +138,9 @@ read @cite:hottbook.
 ////////////////////////////////////////////////////////////////////////////////
 
 == Lean
+
+// TODO!: Mention Rocq
+// TODO!: Mention cumilativity
 
 Lean @cite:lean is a popular dependently typed proof assistant.
 Lean is famous for multiple reasons, 3 of them are:
@@ -251,7 +253,7 @@ as Lean has a tactic called `native_decide` that runs the generated code outside
 
 When talking about lean we also use the term _definitionally equal_ to mean $beta$,$eta$-equivalent,
 and _propositionally equal_ if two terms are identified by a generalized algebraic data-type.
-Additionally we have _heterogeneous equality_ where the types are only propositionally equal.
+Additionally, we have _heterogeneous equality_ where the types are only propositionally equal.
 
 == Polynomial functors<sec:poly>
 
@@ -569,13 +571,16 @@ We do not need to worry about implementing and proving this as #MATHLIB @cite:ke
 
 === State-Machine encoding <sec:m:sme>
 
+// TODO!: Try to move this to implementation,
+// Consider struct of arrays.
+
 // The State-Machine encoding is the new alternative implementation.
 // First one defines a class of preobject,
 // followed by a definition of bisimilarity that we then quotient over.
 // This definition will be expanded on in @sec:s:sme, and again @sec:impl-sm.
 
 Given some polynomial functor `P`, the state-machine encoding of `M P` is given by:
-some carrier type `α : Type`,
+some _carrier_ type `α : Type`,
 a function (coalgebra) `f : α → P α`,
 and some initial state `a : α`.
 Once this is done there are 2 key problems:
@@ -743,12 +748,11 @@ Using the Free monad one can define a futumorphism
 `futu {β} : (β → P (α ::: Free P α β)) → M P α` @cite:fantomorph @cite:futu @cite:urs.
 This turns out to be exactly the structure wanted.
 
-
-== Interaction trees
+== Interaction Trees
 
 Denotational semantics stands as an alternative to operational semantics,
 where rather than having some relation of program steps,
-one maps syntax to some mathematical object which can reason about directly.
+one maps syntax to some mathematical object which can be reasoned about directly.
 For lambda calculi we have categorical semantics,
 but for imperative languages it can be much harder to find a denotational object.
 
@@ -757,24 +761,24 @@ in which you have a set of visible effects.
 ITrees have 3 constructors, returning a value (monad unit),
 having a silent transition (for non-termination),
 and emitting a visible effect.
-The Rocq definition can be seen in @it:ls:rocq.
+A definition for this can be seen in @it:ls:rocq.
 The effects of the ITree correspond to the effects of the imperative language.
 Some examples could be printing, reading and writing to variables, and reading user input.
 ITrees have a 'monadic interpretation' where the effects are transformed to operations in some monad.
-Further, ITrees have an equivalence relation called Weak Bisimilarity,
+Further, ITrees have an equivalence relation called weak bisimilarity,
 this is bisimilarity modulo silent steps,
 two objects are related if they have the same visible effects and return values.
 
 We will speak more about ITrees in @sec:itree
 
 #figure(
-```Coq
-CoInductive itree (E: Type -> Type) (R: Type): Type :=
-| Ret (r: R)
-| Tau (t: itree E R)
-| Vis {A: Type} (e : E A) (k : A -> itree E R)
+```lean
+coinductive ITree (E : Type → Type) (R : Type) : Type :=
+| ret : R → ITree E R
+| tau : ITree E R → ITree E R
+| vis {A : Type} : E A → (A → ITree E R) → ITree E R
 ```,
-    caption: [Rocq defintion from @cite:itree]
+    caption: [Notational defintion for ITrees]
 )<it:ls:rocq>
 
 == Methodology<sec:method>
@@ -867,7 +871,7 @@ I have done this for the core and each of the extensions of the project.
 #x
 ]
 
-=== State-machine encoding (Core)
+=== State-Machine encoding (Core)
 
 #moscow("S", [
 + The SME Stream MUST be implemented in its high universe form. <rq:sme:stream:impl>
@@ -889,7 +893,7 @@ I have done this for the core and each of the extensions of the project.
 + There WONT be any work towards coinduction-up-to systems.
 ])
 
-=== Non-termination-monad (Core)<pl:sec:ntm>
+=== Non-Termination-Monad (Core)<pl:sec:ntm>
 
 #moscow("N", [
 + The NTMonad MUST be implemented using the SME. <rq:ntm:impl>
@@ -897,7 +901,6 @@ I have done this for the core and each of the extensions of the project.
 ], [
 + The NTMonad SHOULD be a lawful monad. <rq:ntm:lfm>
 ], [
-+ The NTMonad COULD be set up to use @pl:sec:prod. <rq:ntm:prod>
 ], [
 ])
 
@@ -936,13 +939,13 @@ I have done this for the core and each of the extensions of the project.
 === Free Monad (Extension)<pl:sec:prod>
 
 #moscow("F", [
-+ Free Monad MUST have an in-universe futumorphism. <rq:ft:corec>
++ Free Monad MUST have a futumorphism. <rq:ft:corec>
 + Free Monad MUST have an injector. <rq:ft:inject>
 ], [
 + Free Monad SHOULD have proof-principles for unfolding the futumorphism. <rq:ft:unfold>
 + Free Monad SHOULD have proof-principles for the injector. <rq:ft:pinject>
 ], [
-+ Free Monad COULD have a cross universe futumorphism. <rq:ft:corecu>
++ Free Monad COULD have a universe polymorphic futumorphism. <rq:ft:corecu>
 // + Free Monad COULD have a universe transliterator. rq:ft:corecu
 // + Free Monad COULD have the ability to reason about _closed_ trees.
 ], [

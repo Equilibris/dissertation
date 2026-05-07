@@ -4,6 +4,7 @@
 #let MT = [$M$-type]
 #let MTs = [$M$-types]
 
+#let flamboyant(x) = x.replace("max v w", "max 𝓥 𝓦").replace("max u v", "max 𝓤 𝓥").replace("{u", "{𝓤").replace("v}", "𝓥}").replace("u}", "𝓤}").replace("{v", "{𝓥")
 #let takeL(f, s, e) = f.split("\n").slice(s,e).join("\n")
 #let partL(f, ..args) = {
   let args = (0,) + args.pos() + (none,)
@@ -33,5 +34,13 @@
 #let definition = thmbox("definition", "Definition", inset: (x: 1.2em, top: 1em))
 
 #let example = thmplain("example", "Example").with(numbering: none)
+
+#let U = $cal(U)$
+#let V = $cal(V)$
+
+#let TM = [$cal(U)$-universe State-Machine #MT]
+#let TMs = [$cal(U)$-universe State-Machine #MTs]
+
+#let ULift = $"ULift"$
 
 
