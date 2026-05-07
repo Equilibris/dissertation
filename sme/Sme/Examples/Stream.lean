@@ -19,7 +19,7 @@ instance : EquivP (1 + 1) Prod SS.Base where
     right_inv := fun ⟨_, _⟩ => rfl
   }
 
-def SS α := HpLuM SS.Base !![α]
+def SS α := M SS.Base !![α]
 
 namespace SS
 
@@ -37,9 +37,9 @@ open scoped MvFunctor
 theorem map_cons {β} {f : !![α] ⟹ !![β]}
     : f <$$> cons hd v = cons (f .fz hd) (f <$$> v) := by
   ext
-  simp only [Nat.reduceAdd, HpLuM.destE, Nat.succ_eq_add_one, cons, HpLuM.mkE, TypeVec.last_eq,
+  simp only [Nat.reduceAdd, M.destE, Nat.succ_eq_add_one, cons, M.mkE, TypeVec.last_eq,
     TypeVec.append1_get_fz, TypeVec.drop_append1_simp, Vec.append1.get_fz, Function.comp_apply,
-    HpLuM.map_mk, HpLuM.mk_dest, Equiv.apply_symm_apply]
+    M.map_mk, M.mk_dest, Equiv.apply_symm_apply]
   apply Prod.ext <;> rfl
 
 def take (v : SS α) : Nat → List α

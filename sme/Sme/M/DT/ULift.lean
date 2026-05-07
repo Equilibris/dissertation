@@ -1,7 +1,6 @@
 /- import Mathlib.Data.QPF.Multivariate.Constructions.Comp -/
 import Sme.PFunctor.EquivP
 import Sme.PFunctor.Prj
-import Sme.M.HpLuM
 import Sme.M.DT.Defs
 import Sme.Vec
 import Sme.HEq
@@ -65,19 +64,19 @@ def uLift_up {x : Type u}
     (v : DeepThunk P (α ::: x))
     : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x) :=
   .mpr TypeVec.uLift_append1_ULift_uLift <$$>
-    (HpLuM.transpNatIso ulift_NatTrans <| HpLuM.uLift_up v)
+    (M.transpNatIso ulift_NatTrans <| M.uLift_up v)
 
 def uLift_down {x : Type u}
     (v : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x))
     : DeepThunk P (α ::: x) :=
-  HpLuM.uLift_down <| HpLuM.transpNatIso ulift_NatTrans.symm <|
+  M.uLift_down <| M.transpNatIso ulift_NatTrans.symm <|
     .mp TypeVec.uLift_append1_ULift_uLift <$$> v
 
 @[simp]
 theorem uLift_down_up {x} (v : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x))
     : uLift_up (uLift_down v) = v := by
-  simp only [Nat.succ_eq_add_one, uLift_up, uLift_down, HpLuM.uLift_up_down]
-  change _ <$$> (HpLuM.transpNatIso _ ((HpLuM.transpNatIso _).equiv.symm _)) = _
+  simp only [Nat.succ_eq_add_one, uLift_up, uLift_down, M.uLift_up_down]
+  change _ <$$> (M.transpNatIso _ ((M.transpNatIso _).equiv.symm _)) = _
   simp [MvFunctor.map_map]
 
 @[simp]
@@ -85,7 +84,7 @@ theorem uLift_up_down {x} (v : DeepThunk P (α ::: x))
     : uLift_down (uLift_up v) = v := by
   simp only [Nat.succ_eq_add_one, uLift_down, uLift_up, TypeVec.mpr_eq_mp, MvFunctor.map_map,
     TypeVec.mp_mp, TypeVec.mp_rfl, MvFunctor.id_map]
-  change HpLuM.uLift_down ((HpLuM.transpNatIso _).equiv.symm _) = _
+  change M.uLift_down ((M.transpNatIso _).equiv.symm _) = _
   simp
 
 set_option pp.proofs true in
@@ -93,16 +92,16 @@ theorem dest_uLift_down
     {α : TypeVec.{u} _}
     {x : Type u}
     (v : DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift x))
-    : (HpLuM.dest (uLift_down v))
+    : (M.dest (uLift_down v))
     = MvPFunctor.uLift_down
       (ulift_NatTrans.symm.equiv
         (TypeVec.Arrow.mp TypeVec.uLift_append1_ULift_uLift <$$>
           (TypeVec.Arrow.mp TypeVec.uLift_append1_ULift_uLift ::: fun x_1 ↦
-              .up <| ((HpLuM.transpNatIso ulift_NatTrans.symm).equiv
+              .up <| ((M.transpNatIso ulift_NatTrans.symm).equiv
                 (TypeVec.Arrow.mp TypeVec.uLift_append1_ULift_uLift <$$> x_1)).uLift_down ) <$$>
-            HpLuM.dest v)) := by
-  simp only [Nat.succ_eq_add_one, uLift_down, HpLuM.dest_uLift_down, HpLuM.dest_transpNatIso,
-    HpLuM.dest_map, MvFunctor.map_map]
+            M.dest v)) := by
+  simp only [Nat.succ_eq_add_one, uLift_down, M.dest_uLift_down, M.dest_transpNatIso,
+    M.dest_map, MvFunctor.map_map]
   rw [TypeVec.appendFun_comp']
   simp only [TypeVec.id_comp, ←MvFunctor.map_map]
   rw [ulift_NatTrans.symm_nat, ulift_NatTrans.symm_nat,

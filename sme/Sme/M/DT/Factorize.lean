@@ -12,10 +12,10 @@ variable {α β : Type u} {n : Nat} {P : MvPFunctor (n + 1)} {α : TypeVec n}
 
 namespace DeepThunk
 
-def ofBounded : W P α → HpLuM P α :=
-  HpLuM.corec' (wDest' _)
+def ofBounded : W P α → M P α :=
+  M.corec' (wDest' _)
 
-abbrev Finitizable : HpLuM P α → Prop := (∃ bnd, ofBounded bnd = ·)
+abbrev Finitizable : M P α → Prop := (∃ bnd, ofBounded bnd = ·)
 
 @[elab_as_elim]
 def wp_ind {α : TypeVec n} {C : ∀ x : P.last.W, P.WPath x ⟹ α → Sort _}
@@ -37,7 +37,7 @@ def w_ind' {α : TypeVec n} {C : P.W α → Sort _}
   refine this ih'
 
 theorem dest_Finitizable
-    (x : HpLuM P α)
+    (x : M P α)
     : Finitizable x ↔ ∀ v, Finitizable <| x.dest.snd .fz v where
   mp := by
     rintro ⟨x, rfl⟩ h
@@ -45,12 +45,12 @@ theorem dest_Finitizable
     case ih a f' f ih =>
     clear ih
     simp only [Finitizable, ofBounded]
-    rw! (castMode := .all) [HpLuM.dest_corec']
+    rw! (castMode := .all) [M.dest_corec']
     simp
   mpr h := by
     use wMk P x.dest.1 (x.dest.2 ·.fs) (Classical.choose <| h ·)
-    apply HpLuM.ext_dest
-    simp only [ofBounded, HpLuM.dest_corec']
+    apply M.ext_dest
+    simp only [ofBounded, M.dest_corec']
     refine Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs s => ?_
     <;> dsimp
     <;> rw! (castMode := .all) [P.wDest'_wMk]
@@ -65,17 +65,17 @@ def nFinDT (x : DeepThunk P α)
     (h : ¬Finitizable x)
     (f : α .fz → α .fz)
     : TypeVec.splitFun TypeVec.id f <$$> x = x := by
-  apply HpLuM.bisim_map fun a b =>
+  apply M.bisim_map fun a b =>
     ∃ x, b = x
     ∧ a = TypeVec.splitFun TypeVec.id f <$$> x
     ∧ ¬Finitizable x
   · exact ⟨_, rfl, rfl, h⟩
   rintro _ x ⟨_, rfl, rfl, h⟩
-  rw [HpLuM.dest_map]
+  rw [M.dest_map]
   rw! (castMode := .all) [MvFunctor.map_map]
   rw! (castMode := .all) [TypeVec.appendFun_comp']
   dsimp
-  /- simp only [comp.B_eq, ↓existsAndEq, map_fst, not_exists, true_and, HpLuM.dest_map] -/
+  /- simp only [comp.B_eq, ↓existsAndEq, map_fst, not_exists, true_and, M.dest_map] -/
   sorry
 
 end DeepThunk

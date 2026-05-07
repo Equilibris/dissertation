@@ -107,7 +107,7 @@ def equiv' {E R} {X : Type v} : PBase.{u, v} E !![ULift X, R] ≃ Base E R X :=
 end ITree
 
 -- I should be able to detach R and have it reside in v instead but this will require work
-def ITree (R : Type v) : Type (max v (u + 1)) := HpLuM (ITree.PBase E) !![ULift R]
+def ITree (R : Type v) : Type (max v (u + 1)) := M (ITree.PBase E) !![ULift R]
 
 namespace ITree
 
@@ -117,9 +117,9 @@ infix:100 " ↝ " => PFunc
 
 variable {E} {R : Type _}
 
-def dest : ITree E R → Base E (ITree E R) R := Base.map id ULift.down ∘ HpLuM.destE
+def dest : ITree E R → Base E (ITree E R) R := Base.map id ULift.down ∘ M.destE
 def mk (v : Base E (ITree E R) R) : ITree E R :=
-  HpLuM.mkE (show _ from Base.map id ULift.up v)
+  M.mkE (show _ from Base.map id ULift.up v)
 
 @[simp]
 theorem _root_.ULift.up_down' {A : Type u} : (ULift.up ∘ ULift.down (α := A)) = id :=
@@ -130,10 +130,10 @@ theorem _root_.ULift.down_up' {A : Type u} : (ULift.down (α := A) ∘ ULift.up)
 
 @[simp] theorem dest_mk {v : ITree E R} : mk (dest v) = v := by
   dsimp [mk, dest]
-  rw [Base.map_map, ULift.up_down', Function.comp_id, Base.map_id, HpLuM.destE_mkE ]
+  rw [Base.map_map, ULift.up_down', Function.comp_id, Base.map_id, M.destE_mkE ]
 @[simp] theorem mk_dest {v : Base E (ITree E R) R} : dest (mk v) = v := by
   dsimp [mk, dest]
-  rw [HpLuM.mkE_destE, Base.map_map, ULift.down_up', Function.comp_id, Base.map_id]
+  rw [M.mkE_destE, Base.map_map, ULift.down_up', Function.comp_id, Base.map_id]
 
 theorem dest.bij : Function.Bijective (dest : ITree E R → _) :=
   Function.bijective_iff_has_inverse.mpr ⟨
@@ -168,7 +168,7 @@ theorem dest_vis {A} {e : E A} {c : A → ITree E R} : dest (vis e c) = .vis e c
   simp [mk, vis, dest]
 
 def corec {β} (f : β → Base E β R) : β → ITree E R :=
-  HpLuM.corec (match f · with
+  M.corec (match f · with
     | .ret r => ⟨.up .ret, fun | .fz, h => h.down.elim | .fs .fz, _ => .up (.up r)⟩
     | .tau t => ⟨.up .tau, fun | .fz, _ => .up t | .fs .fz, h => h.down.elim⟩
     | .vis e c => ⟨.up (.vis _ e), fun | .fz, v => .up (c v.down.down) | .fs .fz, h => h.down.elim⟩
@@ -177,8 +177,8 @@ def corec {β} (f : β → Base E β R) : β → ITree E R :=
 @[simp]
 theorem dest_corec {β g} (gen : β → Base E β R)
     : (corec gen g).dest = (gen g).map (corec gen) id := by
-  dsimp [corec, dest, HpLuM.destE]
-  rw [HpLuM.dest_corec, ←corec]
+  dsimp [corec, dest, M.destE]
+  rw [M.dest_corec, ←corec]
   cases gen g
   · rfl
   · rfl
@@ -196,7 +196,7 @@ theorem dest_corec {β g} (gen : β → Base E β R)
 
 @[ext 100]
 theorem dest_eq {a b : ITree E R} (h : dest a = dest b) : a = b :=
-  HpLuM.ext_destE <| Base.map_inj
+  M.ext_destE <| Base.map_inj
     Function.injective_id
     ULift.down_injective
     h
@@ -206,7 +206,7 @@ theorem mk_eq {a b : Base E _ R} (h : mk a = mk b) : a = b :=
   Base.map_inj
     Function.injective_id
     ULift.up_injective
-    <| HpLuM.ext_mkE h
+    <| M.ext_mkE h
 
 /- def dtcorec -/
 /-     {β : Type v} -/

@@ -45,10 +45,10 @@ theorem trans {x y z} : Bisim' E R x y → Bisim' E R y z → Bisim' E R x z :=
 
 inductive Invariant'
     (Z :
-      PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]] →
-      PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]] → Prop)
-    : PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]]
-    → PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]] → Prop
+      PBase.{u, v} E !![ULift R, M (PBase E) !![ULift R]] →
+      PBase.{u, v} E !![ULift R, M (PBase E) !![ULift R]] → Prop)
+    : PBase.{u, v} E !![ULift R, M (PBase E) !![ULift R]]
+    → PBase.{u, v} E !![ULift R, M (PBase E) !![ULift R]] → Prop
   | ret {v} : Invariant' _ ⟨.ret, v⟩ ⟨.ret, v⟩
   | tau {a b}
     : Z (a .fz PUnit.unit).dest (b .fz PUnit.unit).dest
@@ -57,11 +57,11 @@ inductive Invariant'
     : (∀ z, Z (a .fz z).dest (b .fz z).dest )
     → Invariant' _ ⟨.vis A e, a⟩ ⟨.vis A e, b⟩
 
-theorem toInvariant' {x y : PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]]} {r}
+theorem toInvariant' {x y : PBase.{u, v} E !![ULift R, M (PBase E) !![ULift R]]} {r}
     (v : Invariant E R r ((equiv' x)) (equiv' y))
     : Invariant' (fun (a b) => r (equiv' a) (equiv' b)) x y := by
   change Invariant' _ (id x) (id y)
-  have : _ = (id : PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift R]] → PBase _ _) :=
+  have : _ = (id : PBase.{u, v} E !![ULift R, M (PBase E) !![ULift R]] → PBase _ _) :=
     equiv'.symm_comp_self
   rw [←this]; dsimp
   generalize equiv' x = x, equiv' y = y at *
@@ -72,11 +72,11 @@ theorem toInvariant' {x y : PBase.{u, v} E !![ULift R, HpLuM (PBase E) !![ULift 
 
 theorem bisim (a b : ITree E R) : Bisim' E R a.dest b.dest → a = b := by
   intro ⟨r, his, rab⟩
-  apply HpLuM.bisim (fun (a b : ITree _ _) => r a.dest b.dest) rab
+  apply M.bisim (fun (a b : ITree _ _) => r a.dest b.dest) rab
   clear *-his
   intro a b rab
   have v := toInvariant' <| his rab
-  dsimp [equiv', dest, HpLuM.destE] at v
+  dsimp [equiv', dest, M.destE] at v
   generalize a.dest = x, b.dest = y at *
   clear *-v his
   rcases v with (_|v|v)

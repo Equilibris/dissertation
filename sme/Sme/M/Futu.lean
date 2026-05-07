@@ -12,7 +12,7 @@ universe u v w
 variable {n : Nat} {β : Type _} {α : TypeVec.{u} n}
 
 def Free (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) (β : Type v) : Type max u v :=
-  HpLuM (comp DTSum !![const _ (ULift β), P.uLift]) α.uLift
+  M (comp DTSum !![const _ (ULift β), P.uLift]) α.uLift
 
 variable {P : MvPFunctor (n + 1)}
 
@@ -31,7 +31,7 @@ def cont' (v : P (α ::: Free P α β)) : Free P α β :=
 def cases {motive : Free P α β → Sort _}
     (hCont : ∀ v, motive (cont v)) (hRecall : ∀ v, motive (recall v))
     (v : _) : motive v := by
-  cases v using HpLuM.mk_cases; next v =>
+  cases v using M.mk_cases; next v =>
   cases v using comp.mk_cases; next v =>
   cases v using DTSum.cases
   case hCont =>
@@ -54,7 +54,7 @@ def cases' {motive : Free P α β → Sort _}
 
 def dest (v : Free P α β) : β ⊕ P.uLift (α.uLift ::: Free P α β) :=
   DTSum.cases .inr (.inl ∘ ULift.down ∘ const.get)
-    (comp.get (HpLuM.dest v))
+    (comp.get (M.dest v))
 
 def dest' : Free P α β → β ⊕ P (α ::: Free P α β) :=
   Sum.map id (downMap id) ∘ dest
@@ -85,13 +85,13 @@ theorem dest'_cont {v} : dest' (.cont v : Free P α β) = .inr (downMap id v) :=
 theorem ext {a b : Free P α β}
     (h : a.dest = b.dest)
     : a = b := by
-  cases a using HpLuM.mk_cases; next a =>
-  cases b using HpLuM.mk_cases; next b =>
+  cases a using M.mk_cases; next a =>
+  cases b using M.mk_cases; next b =>
   cases a using comp.mk_cases; next a =>
   cases b using comp.mk_cases; next b =>
   cases a using DTSum.cases
   <;> cases b using DTSum.cases
-  <;> simp only [dest, Vec.append1.get_fz, Vec.append1.get_fs, HpLuM.mk_dest, comp.get_mk,
+  <;> simp only [dest, Vec.append1.get_fz, Vec.append1.get_fs, M.mk_dest, comp.get_mk,
     DTSum.cases_cont, Sum.inr.injEq, DTSum.cases_recall, Function.comp_apply, reduceCtorEq,
     Sum.inl.injEq, ULift.down_inj] at h
   · subst h; rfl
@@ -135,7 +135,7 @@ def corec {γ : Type w}
     (gen : γ → β ⊕ P.uLift (α.uLift ::: ULift.{u} γ))
     (v : γ)
     : Free P α β :=
-  HpLuM.corec body v
+  M.corec body v
 where body := (
   equiv.symm <|
     match gen · with
@@ -152,7 +152,7 @@ def corec' {γ : Type _}
     (gen : γ → β ⊕ P (α ::: γ))
     (v : γ)
     : Free P α β :=
-  HpLuM.corec' body v
+  M.corec' body v
 where body := (
   match gen · with
   | .inl v =>
@@ -168,7 +168,7 @@ theorem dest_corec {γ : Type w}
     (v : γ)
     : (corec gen v).dest = (gen v).map id (transliterateMap (corec gen ∘ ULift.down)) := by
   dsimp [corec, dest]
-  rw [HpLuM.dest_corec]
+  rw [M.dest_corec]
   dsimp [corec.body]
   rcases gen v with (v|v)
   <;> dsimp
@@ -193,7 +193,7 @@ theorem dest'_corec' {γ : Type _}
     (v : γ)
     : (corec' gen v).dest' = (gen v).map id (MvFunctor.map (TypeVec.id ::: corec' gen)) := by
   simp only [dest', corec', Function.comp_apply, dest, Vec.append1.get_fz, Vec.append1.get_fs,
-    HpLuM.dest_corec', corec'.body, TypeVec.mpr_eq_mp]
+    M.dest_corec', corec'.body, TypeVec.mpr_eq_mp]
   rcases gen v with (_|_)
   · simp [comp.map_mk]
   · simp only [comp.map_mk, DTSum.map_cont, Vec.append1.get_fz, map_map, comp.get_mk,
@@ -240,31 +240,31 @@ theorem bisim {a b : Free P α β}
               rw [show s.fst = t.fst from (Sigma.ext_iff.mp x).1]) v)))
         s.dest t.dest)
     : a = b := by
-  apply HpLuM.bisim_map R x
+  apply M.bisim_map R x
   intro s t r
   change Free _ _ _ at s t
   have := h s t r
-  cases s using HpLuM.mk_cases; next s =>
-  cases t using HpLuM.mk_cases; next t =>
+  cases s using M.mk_cases; next s =>
+  cases t using M.mk_cases; next t =>
   cases s using comp.mk_cases; next s =>
   cases t using comp.mk_cases; next t =>
   cases s using DTSum.cases
   <;> cases t using DTSum.cases
-  <;> simp only [dest, Vec.append1.get_fz, Vec.append1.get_fs, HpLuM.mk_dest, comp.get_mk,
+  <;> simp only [dest, Vec.append1.get_fz, Vec.append1.get_fs, M.mk_dest, comp.get_mk,
     DTSum.cases_recall, Function.comp_apply, Sum.liftRel_inl_inl, ULift.down_inj,
     DTSum.cases_cont, Sum.not_liftRel_inl_inr, Sum.not_liftRel_inr_inl, Sum.liftRel_inr_inr] at this
   <;> rename_i s t
   <;> dsimp at s t
-  · simp only [map_fst, HpLuM.mk_dest, comp.map_mk, DTSum.map_cont, Vec.append1.get_fz]
+  · simp only [map_fst, M.mk_dest, comp.map_mk, DTSum.map_cont, Vec.append1.get_fz]
     rcases this with ⟨hc, hr⟩
     use hc ▸ rfl
     intro v
     conv =>
       rhs
-      rewrite! (castMode := .all) [HpLuM.mk_dest]
+      rewrite! (castMode := .all) [M.mk_dest]
       skip
-    rw! (castMode := .all) [HpLuM.mk_dest]
-    rewrite! (castMode := .all) [HpLuM.mk_dest]
+    rw! (castMode := .all) [M.mk_dest]
+    rewrite! (castMode := .all) [M.mk_dest]
     dsimp
     rw [DTSum.comp_cont_fst, DTSum.comp_cont_fst]
     clear *-hr
@@ -291,9 +291,9 @@ theorem bisim {a b : Free P α β}
   · cases s using const.mk_cases; next s =>
     cases t using const.mk_cases
     subst this
-    simp only [const.get_mk, map_fst, cast_eq, HpLuM.mk_dest, exists_const]
+    simp only [const.get_mk, map_fst, cast_eq, M.mk_dest, exists_const]
     intro v
-    simp only [HpLuM.mk_dest] at v
+    simp only [M.mk_dest] at v
     rcases v with ⟨(_|_|_|_),(_|_),(_|_)⟩
 
 theorem bisim' {a b : Free P α β}
@@ -529,23 +529,23 @@ instance : LawfulMonad (Free P α) where
     rw [pure_bind]
     rfl
 
-def inject β : HpLuM P α → Free P α β :=
-  .corec <| .inr ∘ upMap .up ∘ HpLuM.dest
+def inject β : M P α → Free P α β :=
+  .corec <| .inr ∘ upMap .up ∘ M.dest
 
 @[simp]
-theorem dest_inject {x : HpLuM P α} : (inject β x).dest = .inr (upMap (inject _) x.dest) := by
+theorem dest_inject {x : M P α} : (inject β x).dest = .inr (upMap (inject _) x.dest) := by
   simp [inject, transliterateMap_upMap_upMap]
   rfl
 
 @[simp]
-theorem dest'_inject {x : HpLuM P α}
+theorem dest'_inject {x : M P α}
     : (inject β x).dest'
     = .inr ((TypeVec.id ::: inject _) <$$>x.dest) := by
   simp [dest']
 
 @[simp]
 theorem map_inject {β γ}
-    {x : HpLuM P α}
+    {x : M P α}
     (f : β → γ)
     : map f (inject β x) = inject γ x := by
   apply bisim (fun a b => ∃ x, a = map f (inject β x) ∧ b = inject γ x) ⟨_, rfl, rfl⟩
@@ -557,17 +557,17 @@ theorem map_inject {β γ}
 
 theorem inject_injective : Function.Injective (inject (P := P) (α := α) β) := by
   intro x y h
-  apply HpLuM.bisim_map (inject β · = inject β ·) h
+  apply M.bisim_map (inject β · = inject β ·) h
   intro s t h
   have := Free.ext_iff.mp h
-  cases s using HpLuM.mk_cases; next s =>
-  cases t using HpLuM.mk_cases; next t =>
+  cases s using M.mk_cases; next s =>
+  cases t using M.mk_cases; next t =>
   rcases s with ⟨sh, st⟩
   rcases t with ⟨th, tt⟩
-  simp only [dest_inject, HpLuM.mk_dest, Sum.inr.injEq] at this ⊢
+  simp only [dest_inject, M.mk_dest, Sum.inr.injEq] at this ⊢
   obtain rfl : sh = th := (ULift.up.injEq _ _).mp (Sigma.ext_iff.mp this).1
   have h' := funext_iff.mp <| eq_of_heq (Sigma.ext_iff.mp this).2
-  rw! [HpLuM.mk_dest, HpLuM.mk_dest]
+  rw! [M.mk_dest, M.mk_dest]
   simp only [map_mk, cast_eq, exists_prop]
   refine ⟨Sigma.ext rfl <| heq_of_eq <| funext₂ fun
     | .fz, h => rfl
@@ -575,8 +575,8 @@ theorem inject_injective : Function.Injective (inject (P := P) (α := α) β) :=
     (funext_iff.mp (h' .fz) <| .up ·)
   ⟩
 
-def flatten : Free P α (HpLuM P α) → HpLuM P α :=
-  .corec' body ∘ Sum.inl (β := HpLuM P α)
+def flatten : Free P α (M P α) → M P α :=
+  .corec' body ∘ Sum.inl (β := M P α)
 where
   body := Sum.elim
     (Sum.elim
@@ -584,34 +584,34 @@ where
       (MvFunctor.map (TypeVec.id ::: .inl))
     ∘ dest')
     handle
-  handle := MvFunctor.map (TypeVec.id ::: .inr) ∘ HpLuM.dest
+  handle := MvFunctor.map (TypeVec.id ::: .inr) ∘ M.dest
 
-theorem flatten_inr : HpLuM.corec' (P := P) (α := α) flatten.body ∘ Sum.inr = id := by
+theorem flatten_inr : M.corec' (P := P) (α := α) flatten.body ∘ Sum.inr = id := by
   funext x
   dsimp
-  apply HpLuM.bisim_map (fun a b => .corec' flatten.body (.inr b) = a) rfl
+  apply M.bisim_map (fun a b => .corec' flatten.body (.inr b) = a) rfl
   rintro _ x rfl
-  simp only [map_fst, HpLuM.dest_corec']
+  simp only [map_fst, M.dest_corec']
   refine ⟨?a, ?_⟩
   · simp [flatten.body, flatten.handle, MvPFunctor.map_map, TypeVec.appendFun_comp']
   intro v
-  rw! (castMode := .all) [HpLuM.dest_corec']
+  rw! (castMode := .all) [M.dest_corec']
   simp
   rfl
 
 @[simp]
 theorem dest_flatten {x : Free P α _}
     : (flatten x).dest
-    = x.dest'.elim HpLuM.dest (MvFunctor.map (TypeVec.id ::: flatten))
+    = x.dest'.elim M.dest (MvFunctor.map (TypeVec.id ::: flatten))
     := by
-  change HpLuM.dest (.corec' _ _) = _
-  simp only [HpLuM.dest_corec']
+  change M.dest (.corec' _ _) = _
+  simp only [M.dest_corec']
   cases x using cases'
   · simp [flatten.body, MvPFunctor.map_map, TypeVec.appendFun_comp']
     rfl
   · simp only [flatten.body, flatten.handle, Sum.elim_inl, Function.comp_apply, dest'_recall,
       map_map, TypeVec.appendFun_comp', TypeVec.comp_id]
-    change (TypeVec.id ::: HpLuM.corec' flatten.body ∘ _) <$$> _ = _
+    change (TypeVec.id ::: M.corec' flatten.body ∘ _) <$$> _ = _
     rw [flatten_inr, TypeVec.appendFun_id_id, MvFunctor.id_map]
 
 @[simp]
@@ -633,8 +633,8 @@ theorem flatten_cont' {x}
   simp
 
 @[simp high]
-theorem flatten_inject {x : HpLuM P α} : flatten (inject _ x) = x := by
-  apply HpLuM.bisim_map (fun a b => flatten (inject _ b) = a) rfl
+theorem flatten_inject {x : M P α} : flatten (inject _ x) = x := by
+  apply M.bisim_map (fun a b => flatten (inject _ b) = a) rfl
   rintro _ x rfl
   refine ⟨?_, ?_⟩
   · simp [dest_flatten, MvPFunctor.map_map, TypeVec.appendFun_comp']
@@ -645,13 +645,13 @@ theorem flatten_inject {x : HpLuM P α} : flatten (inject _ x) = x := by
 def futu
     (f : β → P.uLift (α.uLift ::: Free P α β))
     (seed : β)
-    : HpLuM P α :=
+    : M P α :=
   .corec (transliterateMap (.up ∘ Sum.elim f id ∘ dest)) (f seed)
 
 def futu'
     (f : β → P (α ::: Free P α β))
     (seed : β)
-    : HpLuM P α :=
+    : M P α :=
   .corec' (MvFunctor.map (TypeVec.id ::: Sum.elim f id ∘ dest')) (f seed)
 
 theorem futu_flatten_mk
@@ -659,24 +659,24 @@ theorem futu_flatten_mk
     (seed : β)
     : futu f seed = .mk (downMap (flatten ∘ map (futu f)) (f seed)) := by
   dsimp [futu]
-  apply HpLuM.bisim_map (fun a b =>
+  apply M.bisim_map (fun a b =>
     a = b ∨
     ∃ x,
-      a = HpLuM.corec (transliterateMap (ULift.up ∘ Sum.elim f id ∘ dest)) x ∧
-      b = HpLuM.mk (downMap.{u, u_1} (flatten ∘ map (futu f)) x)
+      a = M.corec (transliterateMap (ULift.up ∘ Sum.elim f id ∘ dest)) x ∧
+      b = M.mk (downMap.{u, u_1} (flatten ∘ map (futu f)) x)
     ) <| .inr ⟨_, rfl, rfl⟩
   rintro _ _ (rfl|⟨x, rfl, rfl⟩)
   · simp
   refine ⟨?_, ?_⟩
-  · simp only [HpLuM.dest_corec, uLift_down_nat, TypeVec.Arrow.arrow_uLift_appendFun,
+  · simp only [M.dest_corec, uLift_down_nat, TypeVec.Arrow.arrow_uLift_appendFun,
       TypeVec.Arrow.arrow_uLift_id, Function.const_comp, Function.comp_const, TypeVec.mpr_eq_mp,
       map_map, TypeVec.comp_assoc, TypeVec.mp_mp_assoc, TypeVec.mp_rfl, TypeVec.id_comp,
-      TypeVec.appendFun_comp', TypeVec.comp_id, HpLuM.mk_dest, map_downMap, TypeVec.appendFun_id_id,
+      TypeVec.appendFun_comp', TypeVec.comp_id, M.mk_dest, map_downMap, TypeVec.appendFun_id_id,
       MvFunctor.id_map]
     rw [←MvPFunctor.map_map, transliterateMap_map, TypeVec.appendFun_id_id, MvFunctor.id_map]
     simp [eq_downMap]
   intro v
-  rw! (castMode := .all) [HpLuM.dest_corec, HpLuM.mk_dest]
+  rw! (castMode := .all) [M.dest_corec, M.mk_dest]
   dsimp [transliterateMap , downMap]
   rw [eqRec_eq_cast]
   generalize_proofs p1 p2 p3
@@ -691,7 +691,7 @@ theorem futu_flatten_mk
     refine ⟨_, rfl, ?_⟩
     simp only [map_cont, flatten_cont, downMap_transliterateMap_downMap, ← map_map, eq_downMap]
     ext
-    simp only [HpLuM.mk_dest]
+    simp only [M.mk_dest]
     rw [downMap_map, TypeVec.appendFun_id_id]
     rfl
   · left
@@ -704,24 +704,24 @@ theorem futu_flatten
     (f : β → P.uLift (α.uLift ::: Free P α β))
     (seed : β)
     : (futu f seed).dest = downMap (flatten ∘ map (futu f)) (f seed) := by
-  rw [futu_flatten_mk, HpLuM.mk_dest]
+  rw [futu_flatten_mk, M.mk_dest]
 
 theorem futu'_flatten_mk
     (f : β → P (α ::: Free P α β))
     (seed : β)
     : futu' f seed = .mk ((TypeVec.id ::: flatten ∘ map (futu' f)) <$$> f seed) := by
-  change HpLuM.corec' _ (f seed) = _
-  apply HpLuM.bisim_map (fun a b =>
+  change M.corec' _ (f seed) = _
+  apply M.bisim_map (fun a b =>
     a = b
-    ∨ ∃ x, a = HpLuM.corec' (MvFunctor.map (TypeVec.id ::: Sum.elim f id ∘ dest')) x ∧
-           b = HpLuM.mk ((TypeVec.id ::: flatten ∘ map (futu'.{u} f)) <$$> x)
+    ∨ ∃ x, a = M.corec' (MvFunctor.map (TypeVec.id ::: Sum.elim f id ∘ dest')) x ∧
+           b = M.mk ((TypeVec.id ::: flatten ∘ map (futu'.{u} f)) <$$> x)
     ) <| .inr ⟨_, rfl, rfl⟩
   rintro _ _ (rfl|⟨x,rfl,rfl⟩)
   · simp
-  simp only [map_fst, HpLuM.dest_corec', map_map, TypeVec.appendFun_comp', TypeVec.comp_id,
-    Function.const_comp, HpLuM.mk_dest, exists_true_left]
+  simp only [map_fst, M.dest_corec', map_map, TypeVec.appendFun_comp', TypeVec.comp_id,
+    Function.const_comp, M.mk_dest, exists_true_left]
   intro v
-  rw! (castMode := .all) [HpLuM.dest_corec', HpLuM.mk_dest]
+  rw! (castMode := .all) [M.dest_corec', M.mk_dest]
   simp only [eqRec_eq_cast, map_fst, map_snd, TypeVec.comp.get, TypeVec.append1_get_fz,
     TypeVec.appendFun.get_fz, Function.comp_apply, cast_eq]
   generalize_proofs p; generalize (x.snd Fin2.fz (cast p v)) = x; clear *-
@@ -741,7 +741,7 @@ theorem futu'_flatten
     : (futu' f seed).dest
     = (TypeVec.id ::: flatten ∘ map.{u} (futu' f))
     <$$> f seed := by
-  rw [futu'_flatten_mk, HpLuM.mk_dest]
+  rw [futu'_flatten_mk, M.mk_dest]
 
 section mvmap
 
@@ -824,16 +824,16 @@ theorem mvmap_bind {β'}
 @[simp]
 theorem mvmap_flatten
     {f : α ⟹ α'}
-    {v : Free P α (HpLuM P α)}
+    {v : Free P α (M P α)}
     : f <$$> flatten (P := P) v
     = flatten (map (MvFunctor.map f) (f.arrow_uLift <$$> v)) := by
-  apply HpLuM.bisim_map
+  apply M.bisim_map
     (fun a b => a = b
       ∨ ∃ v, a = f <$$> flatten v ∧ b = flatten (map (MvFunctor.map f) (f.arrow_uLift <$$> v)))
     <| .inr ⟨v, rfl, rfl⟩
   rintro _ _ (rfl|⟨v, rfl, rfl⟩)
   · simp
-  simp only [map_fst, HpLuM.dest_map, dest_flatten, MvFunctor.map_map, TypeVec.appendFun_comp',
+  simp only [map_fst, M.dest_map, dest_flatten, MvFunctor.map_map, TypeVec.appendFun_comp',
     TypeVec.id_comp, Function.const_comp, dest'_map, Sum.elim_map]
   cases v using cases
   · simp only [dest'_cont, Sum.elim_inr, MvFunctor.map_map, TypeVec.appendFun_comp',
@@ -845,7 +845,7 @@ theorem mvmap_flatten
     use rfl
     intro v
     right
-    rw! (castMode := .all) [flatten_cont, HpLuM.dest_map, HpLuM.mk_dest]
+    rw! (castMode := .all) [flatten_cont, M.dest_map, M.mk_dest]
     simp only [downMap, map_snd, uLift_down_fst, map_fst, uLift_down_snd, TypeVec.comp.get,
       TypeVec.append1_get_fz, TypeVec.appendFun.get_fz, TypeVec.uLift_arrow.get, TypeVec.mp.get,
       Function.comp_apply, cast_eq]
@@ -855,7 +855,7 @@ theorem mvmap_flatten
     simp only [Sum.map_inr, Sum.elim_inr, map_fst, cast_eq, map_snd, TypeVec.comp.get,
       TypeVec.append1_get_fz, TypeVec.appendFun.get_fz, Function.comp_apply]
     rfl
-  · simp only [dest'_recall, Sum.elim_inl, mvmap_recall, Function.comp_apply, HpLuM.dest_map,
+  · simp only [dest'_recall, Sum.elim_inl, mvmap_recall, Function.comp_apply, M.dest_map,
       map_map, TypeVec.appendFun_comp', TypeVec.id_comp, Function.const_comp, exists_true_left]
     intro v
     left
@@ -866,13 +866,13 @@ theorem mvmap_flatten
 
 @[simp]
 theorem mvmap_inject
-    {v : HpLuM P α}
+    {v : M P α}
     : (f <$$> inject.{u, v} (P := P) β v)
     = inject β (f.uLift_arrow <$$> v) := by
   apply bisim (∃ v, · = f <$$> inject β v ∧ · = inject β (f.uLift_arrow <$$> v)) ⟨v, rfl, rfl⟩
   rintro _ _ ⟨v, rfl, rfl⟩
   simp only [dest_mvmap, dest_inject, Sum.map_inr, map_upMap', upMap_map, Function.comp_id,
-    HpLuM.dest_map, Sum.liftRel_inr_inr, cast_eq, Function.const_comp, TypeVec.Arrow.ulift_arrow_id,
+    M.dest_map, Sum.liftRel_inr_inr, cast_eq, Function.const_comp, TypeVec.Arrow.ulift_arrow_id,
     MvFunctor.map_map, TypeVec.appendFun_comp', TypeVec.id_comp, exists_const]
   intro v
   simp only [upMap, TypeVec.mpr_eq_mp, map_snd, uLift_up_fst, map_fst, uLift_up_snd,

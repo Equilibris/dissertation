@@ -1,6 +1,5 @@
 import Sme.PFunctor.EquivP
 import Sme.PFunctor.Prj
-import Sme.M.HpLuM
 import Sme.M.DT.Defs
 import Sme.Vec
 import Sme.HEq

@@ -45,10 +45,10 @@ instance {n} : {i : Fin2 n} → EquivP _ (innerMapperC i) (innerMapper i)
 abbrev NatTrans {n} (P : MvPFunctor n) : MvPFunctor (n + 1) := .comp P innerMapper
 end DeepThunk
 
-def DeepThunk {n} (P : MvPFunctor n) := HpLuM (DeepThunk.NatTrans P)
+def DeepThunk {n} (P : MvPFunctor n) := M (DeepThunk.NatTrans P)
 
-instance {n} {P : MvPFunctor n} : MvFunctor <| DeepThunk P := HpLuM.instMvFunctor
-instance {n} {P : MvPFunctor n} : LawfulMvFunctor <| DeepThunk P := HpLuM.instLawfulMvFunctor
+instance {n} {P : MvPFunctor n} : MvFunctor <| DeepThunk P := M.instMvFunctor
+instance {n} {P : MvPFunctor n} : LawfulMvFunctor <| DeepThunk P := M.instLawfulMvFunctor
 
 namespace DeepThunk
 

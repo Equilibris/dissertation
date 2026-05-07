@@ -7,16 +7,16 @@ universe u v
 
 namespace Sme
 
-def NTMonad α := HpLuM DTSum !![α]
+def NTMonad α := M DTSum !![α]
 
 namespace NTMonad
 
 variable {α β γ}
 
-def dest : NTMonad α → α ⊕ NTMonad α := DTSum.equiv' ∘ HpLuM.dest
+def dest : NTMonad α → α ⊕ NTMonad α := DTSum.equiv' ∘ M.dest
 
 def corec {β} (f : β → α ⊕ β) : β → NTMonad α :=
-  HpLuM.corec (fun v =>
+  M.corec (fun v =>
     match f v with
     | .inl v => ⟨.up <| .up .true,  fun | .fs .fz, _ => .up v | .fz, h => h.down.elim⟩
     | .inr v => ⟨.up <| .up .false, fun | .fz, _ => .up v | .fs .fz, h => h.down.elim⟩
@@ -26,7 +26,7 @@ def corec {β} (f : β → α ⊕ β) : β → NTMonad α :=
 theorem dest_corec {g} (gen : β → α ⊕ β)
     : (corec gen g).dest = (gen g).map id (corec gen) := by
   dsimp [corec, dest]
-  rw [HpLuM.dest_corec, ←corec]
+  rw [M.dest_corec, ←corec]
   simp only [Nat.reduceAdd]
   cases gen g
   <;> simp [Sum.map_inl, Sum.map_inr, id_eq]
@@ -52,7 +52,7 @@ theorem dest_ret {v : α} : dest (ret v) = .inl v := by
 def cases {motive : NTMonad α → Sort _}
     (hTau : ∀ v, motive (tau v)) (hRet : ∀ v, motive (ret v))
     (v : _) : motive v := by
-  cases v using HpLuM.mk_cases; next v =>
+  cases v using M.mk_cases; next v =>
   cases v using DTSum.cases
   case hCont =>
     apply hTau
@@ -74,12 +74,12 @@ theorem bisim (R : NTMonad α → NTMonad α → Prop)
     (h' : R a b)
     (h : ∀ a b, R a b → Sum.LiftRel Eq R a.dest b.dest)
     : a = b :=
-  HpLuM.bisim_map R h' fun s t r => by
-    cases s using HpLuM.mk_cases; next s =>
-    cases t using HpLuM.mk_cases; next t =>
-    simp only [Nat.reduceAdd, MvPFunctor.map_fst, HpLuM.mk_dest]
+  M.bisim_map R h' fun s t r => by
+    cases s using M.mk_cases; next s =>
+    cases t using M.mk_cases; next t =>
+    simp only [Nat.reduceAdd, MvPFunctor.map_fst, M.mk_dest]
     specialize h _ _ r
-    simp only [dest, Function.comp_apply, HpLuM.mk_dest] at h
+    simp only [dest, Function.comp_apply, M.mk_dest] at h
     cases s using DTSum.cases
     <;> cases t using DTSum.cases
     <;> simp only [DTSum.equiv', DTSum.recall, DTSum.cont, Equiv.coe_fn_mk,
@@ -87,16 +87,16 @@ theorem bisim (R : NTMonad α → NTMonad α → Prop)
       Sum.not_liftRel_inr_inl, DTSum.recall.f, DTSum.cont.f ] at h
     · simp only [DTSum.map_cont, TypeVec.appendFun.get_fz, Function.const_apply, exists_true_left]
       intro v
-      rw! (castMode := .all) [HpLuM.mk_dest]
+      rw! (castMode := .all) [M.mk_dest]
       generalize_proofs p1 p2
       generalize p1 ▸ v = v
-      rw! (castMode := .all) [HpLuM.mk_dest]
+      rw! (castMode := .all) [M.mk_dest]
       exact h
     · subst h
       simp only [cast_eq, DTSum.map_recall, TypeVec.appendFun.get_fs, TypeVec.id.get,
         Vec.append1.get_fz, id_eq, exists_const]
       intro z
-      rw! (castMode := .all) [HpLuM.mk_dest]
+      rw! (castMode := .all) [M.mk_dest]
       generalize_proofs p1 p2
       generalize p1 ▸ z = x
       cases x

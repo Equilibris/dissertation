@@ -1,6 +1,5 @@
 import Sme.PFunctor.EquivP
 import Sme.PFunctor.Prj
-import Sme.M.HpLuM
 import Sme.M.DT.Defs
 import Sme.Vec
 import Sme.HEq
@@ -24,7 +23,7 @@ variable {P : MvPFunctor n.succ} {α : TypeVec n}
 -/
 def corec {β : Type v}
     (gen : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β))
-    : β → HpLuM P α :=
+    : β → M P α :=
   .corec body ∘ gen
 where
   body v : uLift P (α.uLift ::: ULift (DeepThunk (uLift P) (.uLift α ::: ULift β))) := by
@@ -42,7 +41,7 @@ where
 @[simp]
 theorem corec.body_fst {β : Type v}
     (gen : β → DeepThunk (uLift.{u, v} P) (α.uLift ::: ULift.{u, v} β)) {w}
-    : (corec.body gen w).fst = ULift.transliterate (comp.get (HpLuM.dest w)).fst :=
+    : (corec.body gen w).fst = ULift.transliterate (comp.get (M.dest w)).fst :=
   rfl
 @[simp]
 theorem corec.body_snd {β : Type v}
@@ -51,7 +50,7 @@ theorem corec.body_snd {β : Type v}
     = .up (DTSum.elim
         (fun v ↦ prj.get v)
         (fun v ↦ gen (prj.get v).down)
-        (comp.get ((comp.get (HpLuM.dest w)).snd Fin2.fz { down := h })))
+        (comp.get ((comp.get (M.dest w)).snd Fin2.fz { down := h })))
     :=
   rfl
 
@@ -69,7 +68,7 @@ theorem corec.body_snd {β : Type v}
 
 def corec' {β : Type u}
     (gen : β → DeepThunk P (α ::: β))
-    : β → HpLuM P α :=
+    : β → M P α :=
   .corec' body ∘ gen
 where
   body v : P (α ::: DeepThunk P (α ::: β)) := by
