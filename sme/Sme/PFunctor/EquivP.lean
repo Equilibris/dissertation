@@ -89,7 +89,7 @@ end CurriedTypeFun
 -- this could be a step to liftable MvQPFs.
 class EquivP (n : Nat)
     (F : outParam (CurriedTypeFun.{u, v} n))
-    (P : (MvPFunctor n))
+    (P : MvPFunctor n)
     : Type max (u + 1) v where
   equiv : ∀ {t}, P t ≃ F.app t
 

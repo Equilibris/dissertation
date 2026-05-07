@@ -12,7 +12,8 @@ variable {n : Nat} {P : MvPFunctor.{u} (n + 1)} {α : TypeVec.{u} n} {β : Type 
 
 /-- Preobjects for the SME encoded M-Type -/
 @[pp_with_univ]
-structure PreM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) where
+structure PreM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n)
+    : Type max u (v + 1) where
   corec ::
   {β : Type v}
   (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
