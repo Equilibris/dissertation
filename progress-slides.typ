@@ -160,26 +160,26 @@ coinductive ITree
 
 #no-codly[
 #text(8pt)[```
-❯ nix-shell -p cloc --run "cloc . --exclude-dir=.lake"
-     100 text files.
-      92 unique files.                              
-      14 files ignored.
+❯ nix-shell -p cloc --run "cloc . --exclude-dir=.lake,ista-plv-coinductive,content,font"
+      97 text files.
+      86 unique files.
+      19 files ignored.
 
-github.com/AlDanial/cloc v 2.06  T=0.08 s (1110.8 files/s, 124656.0 lines/s)
+github.com/AlDanial/cloc v 2.06  T=0.06 s (1531.9 files/s, 229898.6 lines/s)
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
-Lean                            59           1229            252           6621
-Typst                           20            332            122           1099
+Lean                            64           1503            279           8768
+Typst                            6            211             96            658
+Markdown                         5            181              0            358
+TeX                              1             18              0            325
 SVG                              1              0              0            171
 JSON                             3              0              0            125
-TeX                              1              4              0             76
+Python                           2             23             19             70
 YAML                             3              8              7             69
-Markdown                         2             27              0             68
-Python                           2             22             18             57
 Nix                              1              2              0             15
 -------------------------------------------------------------------------------
-SUM:                            92           1624            399           8301
+SUM:                            86           1946            401          10559
 -------------------------------------------------------------------------------
 ```]
 ]
