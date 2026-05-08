@@ -52,7 +52,7 @@ See @nlab:polynomial_functor and @atfp
 
 #v(1fr)
 
-See @avigad_et_al
+See @cite:qpf
 
 == Performance of coinductives (core)
 
@@ -211,7 +211,7 @@ SUM:                            92           1624            399           8301
 
 #v(1fr)
 
-See @fantomorph
+See @cite:fantomorph
 
 == LLVM semantics (extension)
 
