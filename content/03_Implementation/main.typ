@@ -16,14 +16,53 @@
   #raw(path) #h(1fr) #content
 ]
 
-This chapter describes the implementation of each of the requirements stated in @sec:rq.
-I will break it down into a common section,
-then go by individual components.
-I will also mention which parts are in process of being upstreamed and which parts are already in #MATHLIB.
+// Feedback from Russell
+// * Tactic, run through the ones I use
+// * Define Π and Σ in the dep type.
+//   Mention that in the diss we only use Σ types.
+// * What are Π and Σ 
+// * The rules should be familiar is bad. Rephrase.
+//   Rephrase as natural deduction.
+// * Define categorification and propositial truncation
+// * Define universe levels.
+// * Zulip as forum.
+// * Describe Fig. 25 more.
+// * Table 1: Mention it more in the text.
+//   Superscripts denote the different repositories.
+//   Rework caption.
+// * Prefer first person
+// * Define thunking
+// * Define cofix-point
+// * Mention each of requirements and say they are met. Put it in bold.
 
-The Lean component of this repository,
-and how they relate to each of the requirements can be seen in @impl:fg:overview.
-Additionally the project's import graph can be seen in @rep:fg:import.
+// Feedback from Jamie Vicary
+// * The main thing examiners are looking for is: what is the challenge here? 
+//   and how did you overcome it? Looking at Chapter 1, 
+//   you give a nice intro to the mathematical aspects, 
+//   but there is ample opportunity here for you to also comment on the level of challenge.
+//   You could briefly summarize what was hard about your project,
+//   and where did you really have to show ingenuity.
+//   It's also OK to talk about this within the project,
+//   e.g. "I tried to do X but encountered several problems, therefore instead I have done X' and everything works ok".
+//   Examiners love to see things like this as it shows you've engaged with real-world problems.
+// * You could also write in Chapter 1 (and also perhaps later in the dissertation) about the impact of your work. 
+//   You write that you implement the SME with O(1) destructuring. 
+//   Can you say more about what this buys you regarding the expressiveness of Lean -- for example, 
+//   is there something that can be formalised using this infrastructure, 
+//   which was not reasonably formalisable using previous methods.
+// * Your intro to dependent type theory etc is extremely brief. I understand you are space constrained, 
+//   and ultimately you do have to get up to a fully technical level to describe your actual work, 
+//   but remember you are writing for the general computer scientist, not for a specialist.
+// * Figure 13 is overflowing the margins.
+//
+// This chapter describes the implementation of each of the requirements stated in @sec:rq.
+// I will break it down into a common section,
+// then go by individual components.
+// I will also mention which parts are in process of being upstreamed and which parts are already in #MATHLIB.
+//
+// The Lean component of this repository,
+// and how they relate to each of the requirements can be seen in @impl:fg:overview.
+// Additionally the project's import graph can be seen in @rep:fg:import.
 
 #let fbox(boxc) = node.with(snap: -1, fill: boxc.lighten(90%), stroke: boxc)
 
