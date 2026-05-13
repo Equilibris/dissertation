@@ -509,7 +509,7 @@ end eqs
 
 section
 
-set_option trace.Compiler.result true in
+/- set_option trace.Compiler.result true in -/
 @[elab_as_elim, inline] def rec
     : {motive : AltRepr.{u, v} A B eq → Sort x}
     → (hLog : (z : A) → motive (mkA z))

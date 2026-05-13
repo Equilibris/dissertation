@@ -292,10 +292,7 @@ theorem cont.inj_iff {α a b} : (cont (α := α) a = cont b) = (a = b) := propex
   mpr h := h ▸ rfl
 }
 
-def dive
-    {Q : Fin2 2 → MvPFunctor (n + 1)} 
-    {α}
-    {s}
+def dive {Q : Fin2 2 → MvPFunctor (n + 1)} {α s}
     : (DTSum.comp Q).B (comp.mk (P := DTSum) (Q := Q) (α := α) (cont s)).fst Fin2.fz
     → (Q Fin2.fz).B s.fst Fin2.fz
   | ⟨.fz, .unit, v⟩ => v

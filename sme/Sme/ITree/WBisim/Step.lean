@@ -96,7 +96,7 @@ theorem no_step_eq {a} :
 
 
 @[simp]
-theorem depth0 {a b : Base E (ITree E A) _} (h : Step a b) 
+theorem depth0 {a b : Base E (ITree E A) _} (h : Step a b)
     : (depth h = 0) = (a = b) := propext {
   mp h' := by
     unfold depth at h'
@@ -114,10 +114,7 @@ theorem depth0 {a b : Base E (ITree E A) _} (h : Step a b)
 
 end Step
 
-/--
-  A collection of tau's between two values.
-  EStep (tau (tau r)) (tau r)
--/
+/-- A collection of tau's between two values. EStep (tau (tau r)) (tau r) -/
 inductive EStep : Base E (ITree E A) A → Base E (ITree E A) A → Type _
   | tau {a b} : EStep a.dest b → EStep (.tau a) b
   | refl a : EStep a a

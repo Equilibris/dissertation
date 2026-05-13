@@ -143,7 +143,7 @@ where go
     | .inr v => .inr <| .inr v
 
 @[simp]
-theorem dest_bind (v : NTMonad α) (f : α → NTMonad β) : dest (bind v f) 
+theorem dest_bind (v : NTMonad α) (f : α → NTMonad β) : dest (bind v f)
     = v.dest.elim (.inr ∘ f) (.inr <| bind · f) := by
   cases v using cases 
   · simp only [bind, dest_corec, bind.go, dest_tau, Sum.map_inr, Sum.elim_inr]
@@ -178,7 +178,8 @@ theorem pure_bind
   cases g using cases
   · simp only [dest_tau, Sum.elim_inr, Sum.map_inr, Sum.liftRel_inr_inr]
     exact .inr ⟨_, rfl, rfl⟩
-  · simp
+  · 
+    simp only [dest_ret, Sum.elim_inl, Function.comp_apply, Sum.map_inl]
     sorry
   simp only [dest_bind, dest_map]
   cases g using cases

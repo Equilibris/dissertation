@@ -20,8 +20,8 @@ def SM.{args, ind}
 
 namespace SM
 
-set_option trace.Compiler.result true in
-@[inline, specialize P n]
+/- set_option trace.Compiler.result true in -/
+@[inline, specialize P]
 def dest : SM.{u, v} P α → MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::: SM.{u, v} P α) :=
   Quotient.lift (map (TypeVec.id ::: (Quotient.mk (PreM.setoid P α) ·)) ∘ PreM.dest)
     fun | a, b, ⟨r, his, rab⟩ => (by
@@ -35,6 +35,8 @@ def dest : SM.{u, v} P α → MvPFunctor.uLift P (TypeVec.uLift.{_, v + 1} α ::
       · change ca s.fs h' = cb s.fs h'
         exact (h s.fs h'))
 
+set_option trace.compiler.ir.result true in
+@[inline]
 def corec
     {β : Type v}
     (gen : β → MvPFunctor.uLift.{u, v} P (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
@@ -120,7 +122,7 @@ theorem bisim : Bisim a b → a = b := by
 
 -- This proof was actually truly pain
 def uLift : SM.{u, v} P α → SM.{u, max v w} P α :=
-  Quotient.lift (fun a => .mk (PreM.setoid P α) a.uLift)
+  Quotient.lift (.mk (PreM.setoid P α) ·.uLift)
     fun a b ⟨r, his, hr⟩ =>
       Quot.sound ⟨
         (∃ x y, x.uLift = · ∧ y.uLift = · ∧ r x y),

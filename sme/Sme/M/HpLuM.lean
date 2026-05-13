@@ -83,7 +83,7 @@ namespace M
 
 def equivM : M P α ≃ MvPFunctor.M P α := AltRepr.equivA.symm
 
-set_option trace.compiler.ir.result true in
+/- set_option trace.compiler.ir.result true in -/
 @[inline]
 def corec
     {β : Type v}
@@ -95,7 +95,7 @@ def corec
 /- attribute [macro_inline] TypeVec.splitFun -/
 
 -- TODO: Optimize
-set_option trace.compiler.ir.result true in
+/- set_option trace.compiler.ir.result true in -/
 @[specialize n P α]
 def dest : M P α → P (α ::: M P α) :=
   AltRepr.rec

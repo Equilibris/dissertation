@@ -21,7 +21,7 @@ structure PreM (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n)
 
 namespace PreM
 
-set_option trace.Compiler.result true in
+/- set_option trace.Compiler.result true in -/
 /-- Destructor of PreM types -/
 @[inline, specialize P]
 def dest (x : PreM.{u, v} P α)
@@ -97,7 +97,7 @@ namespace Bisim
 variable {a b c : PreM.{u, v} P α}
 
 theorem refl (x : PreM.{u, v} P α) : Bisim x x :=
-  ⟨Eq, fun | _, _, .refl _ => ⟨rfl, fun v => rfl⟩, rfl⟩
+  ⟨Eq, fun | _, _, .refl _ => ⟨rfl, fun _ => rfl⟩, rfl⟩
 
 theorem symm (h : Bisim a b) : Bisim b a :=
   have ⟨r, his, rab⟩ := h

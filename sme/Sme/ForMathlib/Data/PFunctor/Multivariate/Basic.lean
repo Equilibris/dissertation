@@ -238,7 +238,7 @@ theorem mk_fst (x : P (Q · α)) : (comp.mk x).fst = ⟨x.fst, (x.snd · · |>.f
 theorem get_snd (x : P.comp Q α)
     : (comp.get x).snd = (fun i a ↦ ⟨x.fst.snd i a, fun j b ↦ x.snd j ⟨i, ⟨a, b⟩⟩⟩) :=
   rfl
-theorem mk_snd (x : P (Q · α)) 
+theorem mk_snd (x : P (Q · α))
     : (comp.mk x).snd = (fun i a ↦ (x.snd a.fst a.snd.fst).snd i a.snd.snd) :=
   rfl
 
@@ -249,7 +249,8 @@ theorem get_ext {x y : P.comp Q α} : comp.get x = comp.get y → x = y := by
   rwa [mk_get, mk_get] at this
 
 /- @[simp] -/
-theorem B_eq {α i} : (comp P Q).B α i = ((j : Fin2 n) × (b : P.B α.fst j) × (Q j).B (α.snd j b) i) :=
+theorem B_eq {α i}
+    : (comp P Q).B α i = ((j : Fin2 n) × (b : P.B α.fst j) × (Q j).B (α.snd j b) i) :=
   rfl
 
 end comp
@@ -275,7 +276,7 @@ def ulift : NatIso (uLift.{v, u} (const n β)) (const n (ULift β)) where
 
 @[simp]
 theorem map_mk {A} {v : A} {β} {f : α ⟹ β} : f <$$> const.mk _ v = const.mk _ v :=
-  Sigma.ext rfl <| heq_of_eq <| funext₂ fun i h => h.elim
+  Sigma.ext rfl <| heq_of_eq <| funext₂ fun _i h => h.elim
 
 def transp {α} (h : α ≃ β) : NatIso (const n α) (const n β) where
   equiv := {

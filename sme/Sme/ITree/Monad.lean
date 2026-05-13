@@ -60,7 +60,7 @@ instance : LawfulFunctor (ITree E) where
 
 end functor
 
-def _root_.PSum.map {α α' β β' : Type _} (f : α → α') (g : β → β') 
+def _root_.PSum.map {α α' β β' : Type _} (f : α → α') (g : β → β')
     : α ⊕' β → α' ⊕' β' 
   | .inl v => .inl (f v)
   | .inr v => .inr (g v)

@@ -1,8 +1,6 @@
 import Sme
 
-open Sme
-
-open MvPFunctor
+open Sme MvPFunctor
 
 namespace Test
 
@@ -11,8 +9,8 @@ def QStream.Base : MvPFunctor 2 := ⟨
   fun _ _ => PUnit
 ⟩
 
-def QStreamSl α := M QStream.Base (fun _ => α)
-def QStreamHp α := HpLuM QStream.Base (fun _ => α)
+def QStreamSl α := MvPFunctor.M QStream.Base (fun _ => α)
+def QStreamHp α := Sme.M QStream.Base (fun _ => α)
 def QStreamPreM α := PreM QStream.Base (fun _ => α)
 def QStreamSM α := SM QStream.Base (fun _ => α)
 
@@ -28,7 +26,7 @@ def QStreamBig.dest {α} (x : QStreamBig α) : QStream.Base !![QStreamBig α, PL
     | .fz, .unit => .up <| tl (.fs .fz) .unit
     | .fs .fz, .unit => .corec x.functor <| tl .fz .unit⟩
 
-set_option trace.compiler.ir.result true in
+/- set_option trace.compiler.ir.result true in -/
 section
 
 def numsSl : QStreamSl Nat :=
@@ -38,7 +36,7 @@ def numsSl : QStreamSl Nat :=
 /-   .corec' (fun n => ⟨.unit, fun | .fz, .unit => n.succ | .fs .fz, .unit => n⟩) Nat.zero -/
 
 def numsHp : QStreamHp.{0} Nat :=
-  HpLuM.corec.{0,0} (fun n => ⟨
+  Sme.M.corec.{0,0} (fun n => ⟨
     .up .unit,
     fun | .fz, .up .unit => .up <| .up <| n.down.succ | .fs .fz, .up .unit => n⟩)
     <| ULift.up Nat.zero
@@ -89,10 +87,13 @@ def QStreamHp.getNth (x : QStreamHp Nat) : Nat → Nat
 end
 
 def time (f : Unit → IO Unit) : IO Nat := do
-  let pre ← IO.monoMsNow
+  let pre ← IO.monoNanosNow
   f ()
-  let ante ← IO.monoMsNow
-  return ante - pre
+  let ante ← IO.monoNanosNow
+  return (ante - pre)
+
+def runs {A} (s : Nat) (io : IO (List A)) : IO (List (List A)) :=
+  (List.replicate s io).mapM id
 
 def runTests : IO Unit := do
   let testHp   := fun n _ => do if (QStreamHp.getNth numsHp n) ≠ n then println! "NEQ!";
@@ -101,75 +102,40 @@ def runTests : IO Unit := do
   let testPreM := fun n _ => do if (QStreamPreM.getNth.{0} numsPreM n) ≠ n then println! "NEQ!";
   let testBig  := fun n _ => do if (numsBig.getNth n) ≠ n then println! "NEQ!";
 
-  let n := 200
   let s := 3
 
+  let n := 200
   let sl := (List.range n).map (time ∘ testSl)
 
-  let runs := fun io => (List.replicate s io).mapM id
-
-  println! "slRuns = "
-  let res ← runs <| sl.mapM id
-  println! res
-
   let n := 5000
-  let s := 3
-
   let hp   := (List.range n).map (time ∘ testHp)
   let big  := (List.range n).map (time ∘ testBig)
   let preM := (List.range n).map (time ∘ testPreM)
   let sm   := (List.range n).map (time ∘ testSM)
 
-  let runs := fun io => (List.replicate s io).mapM id
+  /- IO.print "slRuns = " -/
+  /- let res ← runs s <| sl.mapM id -/
+  /- println! res -/
 
-  println! "hpRuns = "
-  let res ← runs <| hp.mapM id
+  IO.print "hpRuns = "
+  let res ← runs s <| hp.mapM id
   println! res
-  /-  -/
-  /- println! "bigRuns = " -/
+
+  /- IO.print "bigRuns = " -/
   /- let res ← runs <| big.mapM id -/
   /- println! res -/
 
-  println! "smRuns = "
-  let res ← runs <| sm.mapM id
+  IO.print "smRuns = "
+  let res ← runs s <| sm.mapM id
   println! res
 
-  println! "preMRuns = "
-  let res ← runs <| preM.mapM id
+  IO.print "preMRuns = "
+  let res ← runs s <| preM.mapM id
   println! res
 
   return ()
 
-/- def runTestsHp : IO Unit := do -/
-/-   let testHp := fun n _ => do if (QStreamHp.getNth numsHp n) ≠ n then println! "NEQ!"; -/
-/-   let testBig   := fun n _ => do if (numsBig.getNth n) ≠ n then println! "NEQ!"; -/
-/-  -/
-/-   let n := 1000 -/
-/-   let s := 3 -/
-/-  -/
-/-   let hp := (List.range n).map (time ∘ testHp) -/
-/-   let big := (List.range n).map (time ∘ testBig) -/
-/-  -/
-/-   let runs := fun io => (List.replicate s io).mapM id -/
-/-  -/
-/-   println! "hp runs" -/
-/-   let res ← runs <| hp.mapM id -/
-/-   println! res -/
-/-  -/
-/-   println! "big runs" -/
-/-   let res ← runs <| big.mapM id -/
-/-   println! res -/
-/-  -/
-/-   return () -/
-/-  -/
-/-  -/
-/-  -/
-/- #time #eval  (QStreamHp.getNth  numsHp  1000000) -/
-/- #time #eval  (QStreamBig.getNth numsBig 1000000) -/
-/- #time #eval! (QStreamHp.getNth  numsHp  1000000) -/
-/- #time #eval! (QStreamBig.getNth numsBig 1000000) -/
-
-/- #eval runTests -/
+/- #eval! runTests -/
 /- #eval runTestsHp -/
 
 end Test

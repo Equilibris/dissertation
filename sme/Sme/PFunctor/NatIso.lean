@@ -55,7 +55,8 @@ def trans (natiso' : NatIso Q R) : NatIso P R where
   equiv := natiso.equiv.trans natiso'.equiv
   nat' := by simp [nat]
 
-theorem trans_symm (natiso' : NatIso Q R) : (trans natiso natiso').symm = trans natiso'.symm natiso.symm := rfl
+theorem trans_symm (natiso' : NatIso Q R)
+    : (trans natiso natiso').symm = trans natiso'.symm natiso.symm := rfl
 
 end NatIso
 
