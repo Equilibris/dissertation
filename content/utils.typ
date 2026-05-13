@@ -31,7 +31,11 @@
   base: "theorem",
   titlefmt: strong
 )
-#let definition = thmbox("definition", "Definition", inset: (x: 1.2em, top: 1em))
+#let definition = thmbox(
+  "definition", "Definition",
+  inset: (x: 1.2em, top: 0em),
+  base_level: 0
+)
 
 #let example = thmplain("example", "Example").with(numbering: none)
 
@@ -43,4 +47,6 @@
 
 #let ULift = $"ULift"$
 
+#let MC = teal
+#let NC = oklch(73%, 0.15, 30deg)
 

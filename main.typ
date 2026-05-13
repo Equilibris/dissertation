@@ -22,7 +22,11 @@
 
 == Project Aims
 
+Optimise library coinductive data types in Lean and implement an example structure.
+
 == Work completed
+
+Optimised library coinductive data types in Lean and implemented rich data types for program verification.
 
 == Special difficulties
 
@@ -33,7 +37,14 @@ my aunt Asbjørg Johanne Raanes Passed away (2025-12-19).
 I missed term for both the funerals.
 
   ],
-  acknowledgements: [],
+  acknowledgements: [
+/ Alex Keizer : For supervising this dissertation and giving me the opportunity to explore coinductive types.
+/ Tobias Grosser : For taking over supervision when Alex could not and pushing me to go further.
+/ Jamie Vicary : For marking this project on short notice and providing insightful feedback.
+/ Nicolas Chappe : For taking a genuine interest in the project and helping me with ITrees.
+/ Wojciech Różowski : For helping with project specifics and technical parts of coinductives.
+/ Russell Moore : For reviewing my dissertation and help me identify specialist language.
+  ],
   date: "May 15, 2026",
   college: "Gonville & Caius College",
   logo: "cst_logo.svg")

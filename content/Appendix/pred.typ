@@ -60,7 +60,7 @@ This means that for some of my proofs I wrote hundreds of lines of code that hav
 Some languages have facilities to make this better,
 these are collectively known as coinduction-up-to.
 These are techniques where you can reuse earlier proofs and automatically expand the invariant.
-For Rocq a popular library for this is Paco#footnote[TODO CITE],
+For Rocq a popular library for this is Paco@cite:paco,
 a lot of harder coinduction proofs use this technique.
 Lean does not have this feature,
 and it is out of scope for the dissertation.

@@ -1,10 +1,10 @@
 #import "../utils.typ": *
 
-Coinductive datatypes are useful not only as a program verification tool,
+Coinductive data types are useful not only as a program verification tool,
 but also in general purpose computation.
 To this point Lean has only had implementations intended for theoretical reasoning,
 from work such as #cite(<cite:qpf>, form: "prose") and #cite(<cite:keizer>, form: "prose").
-There continues to be interest in this topic on the Lean Zulip,
+There continues to be interest in this topic on the Lean forums (Zulip),
 and from other researchers with #cite(<cite:mslc>, form: "prose").
 All prior work is slow, rendering it unusable for general purpose computation.
 
@@ -26,7 +26,7 @@ along with universe changing type, an ITree implementation and a futumorphism im
 == Future work
 
 On completion of this project,
-there are now 3 coinduction libraries for lean.
+there are now 3 coinduction libraries for Lean.
 The different abilities of the projects can be seen in @conc:tb:comp.
 Each of the libraries now have their own contributions but currently are all incompatible.
 The goal would be to make one library to unite all of these features.
@@ -42,7 +42,8 @@ This project would be more work than this dissertation.
     [`dest` performance], gcv[$cal(O)(1)$], $cal(O)(n)$, $cal(O)(n)$,
     [Type Macro], [N], gcv[Y#footnote[For Lean v4.25]], [N],
     [Function definitions], [`futu`], [-], gcv[`partial_fixpoint`],
-  )
+  ),
+  caption: [Comparison of coinductive libraries]
 )
 <conc:tb:comp>
 
@@ -65,11 +66,11 @@ One of the main reasons the futumorphism was implemented,
 was to serve as a middleground here,
 but it might even be possible to use it in the derecursifier.
 
-=== Extending the ITree library
-
-The only component of the ITree paper missing is the collection of effects and heaplang compiler.
-Implementing these would be a lot of work.
-
+// === Extending the ITree library
+//
+// The only component of the ITree paper missing is the collection of effects and heaplang compiler.
+// Implementing these would be a lot of work.
+//
 // The main component of the ITree paper missing is the zoo of events,
 
 

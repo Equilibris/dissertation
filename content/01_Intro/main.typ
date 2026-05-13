@@ -3,15 +3,15 @@ meaning all functions must terminate.
 Problems such as program simulation
 or production of streams of data
 often require leaving the finite.
-It would limit expressivity, requiring them to terminate.
 We refer to data like this as _coinductive_.
+It does not make sense to require an infinite stream of data to terminate.
 Researchers working on program verification are also interested in this,
 they use structures called interaction trees as a denotational semantic @cite:itree.
 
-Lean has an implementation of coinductives @cite:keizer @cite:qpf @cite:mathlib.
+Lean has two implementations of coinductive data types @cite:mathlib @cite:keizer @cite:qpf @cite:mslc.
 These are implemented as a series of progressive approximations.
 We will refer to this as the PA encoding.
-As a limitation of this encoding, unfolding a layer of a coinductive,
+As a limitation of this encoding, unfolding a layer of a coinductive type,
 takes time proportional to the depth of the layer.
 A consequence of this is that getting a stream to depth $n$ takes $cal(O)(n)$ time.
 This gets dramatically worse as you map streams,
@@ -23,8 +23,16 @@ By construction, destructuring will be $cal(O)(1)$.
 The downside of this definition is that it is impredicative,
 and therefore becomes harder to use and reason about.
 
-This dissertation will implement the SME,
-prove it is equivalent to the PA encoding,
+This dissertation is the final piece needed to complete state of coinductive data types in Lean.
+We have macros for defining @cite:keizer and writing functions @cite:mslc on coinductive data types.
+This dissertation is the first time anyone has decided to try and tackle the performance of library coinductive types.
+As a result of this, the path is now set to make a usable coinduction library.
+//
+// It was no small undertaking building this project.
+// Around every corner I had to wrangle universe levels and general polynomial functors.
+
+I will implement the state-machine encoding of $M$-types,
+prove it is equivalent to the progressive approximation encoding,
 and use this to construct an efficient coinduction library.
 Additionally, we will implement interaction trees,
 with an equivalence relation that can be used to find contextually equivalent programs.

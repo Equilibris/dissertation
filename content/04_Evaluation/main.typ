@@ -20,66 +20,78 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
 
 #let rqtable(..args) = table(
   columns: 4,
+  align: horizon,
   table.header[Req.][Met][Evidence][Path],
   ..args
 )
+
+#let Y = table.cell(fill: MC)[`Y`]
+#let N = table.cell(fill: NC)[`N`]
 
 #spg(
   grid.cell(
     rowspan: 2,
     figure(
       rqtable(
-        [@rq:sme:stream:impl], [Y], [@sec:s], [`Stream/SDefs.lean`],
-        [@rq:sme:stream:equiv], [Y], [@sec:s:equiv], [`Stream/Equiv.lean`],
-        [@rq:sme:impl], [Y], [@sec:sme:impl], [`M/Defs.lean`],
-        [@rq:sme:fast], [Y], [@sec:smevpa], [-],
-        [@rq:sme:equiv], [Y], [@sec:sme:equiv], [`M/Equiv.lean`],
-        [@rq:sme:ntm], [Y], [@sec:ntmonad], [`NTMonad/Defs.lean`],
-        [@rq:sme:cind], [Y], [@sec:sme:abi], [`M/{HpLuM,SM}.lean`],
-        [@rq:sme:abi], [Y], [@sec:sme:abi], [`M/HpLuM.lean`],
-        [@rq:sme:itree], [Y], [@sec:itree], [`ITree/Defs.lean`],
-        [@rq:sme:prod], [Y], [@sec:prod], [`M/{DT/*,Futu.lean}`],
-        [@rq:sme:zc], [N], [@sec:smevpa], [-],
+        [@rq:sme:stream:impl], Y, [@sec:s], [`Stream/SDefs.lean`],
+        [@rq:sme:stream:equiv], Y, [@sec:s:equiv], [`Stream/Equiv.lean`],
+        [@rq:sme:impl], Y, [@sec:sme:impl], [`M/Defs.lean`],
+        [@rq:sme:fast], Y, [@sec:smevpa], [-],
+        [@rq:sme:equiv], Y, [@sec:sme:equiv], [`M/Equiv.lean`],
+        [@rq:sme:ntm], Y, [@sec:ntmonad], [`NTMonad/Defs.lean`],
+        [@rq:sme:cind], Y, [@sec:sme:abi], [`M/{HpLuM,SM}.lean`],
+        [@rq:sme:abi], Y, [@sec:sme:abi], [`M/HpLuM.lean`],
+        [@rq:sme:itree], Y, [@sec:itree], [`ITree/Defs.lean`],
+        [@rq:sme:prod], Y, [@sec:futu], [`M/DT/*,M/Futu.lean`],
+        // [@rq:sme:zc], N, [@sec:smevpa], [-],
       ),
       caption: [State-machine encoding],
     )
   ),
   figure(
     rqtable(
-      [@rq:ntm:impl], [Y],   [@sec:impl-sm], [`NTMonad/Defs.lean`],
-      [@rq:ntm:mon],  [Y\*], [@sec:itnt],    [`ITree/Monad.lean`],
-      [@rq:ntm:lfm],  [Y\*], [@sec:itnt],    [`ITree/Monad.lean`],
+      [@rq:it:impl],   Y, [@sec:itree], [ `ITree/Defs.lean` ],
+      [@rq:it:sbisim], Y, [@sec:itree], [ `ITree/Defs.lean` ],
+      [@rq:it:mon],    Y, [@sec:itree:mon], [ `ITree/Defs.lean` ],
+      [@rq:it:kt],     Y, [@sec:itree], [ `ITree/Defs.lean` ],
+      [@rq:it:comb],   Y, [@sec:itree], [ `ITree/Defs.lean` ],
+      [@rq:it:coind],  Y, [@sec:itree], [ `ITree/Defs.lean` ],
+      [@rq:it:lmon],   Y, [@sec:itree], [ `ITree/Defs.lean` ],
+      [@rq:it:wbisim], Y, [@sec:itree:wbisim], [ `ITree/Defs.lean` ],
+      [@rq:it:moni],   Y, [@sec:itree], [ `ITree/Defs.lean` ],
+    ),
+    caption: [ITrees],
+  ),
+  figure(
+    rqtable(
+      [@rq:ntm:impl], Y, [@sec:impl-sm], [`NTMonad/Defs.lean`],
+      [@rq:ntm:mon],  Y, [@sec:itnt],    [`ITree/Monad.lean`],
+      [@rq:ntm:lfm],  Y, [@sec:itnt],    [`ITree/Monad.lean`],
     ),
     caption: [NT Monad],
   ),
   figure(
     rqtable(
-      [@rq:abi:impl], [Y], [@sec:impl-sm], [`AltRepr.lean`],
-      [@rq:abi:elim], [Y], [@sec:impl-sm], [`AltRepr.lean`],
-      [@rq:abi:opt],  [Y], [@sec:eabi],    [`AltRepr.lean`],
-      [@rq:abi:zc],   [Y], [@sec:eabi],    [`AltRepr.lean`],
+      [@rq:abi:impl], Y, [@sec:impl-sm], [`AltRepr.lean`],
+      [@rq:abi:elim], Y, [@sec:impl-sm], [`AltRepr.lean`],
+      [@rq:abi:opt],  Y, [@sec:eabi],    [`AltRepr.lean`],
+      [@rq:abi:zc],   Y, [@sec:eabi],    [`AltRepr.lean`],
     ),
     caption: [AltRepr Type],
   ),
-  grid.cell(
-    colspan: 2,
-    figure(
-      rqtable(
-        [@rq:it:impl],   [Y], [@sec:itree], [ `ITree/Defs.lean` ],
-        [@rq:it:sbisim], [Y], [@sec:itree], [ `ITree/Defs.lean` ],
-        [@rq:it:mon],    [Y], [@sec:itree:mon], [ `ITree/Defs.lean` ],
-        [@rq:it:kt],     [Y], [@sec:itree], [ `ITree/Defs.lean` ],
-        [@rq:it:comb],   [Y], [@sec:itree], [ `ITree/Defs.lean` ],
-        [@rq:it:coind],  [Y], [@sec:itree], [ `ITree/Defs.lean` ],
-        [@rq:it:lmon],   [Y], [@sec:itree], [ `ITree/Defs.lean` ],
-        [@rq:it:wbisim], [Y], [@sec:itree:wbisim], [ `ITree/Defs.lean` ],
-        [@rq:it:moni],   [Y], [@sec:itree], [ `ITree/Defs.lean` ],
-      ),
-      caption: [ITrees],
+  figure(
+    rqtable(
+      [@rq:ft:corec],   Y, [@sec:futu], `M/Free.lean`,
+      [@rq:ft:inject],  Y, [@sec:futu], `M/Free.lean`,
+      [@rq:ft:unfold],  Y, [@sec:futu], `M/Free.lean`,
+      [@rq:ft:pinject], Y, [@sec:futu], `M/Free.lean`,
+      [@rq:ft:corecu],  Y, [@sec:futu], `M/Free.lean`,
     ),
+    caption: [Free],
   ),
   kind: table,
   columns: (1fr, 1fr),
+  rows: (auto, auto, auto),
   caption: [Requirements and completion],
   label: <eval:tb:state>
 )
@@ -87,14 +99,14 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
 
 // As a main focus we will do an analysis of the asymptotics of the SM v PA encodings.
 
-== State-Machine encoding
+== State-Machine encoding (core)
 
 For the state-machine encoding,
 there are multiple aspects to evaluate.
 // TODO: 
 For example performance, expressivity, and safety when compared to other implementations.
 The implementations I will test are:
-1. The PA encoding from #MATHLIB,
+1. The PA encoding from Mathlib,
 // TODO: Change this to be the PreM
 2. the PreM (@sec:sme:prem) and SM (@sec:sme:impl) encodings as standing in as the optimal encodings,
 3. an implementation by #MS which was started during this project.
@@ -112,17 +124,17 @@ we now have the ability to compare the performance between 4 representations:
 The #TM,
 the PA encoding,
 and the PreM and quotiented representations SM as theoretical optima.
-For @rq:sme:zc to be the case, the #TM would have to be within 1$sigma$ of the PreM encoding.
+// For @rq:sme:zc to be the case, the #TM would have to be within 1$sigma$ of the PreM encoding.
 // The SME would be in the same ballpark for @rq:sme:zc to be the case.
 
-I implemented streams for the different encodings,
-then I measured, using a monotonic clock, how long it took to destructure $n$-layers of the stream of natural numbers,
-I repeated this experiment 3 times.
+I implemented streams for the different encodings. 
+Then I measured, using a monotonic clock, how long it took to destructure $n$-layers of the stream of natural numbers.
+I repeated this experiment 5 times.
 For the PA, I swept $n in [0,200]$,
 and for #TM and PreM, SM encodings $n in [0, 5000]$.
 I fit polynomials for each of these implementations,
 then I plot samples, along with the fit.
-This generates the plot @ev:fg:perf.
+This generates @ev:fg:perf.
 As we can see, there is a discrepancy between the #TM and PreM encodings.
 
 Reviewing the output plot we can see that
@@ -137,18 +149,26 @@ This is in line with the expected theoretical performance.
 
 #figure(
   image("../../data/plot.png", width: 6in),
-  caption: [Performance of PA, #TM, and SM #sym.amp PreM representation]
-)<ev:fg:perf>
+  caption: [Cumulative performance for stream destructing]
+) <ev:fg:perf>
 
-The SM and PreM implementations are drawn from the same distribution/* TODO: PROVE */.
-On the other hand, the #TM is 1.5x slower/* TODO: Prove*/.
+// The SM and PreM implementations are drawn from the same distribution/* TODO: PROVE */.
+// On the other hand, the #TM is 1.5x slower/* TODO: Prove*/.
+
 // TODO: ULift.down
 The issue causing this has to do with the destructor function needing to do a universe lowering.
 In practice this means the #TM adds two pointer indirections over the `PreM`.
 This adds a fixed cost at each iteration,
 compared to the PreM which calls the destructor function.
 
-== AltRepr Type<sec:eabi>
+#figure(
+  image("../../data/stest.png", width: 6in),
+  caption: [Per-layer performance for stream destructing]
+) <ev:fg:layer>
+
+#align(center)[*All success criteria for the SME type are met*.]
+
+== AltRepr Type (extension)<sec:eabi>
 
 // When it comes to the AltRepr type,
 Going through the requirements of the AltRepr type,
@@ -157,7 +177,7 @@ and added an eliminator (@rq:abi:elim).
 We now have to assess whether usage zero cost (@rq:abi:zc).
 
 It is not clear how one would test the performance of the AltRepr type.
-So rather we can read the generated intermediate representation for the functions we care about.
+So rather we can read the generated intermediate representation (LCNF) for the functions we care about.
 Inspecting the performance of `mkB` @eabi:ls:mkB and `destB` @eabi:ls:destB,
 we can see they have become the identity.
 The eliminator `rec` has also compiled into simply calling the efficient implementation.
@@ -165,7 +185,7 @@ Additionally, each of these are marked with an `@[inline]` hint,
 meaning that in compiled code they do not even appear.
 This also lets us verify that we have the behaviour of the type `B` (@rq:abi:opt).
 
-This means all success criteria for the AltRepr Type are met.
+#align(center)[*All success criteria for the AltRepr Type are met*.]
 
 #spg(
   figure(
@@ -244,7 +264,7 @@ def AltRepr.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
   caption: [LCNF for functions on the AltRepr Type],
 )
 
-== Interaction Trees
+== Interaction Trees (extension)
 
 // TODO: unjournalify
 
@@ -260,6 +280,7 @@ In private conversation with #NC,
 he informed me of some of the additions to the interaction tree library for Rocq.
 These include relations such as simulation up to taus (sutt),
 and relation up to taus (rutt).
+// For instance sutt
 These relations turn out to be useful for compiler verification in for example compcert @cite:compcert.
 In C, a non-terminating function is UB and therefore should be able to be related to any other function.
 This is in line with the fact that the spinning ITree can be simulated by any other ITree.
@@ -269,8 +290,8 @@ On the other hand,
 Lean now has an ITree library,
 something multiple groups have requested.
 For this reason #TG has expressed interest in using the current implementation for his project VeIR @cite:veir.
-All positive requirements are met
-(@rq:it:impl @rq:it:sbisim @rq:it:mon @rq:it:kt @rq:it:comb @rq:it:coind @rq:it:lmon @rq:it:wbisim @rq:it:moni).
+// All positive requirements are met
+// (@rq:it:impl @rq:it:sbisim @rq:it:mon @rq:it:kt @rq:it:comb @rq:it:coind @rq:it:lmon @rq:it:wbisim @rq:it:moni).
 
 During the production of this dissertation,
 #MS also started work on an interaction tree library.
@@ -279,11 +300,14 @@ This also means that his definition of `iter` is not required to be productive.
 The reason for this has to do with trying to avoid weak bisimilarity,
 and therefore has no implementation of the relation.
 
-The domain construction of the coinductive datatypes allow for very natural function definitions,
+The domain construction of the coinductive data types allow for very natural function definitions,
 though unfortunately the definition is still slow.
 From this regard both implementations have their merits.
 
-== Non Termination Monad <sec:itnt>
+#align(center)[*All success criteria for interaction trees are met*.]
+// #align(center)[]
+
+== Non Termination Monad (core) <sec:itnt>
 
 // TODO: unjournalify
 
@@ -293,7 +317,7 @@ I will rather let the user implement the non termination monad using interaction
 As stated above interaction trees form a lawful monad,
 thereby through the generalization completing the requirements @rq:ntm:mon and @rq:ntm:lfm.
 
-All requirements of the non termination monad are completed by interaction trees.
+#align(center)[*All success criteria for the non-termination monad are completed by interaction trees*.]
 
 // Once implementing the SME was done, I moved over to implementing the non-termination monad.
 // Here I focused on getting as ergonomic an experience as possible using `mkE` and `destE` for polynomial equivalents.
@@ -303,7 +327,7 @@ All requirements of the non termination monad are completed by interaction trees
 // I am counting @rq:ntm:lfm and @rq:ntm:mon as completed,
 // as the generalization encompasses it.
 
-== Futumorphic productivity
+== Futumorphic productivity (extension)
 
 By inspecting the @futu:tb:free,
 we can see we have implemented a futumorphism (@rq:ft:corec) and an injection (@rq:ft:inject).
@@ -349,6 +373,8 @@ is exactly a function who's generating function to the futumorphism is terminati
 // A function where it is immediately noticeably from both a readability perspective,
 // is interlacing with a constant @futu:ls:ilc and stuttering @futu:ls:stutter.
 
+#align(center)[*All success criteria for the Free monad are met*.]
+
 #let ffile = partL(read("../../sme/Sme/Examples/Futu.lean"), 14, 26, 36, 50, 60, 73)
 
 #spg(
@@ -373,7 +399,7 @@ is exactly a function who's generating function to the futumorphism is terminati
   figure(raw(ffile.at(5), block: true), caption: [Corec definition]),
   figure(raw(ffile.at(6), block: true), caption: [Futu definition]),
   columns: (auto,auto),
-  caption: [Run-length encoding],
+  caption: [Run length decoding],
   kind : raw,
   label: <futu:ls:rle>
 )

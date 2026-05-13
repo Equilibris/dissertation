@@ -2,57 +2,57 @@ inductive ListFunctor (α ρ : Type _) : Type _
   | nil
   | cons (hd : α) (tl : ρ)
 
-inductive ListFunctor.Crystal
+inductive ListFunctor.Approx
     {α : Type v} {base : Type (max u v)}
     : {n : Nat}
     → {m : Nat}
     → n.repeat (ListFunctor.{v, max u v} α) base
     → m.repeat (ListFunctor.{v, max u v} α) base → Prop where
-  | base  :         @Crystal _ _ (0    ) (m + 1) b v
-  | nilS  : n ≤ m → @Crystal _ _ (n + 1) (m + 1) .nil .nil
-  | consS :         @Crystal _ _ (n    ) (m    ) t₁   t₂ →
-                    @Crystal _ _ (n + 1) (m + 1) (.cons h₁ t₁) (.cons h₁ t₂)
+  | base  :         @Approx _ _ (0    ) (m + 1) b v
+  | nilS  : n ≤ m → @Approx _ _ (n + 1) (m + 1) .nil .nil
+  | consS :         @Approx _ _ (n    ) (m    ) t₁   t₂ →
+                    @Approx _ _ (n + 1) (m + 1) (.cons h₁ t₁) (.cons h₁ t₂)
 
 structure CoList (α : Type _) where
   obj : (n : Nat) → n.repeat (ListFunctor α) Unit
-  cryst : ∀ n, ListFunctor.Crystal (obj n) (obj n.succ)
+  cryst : ∀ n, ListFunctor.Approx (obj n) (obj n.succ)
 
 namespace ListFunctor
-def Crystal.order {base}
+def Approx.order {base}
     : {n m : Nat} →
     {a : n.repeat (ListFunctor.{v, max u v} α) base} →
     {b : m.repeat (ListFunctor.{v, max u v} α) base} →
-    Crystal a b → n ≤ m
+    Approx a b → n ≤ m
   | 0, m+1, _, _, .base => by exact Nat.le_add_left 0 (m + 1)
   | _+1, _+1, .nil, .nil, .nilS h => Nat.add_le_add_right h _
   | _+1, _+1, .cons _ _, .cons _ _, .consS h => Nat.add_le_add_right (order h) 1
 
-def Crystal.trans
+def Approx.trans
     {base : Type _}
     : {n m k : Nat} →
     {a : n.repeat (ListFunctor.{v, max u v} α) base} →
     {b : m.repeat (ListFunctor.{v, max u v} α) base} →
     {c : k.repeat (ListFunctor.{v, max u v} α) base} →
-    Crystal a b → Crystal b c → Crystal a c
+    Approx a b → Approx b c → Approx a c
   | _+1, _+1, _+1, .cons _ _, .cons _ _, .cons _ _, .consS hx, .consS hy =>
-    .consS $ Crystal.trans hx hy
+    .consS $ Approx.trans hx hy
   | _+1, _+1, _+1, _, _, _, .nilS hx, .nilS hy =>
     .nilS $ Nat.le_trans hx hy
   | 0, _+1, _+1, _, _, _, .base, _ => .base
 
-def Crystal.zero_up_gen
+def Approx.zero_up_gen
     {f : Nat → Nat}
     {obj : (n : Nat) → (f n).repeat (ListFunctor α) Unit}
-    (cryst : ∀ (n : Nat), ListFunctor.Crystal (obj n) (obj n.succ))
-    : (n : Nat) → Crystal (obj 0) (obj n.succ)
-  | n+1 => Crystal.zero_up_gen cryst n |>.trans $ cryst _
+    (cryst : ∀ (n : Nat), ListFunctor.Approx (obj n) (obj n.succ))
+    : (n : Nat) → Approx (obj 0) (obj n.succ)
+  | n+1 => Approx.zero_up_gen cryst n |>.trans $ cryst _
   | 0   => cryst 0
 
-def Crystal.frwd_gen
+def Approx.frwd_gen
     {f : Nat → Nat}
     {obj : (n : Nat) → (f n).repeat (ListFunctor α) Unit}
-    (cryst : ∀ (n : Nat), ListFunctor.Crystal (obj n) (obj n.succ))
-    : (a b : Nat) → a < b → Crystal (obj a) (obj b)
+    (cryst : ∀ (n : Nat), ListFunctor.Approx (obj n) (obj n.succ))
+    : (a b : Nat) → a < b → Approx (obj a) (obj b)
   | a+1, b+1, h => frwd_gen
     (f := f ∘ Nat.succ)
     (obj := (obj ·.succ))
@@ -60,22 +60,22 @@ def Crystal.frwd_gen
     (Nat.succ_lt_succ_iff.mp h)
   | 0,   _+1, _ => zero_up_gen cryst _
 
-abbrev Crystal.frwd
+abbrev Approx.frwd
     {obj : (n : Nat) → n.repeat (ListFunctor α) Unit}
-    : (∀ (n : Nat), ListFunctor.Crystal (obj n) (obj n.succ)) →
-    (a b : Nat) → a < b → Crystal (obj a) (obj b) := frwd_gen
+    : (∀ (n : Nat), ListFunctor.Approx (obj n) (obj n.succ)) →
+    (a b : Nat) → a < b → Approx (obj a) (obj b) := frwd_gen
 
-namespace Crystal
+namespace Approx
 def cons
     {obj : (n : Nat) → n.repeat (ListFunctor α) Unit}
-    (cryst : ∀ (n : Nat), ListFunctor.Crystal (obj n) (obj n.succ))
+    (cryst : ∀ (n : Nat), ListFunctor.Approx (obj n) (obj n.succ))
     (h : obj 1 = ListFunctor.cons hd PUnit.unit)
     : (x : Nat) → ∃ tl, obj x.succ = ListFunctor.cons hd tl
   | 0 => by
     have := cryst 1
     cases h' : obj 2 <;> simp_all [h', h]
   | n+1 => by
-    have ⟨tl', h⟩ := Crystal.cons cryst h n
+    have ⟨tl', h⟩ := Approx.cons cryst h n
     have := cryst (n+1)
     cases h' : obj (n+2) <;> simp_all [h', h]
     <;> cases this
@@ -83,7 +83,7 @@ def cons
 
 def nil
     {obj : (n : Nat) → n.repeat (ListFunctor α) Unit}
-    (cryst : ∀ (n : Nat), ListFunctor.Crystal (obj n) (obj n.succ))
+    (cryst : ∀ (n : Nat), ListFunctor.Approx (obj n) (obj n.succ))
     (h : obj 1 = .nil)
     : (x : Nat) → obj x.succ = .nil
   | 0 => by
@@ -95,10 +95,10 @@ def nil
     <;> rw [h', nil cryst h n] at this
     clear h h'
     cases this
-end Crystal
+end Approx
 
 def Tight {α} {x : Nat} (v : x.succ.repeat (ListFunctor α) Empty) : Prop :=
-  ¬∃ (y : x.repeat _ _), (Crystal y v)
+  ¬∃ (y : x.repeat _ _), (Approx y v)
 end ListFunctor
 
 structure List' (α : Type _) where
@@ -126,7 +126,7 @@ def List'.dest : List' α → ListFunctor α (List' α)
 
 structure CoList (α : Type _) where
   obj : (n : Nat) → n.repeat (ListFunctor α) Unit
-  cryst : ∀ n, ListFunctor.Crystal (obj n) (obj n.succ)
+  cryst : ∀ n, ListFunctor.Approx (obj n) (obj n.succ)
 
 -- This will in the end be the only efficent way to walk the graph sadly, and a bit pathalogically
 def CoList.destN {n : Nat} (o : CoList α) : n.repeat (ListFunctor α) (CoList α) :=
@@ -148,9 +148,9 @@ def CoList.dest (o : CoList α) : ListFunctor α (CoList α) :=
       (fun x => match h₂ : obj x.succ with
       | .cons _ tl => tl
       | .nil => 
-        have := ListFunctor.Crystal.frwd cryst 1 x.succ (by exact?)
+        have := ListFunctor.Approx.frwd cryst 1 x.succ (by exact?)
         sorry
-        /- ListFunctor.Crystal.cons cryst h₁ x -/
+        /- ListFunctor.Approx.cons cryst h₁ x -/
         /-   |> Exists.choose_spec  -/
         /-   |>.symm.trans h₂ -/
         /-   |> ListFunctor.noConfusion -/
@@ -161,11 +161,11 @@ def CoList.dest (o : CoList α) : ListFunctor α (CoList α) :=
         <;> rename_i heq₁
         case h_2 =>
           sorry
-          /- exact ListFunctor.Crystal.cons cryst h₁ n -/
+          /- exact ListFunctor.Approx.cons cryst h₁ n -/
           /-   |> Exists.choose_spec -/
           /-   |>.symm.trans heq₁ -/
           /-   |> ListFunctor.noConfusion  -/
-        have ⟨_, p⟩ := ListFunctor.Crystal.cons cryst h₁ n.succ 
+        have ⟨_, p⟩ := ListFunctor.Approx.cons cryst h₁ n.succ 
         split
         <;> rename_i heq₂
         case h_2 =>
@@ -190,7 +190,7 @@ def CoList.corec.impl
 -- To do this we need eacg approximation to become exponentially better than the last.
 -- With this done the amortized cost will become 𝓞(n)
 
-def CoList.corec.proof : ∀ (x : Nat), ListFunctor.Crystal (impl f v x) (impl f v x.succ)
+def CoList.corec.proof : ∀ (x : Nat), ListFunctor.Approx (impl f v x) (impl f v x.succ)
   | 0 => .base
   | n+1 => by
     dsimp [corec.impl]
@@ -219,5 +219,5 @@ def takeList (l : CoList α) : Nat → List α
     | .nil => []
     | .cons hd tl => hd :: takeList tl n
 
-#reduce takeList (CoList.corec (fun x => .cons x x.succ) 0) 99
+#reduce takeList (CoList.corec (fun x => .cons x x.succ) 0) 10
 
