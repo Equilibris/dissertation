@@ -11,10 +11,13 @@ I have been writing proofs verifying the correctness of my different components.
 I refer to these throughout this chapter.
 // TODO: Refer to these throughout the chapter
 // Type signatures often are unable to encode performance (other than maybe something substructural),
-Type signatures alone do not encode performance guarantees;
-therefore, I write benchmarks and read LCNF to evaluate these features.
+In addition to the implemented proofs,
+I will benchmark the state machine encoding,
+and read LCNF for the `AltRepr` type.
+// Type signatures alone do not encode performance guarantees;
+// therefore, I write benchmarks and read LCNF to evaluate these features.
 There will be a comparison of coinductive and ITree implementations,
-and finally an assessment of the ergonomics of futumorphic and deep-thunk productivity.
+and finally an assessment of the ergonomics of using the futumorphism.
 
 An overview of all the requirements laid out can be viewed in @eval:tb:state.
 
@@ -101,29 +104,25 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
 
 == State-Machine encoding (core)
 
-For the state-machine encoding,
-there are multiple aspects to evaluate.
-// TODO: 
-For example performance, expressivity, and safety when compared to other implementations.
+We will compare the performance of #MT implementations.
 The implementations I will test are:
 + The #TM,
-+ the `SM` (@sec:sme:impl) encodings as an encoding with the least possible overhead,
++ the `SM`-type (@sec:sme:impl) which as minimal possible overhead at cost of a universe bump,
 + the progressive approximation encoding from Mathlib,
 + the implementation by #MS which was started during this project @cite:mslc.
 Notably this final implementation is based on the progressive approximation encoding,
 but functions are defined using domain theoretic methods.
 A result of this is the ability to define diverging functions.
 
-=== Performance between state-machine and progressive approximation encodings<sec:smevpa>
+// === Performance between state-machine and progressive approximation encodings<sec:smevpa>
 
 // TODO: Update this wording
 // For @rq:sme:zc to be the case, the #TM would have to be within 1$sigma$ of the PreM encoding.
 // The SME would be in the same ballpark for @rq:sme:zc to be the case.
 
-I implemented streams for the different encodings.
-Then I measured, using a monotonic clock, how long it took to destructure $n$-layers of the stream of natural numbers.
-This means the $x$ axis of the graph will show the number of destructures,
-in other words $n times cal(O)(f)$ if an encoding has a complexity $f$.
+I implemented streams for each implementation.
+Then I measured how long it took to destructure $n$-layers of the stream of natural numbers using a monotonic clock.
+This means the $x$ axis of the graph will show the number of destructures $n times cal(O)(f)$ if an encoding has a complexity $f$.
 I repeated this experiment 5 times.
 For the progressive approximation encoding and #MS's implementation, I swept $n in [0,200]$,
 and for #TM and SM encodings $n in [0, 5000]$.
@@ -170,7 +169,7 @@ compared to the `SM` which calls the destructor function directly.
 Going through the requirements of the AltRepr type,
 I implemented it (@rq:abi:impl),
 and added an eliminator (@rq:abi:elim).
-We now have to assess whether usage zero cost (@rq:abi:zc).
+We now have to assess whether usage is zero cost (@rq:abi:zc).
 
 It is not clear how one would test the performance of the AltRepr type.
 So rather we can read the generated intermediate representation (LCNF) for the functions we care about.
@@ -265,9 +264,8 @@ def AltRepr.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
 // TODO: unjournalify
 
 For evaluating interaction trees,
-there are 3 main aspects to evaluate.
-These are function coverage, proof coverage, and performance.
-For performance, it is inherited directly from the performance of the $M$-Type,
+there are 3 main aspects to evaluate: function coverage, proof coverage, and performance.
+Since performance is inherited directly from the performance of the $M$-Type,
 so I will focus on function and proof coverage.
 
 Function coverage can be found in @itree:tb:fns and proof coverage @itree:tb:eqs.
@@ -276,8 +274,7 @@ In private conversation with #NC,
 he informed me of some of the additions to the interaction tree library for Rocq.
 These include relations such as simulation up to taus (sutt),
 and relation up to taus (rutt).
-// For instance sutt
-For instance sutt turns out to be useful for compiler verification in for example compcert @cite:compcert.
+For instance sutt is useful for compiler verification in for example compcert @cite:compcert.
 In C, a non-terminating function is UB and therefore should be able to be related to any other function.
 This is in line with the fact that the spinning ITree can be simulated by any other ITree.
 This is as opposed to how the spinning ITree is unique up to weak bisimulation.
@@ -286,13 +283,10 @@ On the other hand,
 Lean now has an ITree library,
 something multiple groups have requested.
 For this reason #TG has expressed interest in using the current implementation for his project VeIR @cite:veir.
-// All positive requirements are met
-// (@rq:it:impl @rq:it:sbisim @rq:it:mon @rq:it:kt @rq:it:comb @rq:it:coind @rq:it:lmon @rq:it:wbisim @rq:it:moni).
 
 During the production of this dissertation,
-#MS also started work on an interaction tree library.
-This is done using his implementation of coinductive types using the progressive approximation encoding and domain theoretic means.
-This also means that his definition of `iter` is not required to be productive.
+#MS also started work on an interaction tree library using the progressive approximation encoding and domain theoretic means.
+A consequence is that his definition of `iter` is not required to be productive.
 The reason for this has to do with trying to avoid weak bisimilarity,
 and therefore has no implementation of the relation.
 
@@ -323,13 +317,16 @@ thereby through the generalization completing the requirements @rq:ntm:mon and @
 // I am counting @rq:ntm:lfm and @rq:ntm:mon as completed,
 // as the generalization encompasses it.
 
-== Futumorphic productivity (extension)
+== The Free monad (extension)
+
+We will evaluate the Free monad similarly to how we evaluated interaction trees;
+by comparing function coverage.
+In addition to this we will compare implementations between functions written using the corecursor directly and functions using the Free monad.
 
 By inspecting the @futu:tb:free,
 we can see we have implemented a futumorphism (@rq:ft:corec) and an injection (@rq:ft:inject).
 In the code one can also find the cross universe futumorphism solving @rq:ft:corecu.
-We also have theorems about flattening, mapping and injection proven in the code,
-these are all implemented to fill out a `simp`-set for futumorphism.
+We also have theorems about flattening, mapping and injection proven in the code, these fill out the `simp`-set for futumorphism.
 The result of this is that when an end-user uses a futumorphism,
 all they have to provide is a mapping over constructor lemma,
 and the rest will automatically solve.
