@@ -409,7 +409,7 @@ and cofixed-points as `coinductive`s @cite:keizer @cite:qpf. // #cite(<cite:keiz
 // the fix point corresponds to .
 In the figures there are ellipsis,
 in reality multivariate polynomials operate on Type-vectors which come from the category formed by the products $Type^n$ for some $n : NN$,
-these are not ergonomic to work.
+these are not ergonomic to work with.
 // The justification for writing polynomials using an inductive notation can be found in 
 // For an explanation of the notation see @a:gpfunctors.
 
@@ -719,7 +719,7 @@ such that you can repeat this procedure.
 
 Bisimilarity is not a well-founded relation.
 This means we need to define it as a coinductive predicate instead of an inductive one.
-Then the proof principal for this will be giving an invariant,
+Then the proof for this will be giving an invariant,
 showing the invariant is a bisimulation,
 and the initial values are contained within the invariant.
 
@@ -789,7 +789,7 @@ In Rocq this has to be an axiom, in Lean it is provable.
 
 ////////////////////////////////////////////////////////////////////////////////
 
-== The Free Monad
+== The Free Monad<sec:free>
 
 As mentioned in @sec:coind, every corecursive function has to be productive.
 In the current library definition,
@@ -1010,13 +1010,13 @@ I have done this for the core and each of the extensions of the project.
 + There MUST NOT be any work towards coinduction-up-to systems.
 ])
 
-=== Non-Termination-Monad (Core)<pl:sec:ntm>
+=== The delay monad (Core)<pl:sec:ntm>
 
-#moscow("N", [
-+ The NTMonad MUST be implemented using the SME. <rq:ntm:impl>
-+ The NTMonad MUST have a monadic bind and return. <rq:ntm:mon>
+#moscow("D", [
++ The delay monad MUST be implemented using the SME. <rq:ntm:impl>
++ The delay monad MUST have a monadic bind and return. <rq:ntm:mon>
 ], [
-+ The NTMonad SHOULD be a lawful monad. <rq:ntm:lfm>
++ The delay monad SHOULD be a lawful monad. <rq:ntm:lfm>
 ], [
 ], [
 ])
@@ -1066,7 +1066,7 @@ I have done this for the core and each of the extensions of the project.
 // + Free Monad MAY have a universe transliterator. rq:ft:corecu
 // + Free Monad MAY have the ability to reason about _closed_ trees.
 ], [
-+ Free Monad MUST NOT be hetrogenous @cite:coco.
++ Free Monad MUST NOT be heterogeneous @cite:coco.
 ])
 
 // === Choice Trees (Extention)<pl:sec:ctree>

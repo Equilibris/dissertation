@@ -10,7 +10,6 @@ they use structures called interaction trees as a denotational semantic @cite:it
 
 Lean has two implementations of coinductive data types @cite:mathlib @cite:keizer @cite:qpf @cite:mslc.
 These are implemented as a series of progressive approximations.
-We will refer to this as the PA encoding.
 As a limitation of this encoding, unfolding a layer of a coinductive type,
 takes time proportional to the depth of the layer.
 A consequence of this is that getting a stream to depth $n$ takes $cal(O)(n)$ time.

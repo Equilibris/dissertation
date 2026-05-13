@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt, rc
 import numpy as np
 from data import slRuns, hpRuns, bigRuns, preMRuns, smRuns, msRuns
+from scipy.stats import gaussian_kde
 
 # rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 
@@ -12,7 +13,7 @@ SM = "`SM`-type"
 MS = "M. Sammler"
 
 data = {
-    PREM : [[i / 1_000_000 for i in x] for x in preMRuns[:3]],
+    # PREM : [[i / 1_000_000 for i in x] for x in preMRuns[:3]],
     SM : [[i / 1_000_000 for i in x] for x in smRuns[:3]],
     HP : [[i / 1_000_000 for i in x] for x in hpRuns[:3]],
 
@@ -129,14 +130,25 @@ def sign_test(data, fname):
         xs = np.concat([np.arange(len(x)) for x in arr]) + SHIFT
         ys = np.concat(arr) * 1000
 
-        histy.hist(ys, bins=20, orientation='horizontal',
-            label=k)
-        scatter.scatter(xs, ys,
+        kde = gaussian_kde(ys)
+        lsv = np.linspace(ys.min(), ys.max(), 100)
+        v = histy.plot(kde(lsv), lsv, label=k)
+
+        col = v[0].get_color()
+
+        histy.hist(ys, bins=50, orientation='horizontal',
+            density=True,
+            color=lighten_color(col)
+        )
+        v = scatter.scatter(xs, ys,
             # color=col,
-            alpha=0.1, s=1)
+            alpha=.1, s=1)
+
+
 
     scatter.set_xlabel(X_LAB)
     scatter.set_ylabel(Y_LAB)
+    histy.set_xlabel("Resampling probability")
     # ax1.set_title('Performance comparision with fits')
     scatter.grid(True, alpha=0.6)
     histy.legend()

@@ -2,7 +2,7 @@
 
 == Benchmarking code
 
-#let f = read("../../sme/Bench.lean") 
+#let f = read("../../sme/Sme/Bench.lean")
 
 #raw(f, block:true, lang:"lean")
 

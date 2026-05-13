@@ -42,7 +42,7 @@ def numsHp : QStreamHp.{0} Nat :=
     <| ULift.up Nat.zero
 
 def numsPreM : QStreamPreM.{0} Nat :=
-  PreM.corec.{0,0} (fun n => ⟨
+  .corec (fun n => ⟨
     .up .unit,
     fun | .fz, .up .unit => .up <| .up <| n.down.succ | .fs .fz, .up .unit => n⟩) <| .up Nat.zero
 

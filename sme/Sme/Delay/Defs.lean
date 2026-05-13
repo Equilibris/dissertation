@@ -7,15 +7,15 @@ universe u v
 
 namespace Sme
 
-def NTMonad α := M DTSum !![α]
+def Delay α := M DTSum !![α]
 
-namespace NTMonad
+namespace Delay
 
 variable {α β γ}
 
-def dest : NTMonad α → α ⊕ NTMonad α := DTSum.equiv' ∘ M.dest
+def dest : Delay α → α ⊕ Delay α := DTSum.equiv' ∘ M.dest
 
-def corec {β} (f : β → α ⊕ β) : β → NTMonad α :=
+def corec {β} (f : β → α ⊕ β) : β → Delay α :=
   M.corec (fun v =>
     match f v with
     | .inl v => ⟨.up <| .up .true,  fun | .fs .fz, _ => .up v | .fz, h => h.down.elim⟩
@@ -32,14 +32,14 @@ theorem dest_corec {g} (gen : β → α ⊕ β)
   <;> simp [Sum.map_inl, Sum.map_inr, id_eq]
   <;> rfl
 
-def tau : NTMonad α → NTMonad α :=
+def tau : Delay α → Delay α :=
   .mk ∘ DTSum.equiv'.symm ∘ .inr
 
-def ret : α → NTMonad α :=
+def ret : α → Delay α :=
   .mk ∘ DTSum.equiv'.symm ∘ .inl
 
 @[simp]
-theorem dest_tau {v : NTMonad α} : dest (tau v) = .inr v := by
+theorem dest_tau {v : Delay α} : dest (tau v) = .inr v := by
   simp [dest, tau]
   rfl
 
@@ -49,7 +49,7 @@ theorem dest_ret {v : α} : dest (ret v) = .inl v := by
   rfl
 
 @[elab_as_elim]
-def cases {motive : NTMonad α → Sort _}
+def cases {motive : Delay α → Sort _}
     (hTau : ∀ v, motive (tau v)) (hRet : ∀ v, motive (ret v))
     (v : _) : motive v := by
   cases v using M.mk_cases; next v =>
@@ -60,7 +60,7 @@ def cases {motive : NTMonad α → Sort _}
     apply hRet
 
 @[ext 1100]
-theorem ext {a b : NTMonad α}
+theorem ext {a b : Delay α}
     (h : a.dest = b.dest)
     : a = b := by
   cases a using cases
@@ -69,8 +69,8 @@ theorem ext {a b : NTMonad α}
   <;> subst h
   <;> rfl
 
-theorem bisim (R : NTMonad α → NTMonad α → Prop)
-    {a b : NTMonad α}
+theorem bisim (R : Delay α → Delay α → Prop)
+    {a b : Delay α}
     (h' : R a b)
     (h : ∀ a b, R a b → Sum.LiftRel Eq R a.dest b.dest)
     : a = b :=
@@ -101,24 +101,24 @@ theorem bisim (R : NTMonad α → NTMonad α → Prop)
       generalize p1 ▸ z = x
       cases x
 
-def map (f : α → β) (v : NTMonad α) : NTMonad β :=
+def map (f : α → β) (v : Delay α) : Delay β :=
   corec go v
 where go v := match v.dest with
   | .inl v => .inl <| f v
   | .inr v => .inr <| v
 
 @[simp]
-theorem dest_map (f : α → β) (v : NTMonad α) : dest (map f v) = v.dest.map f (map f) := by
+theorem dest_map (f : α → β) (v : Delay α) : dest (map f v) = v.dest.map f (map f) := by
   cases v using cases <;> simp [map, map.go]
 
-theorem id_map (v : NTMonad α) : map id v = v := by
+theorem id_map (v : Delay α) : map id v = v := by
   apply bisim (fun a b => map id b = a) rfl
   rintro a v rfl
   cases v using cases
   · simp
   · simp
 
-theorem comp_map (g : α → β) (h : β → γ) (x : NTMonad α) : map (h ∘ g) x = map h (map g x) := by
+theorem comp_map (g : α → β) (h : β → γ) (x : Delay α) : map (h ∘ g) x = map h (map g x) := by
   apply bisim (fun a b => ∃ x, map (h ∘ g) x = a ∧ map h (map g x) = b) ⟨_, rfl, rfl⟩
   rintro _ _ ⟨x, rfl, rfl⟩
   cases x using cases
@@ -126,14 +126,14 @@ theorem comp_map (g : α → β) (h : β → γ) (x : NTMonad α) : map (h ∘ g
     exact ⟨_, rfl, rfl⟩
   · simp
 
-instance : Functor NTMonad where map := map
-instance : LawfulFunctor NTMonad where
+instance : Functor Delay where map := map
+instance : LawfulFunctor Delay where
   id_map := id_map
   comp_map := comp_map
   map_const := rfl
 
-def bind (v : NTMonad α) (f : α → NTMonad β) : NTMonad β :=
-  corec go <| Sum.inl (β := NTMonad β) v
+def bind (v : Delay α) (f : α → Delay β) : Delay β :=
+  corec go <| Sum.inl (β := Delay β) v
 where go
   | .inl v => match v.dest with
     | .inl v => .inr <| .inr <| f v
@@ -143,7 +143,7 @@ where go
     | .inr v => .inr <| .inr v
 
 @[simp]
-theorem dest_bind (v : NTMonad α) (f : α → NTMonad β) : dest (bind v f)
+theorem dest_bind (v : Delay α) (f : α → Delay β) : dest (bind v f)
     = v.dest.elim (.inr ∘ f) (.inr <| bind · f) := by
   cases v using cases 
   · simp only [bind, dest_corec, bind.go, dest_tau, Sum.map_inr, Sum.elim_inr]
@@ -153,14 +153,14 @@ theorem dest_bind (v : NTMonad α) (f : α → NTMonad β) : dest (bind v f)
   rintro _ b rfl
   cases b using cases <;> simp [bind.go]
 
-instance : Monad NTMonad where
+instance : Monad Delay where
   pure := ret
   bind := bind
 
 @[simp]
 theorem ret_bind
     (x : β)
-    (f : β → NTMonad α)
+    (f : β → Delay α)
     : (ret x).bind f = f x := by
   ext
   simp []
@@ -169,7 +169,7 @@ theorem ret_bind
 @[simp]
 theorem pure_bind
     (f : β → γ)
-    (g : NTMonad β)
+    (g : Delay β)
     : g.bind (pure ∘ f) = map f g := by
   apply bisim (fun a b => a = b ∨ ∃ g, a = g.bind (pure ∘ f) ∧ b = map f g) <| .inr ⟨_, rfl, rfl⟩
   rintro a _ (rfl|⟨g, rfl, rfl⟩)
@@ -219,5 +219,5 @@ theorem bind_assoc
     simp
 
 
-end Sme.NTMonad
+end Sme.Delay
 

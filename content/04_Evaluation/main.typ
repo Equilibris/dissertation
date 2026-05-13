@@ -38,7 +38,7 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
         [@rq:sme:impl], Y, [@sec:sme:impl], [`M/Defs.lean`],
         [@rq:sme:fast], Y, [@sec:smevpa], [-],
         [@rq:sme:equiv], Y, [@sec:sme:equiv], [`M/Equiv.lean`],
-        [@rq:sme:ntm], Y, [@sec:ntmonad], [`NTMonad/Defs.lean`],
+        [@rq:sme:ntm], Y, [@sec:delay], [`NTMonad/Defs.lean`],
         [@rq:sme:cind], Y, [@sec:sme:abi], [`M/{HpLuM,SM}.lean`],
         [@rq:sme:abi], Y, [@sec:sme:abi], [`M/HpLuM.lean`],
         [@rq:sme:itree], Y, [@sec:itree], [`ITree/Defs.lean`],
@@ -106,40 +106,38 @@ there are multiple aspects to evaluate.
 // TODO: 
 For example performance, expressivity, and safety when compared to other implementations.
 The implementations I will test are:
-1. The PA encoding from Mathlib,
-// TODO: Change this to be the PreM
-2. the PreM (@sec:sme:prem) and SM (@sec:sme:impl) encodings as standing in as the optimal encodings,
-3. an implementation by #MS which was started during this project.
-Notably this final implementation is built on domain theoretic methods,
-meaning that instead of requiring productivity,
-all it requires is monotonicity.
-I will speak more about this when evaluating the futumorphic productivity.
++ The #TM,
++ the `SM` (@sec:sme:impl) encodings as an encoding with the least possible overhead,
++ the progressive approximation encoding from Mathlib,
++ the implementation by #MS which was started during this project @cite:mslc.
+Notably this final implementation is based on the progressive approximation encoding,
+but functions are defined using domain theoretic methods.
+A result of this is the ability to define diverging functions.
 
-=== Performance between SME and PA<sec:smevpa>
+=== Performance between state-machine and progressive approximation encodings<sec:smevpa>
 
 // TODO: Update this wording
-After building the equivalence,
-and instantiating `AltRepr`,
-we now have the ability to compare the performance between 4 representations:
-The #TM,
-the PA encoding,
-and the PreM and quotiented representations SM as theoretical optima.
 // For @rq:sme:zc to be the case, the #TM would have to be within 1$sigma$ of the PreM encoding.
 // The SME would be in the same ballpark for @rq:sme:zc to be the case.
 
-I implemented streams for the different encodings. 
+I implemented streams for the different encodings.
 Then I measured, using a monotonic clock, how long it took to destructure $n$-layers of the stream of natural numbers.
+This means the $x$ axis of the graph will show the number of destructures,
+in other words $n times cal(O)(f)$ if an encoding has a complexity $f$.
 I repeated this experiment 5 times.
-For the PA, I swept $n in [0,200]$,
-and for #TM and PreM, SM encodings $n in [0, 5000]$.
+For the progressive approximation encoding and #MS's implementation, I swept $n in [0,200]$,
+and for #TM and SM encodings $n in [0, 5000]$.
 I fit polynomials for each of these implementations,
 then I plot samples, along with the fit.
 This generates @ev:fg:perf.
-As we can see, there is a discrepancy between the #TM and PreM encodings.
 
-Reviewing the output plot we can see that
-the SME is $cal(O)(1)$ under destructuring,
-as opposed to the PA encoding which is $cal(O)(n)$.
+#figure(
+  image("../../data/plot.png", width: 6in),
+  caption: [Cumulative performance for stream destructing]
+) <ev:fg:perf>
+
+Reviewing the output plot we can see that the state-machine encoding is $cal(O)(1)$ under destructuring,
+as opposed to the progressive approximation encoding which is $cal(O)(n)$.
 This is in line with the expected theoretical performance.
 
 // TODO!: state that
@@ -147,19 +145,17 @@ This is in line with the expected theoretical performance.
 // TODO!: In theory this could be addressed using unsafe cast,
 // but i did nt want more potneital undoundess.
 
-#figure(
-  image("../../data/plot.png", width: 6in),
-  caption: [Cumulative performance for stream destructing]
-) <ev:fg:perf>
-
 // The SM and PreM implementations are drawn from the same distribution/* TODO: PROVE */.
 // On the other hand, the #TM is 1.5x slower/* TODO: Prove*/.
+In addition to @ev:fg:perf,
+which mainly shows the asymptotics of the different implementations,
+I also computed a per-layer cost.
+This was done by dividing the samples by the stream index we are testing (@ev:fg:layer).
+The plot then shows the constant factor of the two implementations.
 
-// TODO: ULift.down
-The issue causing this has to do with the destructor function needing to do a universe lowering.
-In practice this means the #TM adds two pointer indirections over the `PreM`.
-This adds a fixed cost at each iteration,
-compared to the PreM which calls the destructor function.
+The difference between `SM` and the #TM types from the destructor function needing to do a universe lowering.
+In practice this means the #TM adds two pointer indirections over the `SM` adding a fixed cost at each iteration,
+compared to the `SM` which calls the destructor function directly.
 
 #figure(
   image("../../data/stest.png", width: 6in),
@@ -184,8 +180,6 @@ The eliminator `rec` has also compiled into simply calling the efficient impleme
 Additionally, each of these are marked with an `@[inline]` hint,
 meaning that in compiled code they do not even appear.
 This also lets us verify that we have the behaviour of the type `B` (@rq:abi:opt).
-
-#align(center)[*All success criteria for the AltRepr Type are met*.]
 
 #spg(
   figure(
@@ -264,6 +258,8 @@ def AltRepr.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
   caption: [LCNF for functions on the AltRepr Type],
 )
 
+#align(center)[*All success criteria for the AltRepr Type are met*.]
+
 == Interaction Trees (extension)
 
 // TODO: unjournalify
@@ -281,7 +277,7 @@ he informed me of some of the additions to the interaction tree library for Rocq
 These include relations such as simulation up to taus (sutt),
 and relation up to taus (rutt).
 // For instance sutt
-These relations turn out to be useful for compiler verification in for example compcert @cite:compcert.
+For instance sutt turns out to be useful for compiler verification in for example compcert @cite:compcert.
 In C, a non-terminating function is UB and therefore should be able to be related to any other function.
 This is in line with the fact that the spinning ITree can be simulated by any other ITree.
 This is as opposed to how the spinning ITree is unique up to weak bisimulation.
@@ -307,19 +303,19 @@ From this regard both implementations have their merits.
 #align(center)[*All success criteria for interaction trees are met*.]
 // #align(center)[]
 
-== Non Termination Monad (core) <sec:itnt>
+== The delay monad (core) <sec:itnt>
 
 // TODO: unjournalify
 
-The non-termination monad is a special case of interaction trees with no visible events.
+The delay monad is a special case of interaction trees with no visible events.
 As a consequence of this,
-I will rather let the user implement the non termination monad using interaction trees.
+I will rather let the user implement the delay monad using interaction trees.
 As stated above interaction trees form a lawful monad,
 thereby through the generalization completing the requirements @rq:ntm:mon and @rq:ntm:lfm.
 
-#align(center)[*All success criteria for the non-termination monad are completed by interaction trees*.]
+#align(center)[*All success criteria for the delay monad are completed by interaction trees*.]
 
-// Once implementing the SME was done, I moved over to implementing the non-termination monad.
+// Once implementing the SME was done, I moved over to implementing the delay monad.
 // Here I focused on getting as ergonomic an experience as possible using `mkE` and `destE` for polynomial equivalents.
 // In doing this, I realised the expectation of ITrees being much harder was false.
 // I then stopped working on the NTMonad after just implementing @rq:ntm:impl,
@@ -342,7 +338,7 @@ is the unfolding of futumorphism lemmas.
 For the case of `futu'`, the statement can be seen in @futu:ls:unf.
 With this implemented we have @rq:ft:unfold.
 Furthermore, I added theorems stating `inject` is an injection,
-and `flatten` is `inject`'s left-inverse#footnote[These two are not equivalent statements.].
+and `flatten` is `inject`'s left-inverse.
 
 #figure(
   raw(takeL(read("../../sme/Sme/M/Futu.lean"), 737, 745), block: true),
@@ -373,8 +369,6 @@ is exactly a function who's generating function to the futumorphism is terminati
 // A function where it is immediately noticeably from both a readability perspective,
 // is interlacing with a constant @futu:ls:ilc and stuttering @futu:ls:stutter.
 
-#align(center)[*All success criteria for the Free monad are met*.]
-
 #let ffile = partL(read("../../sme/Sme/Examples/Futu.lean"), 14, 26, 36, 50, 60, 73)
 
 #spg(
@@ -403,4 +397,6 @@ is exactly a function who's generating function to the futumorphism is terminati
   kind : raw,
   label: <futu:ls:rle>
 )
+
+#align(center)[*All success criteria for the Free monad are met*.]
 

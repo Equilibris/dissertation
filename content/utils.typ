@@ -20,7 +20,7 @@
 #let AK = "Alex Keizer"
 #let TG = "Tobias Grosser"
 #let NC = "Nicolas Chappe"
-#let MS = cite(<cite:mslc>, form:"prose")
+#let MS = "Michael Sammler"
 
 #show: thmrules.with(qed-symbol: $square$)
 

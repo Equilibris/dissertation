@@ -123,10 +123,10 @@
 )
 <impl:fg:overview>
 
-The main component implemented in this dissertation is the State-machine encoding of the #MT `SM`.
-Further showing the equivalence between the State-machine encoded #MT `SM.{𝓤, max 𝓤 𝓥} P α`, and the PA #MT `M.{𝓤} P α`.
+The main component implemented in this dissertation is the state-machine encoding of the #MT `SM`.
+Further showing the equivalence between the state-machine encoded #MT `SM.{𝓤, max 𝓤 𝓥} P α`, and the progressive approximation encoding #MT `M.{𝓤} P α`.
 This will be used to implement a performant #TM,
-which has the efficiency of the `SM` encoding while being in the universe of the PA encoding.
+which has the efficiency of the `SM` encoding while being in the universe of the progressive approximation encoding.
 
 == Stream implementation <sec:s>
 
@@ -141,7 +141,7 @@ for this reason I decided I would start by implementing it for the special case 
 Streams are the text-book coinductive data type that most people know as mentioned in @sec:coind.
 Therefore I expected this to be pedagogical to implement.
 
-=== State-Machine streams <sec:s:sme>
+=== State-machine streams <sec:s:sme>
 #impl([@rq:sme:stream:impl], "sme/Sme/Stream/SDefs.lean")
 
 #let sds = partL(sdef, 7, 9, 11, 17, 27, 29, 43, 55, 64, 69, 78, 88, 99)
@@ -218,7 +218,7 @@ I defined the destructors of streams by calling the child with the correct indic
   caption: [PStream destructors]
 )
 
-For symmetry, I defined a syntactically identical bisimilarity relation on PA streams,
+For symmetry, I defined a syntactically identical bisimilarity relation on progressive approximation streams,
 and for this I prove a coinduction principle for PStreams of this relation.
 This proof proceeded by using the coinduction principle on general polynomials.
 
@@ -233,7 +233,7 @@ The corecursor was lifted from the definition on #MTs.
 
 #figure(raw(pds.at(9), block : true), caption: [`corec` for PStreams])
 
-=== State-Machine Progressive approximation equivalence <sec:s:equiv>
+=== State-machine Progressive approximation equivalence <sec:s:equiv>
 #impl([@rq:sme:stream:equiv], "sme/Sme/Stream/Equiv.lean")
 
 The functions of the equivalence between progressive approximation and state-machine Streams,
@@ -259,12 +259,12 @@ the universe-polymorphic statement is required.
 
 #figure(
     raw(takeL(equiv, 4, 15), block: true),
-    caption: [Equivalence between PA and state-machine streams]
+    caption: [Equivalence between progressive-approximation and state-machine streams]
 ) <stream:fg:equiv>
 
 ////////////////////////////////////////////////////////////////////////////////
 
-== State-Machine encoding of #MTs<sec:impl-sm>
+== State-machine encoding of #MTs<sec:impl-sm>
 
 #impl([@rq:sme:impl, @rq:sme:equiv], "sme/Sme/M/*")
 
@@ -423,7 +423,7 @@ I then prove that it is an equivalence relation.
 // These proofs can be found in `PreM.lean`.
 This gives `PreM` a setoid structure to instantiate the quotient.
 
-=== State-Machine #MT (SM) <sec:sme:impl>
+=== State-machine #MT (SM) <sec:sme:impl>
 #impl([@rq:sme:impl], "[UPSTREAMED],sme/Sme/{M/SM.lean,HEq.lean}")
 
 #let fsm = partL(flamboyant(read("../../sme/Sme/M/SM.lean")), 110, 120, 163)
@@ -468,7 +468,7 @@ Universe lifting of this component is needed for proving the generalized equival
 // I forked mathlib and added multiple inline directives to various functions.
 // TODO Continue this section
 
-=== State-Machine Progressive approximation equivalence <sec:sme:equiv>
+=== State-machine Progressive approximation equivalence <sec:sme:equiv>
 
 #impl([@rq:sme:equiv], "sme/Sme/M/Equiv.lean")
 
@@ -680,7 +680,7 @@ Next is proving the equations on the #TM.
 The first one was `dest_corec`, which has the expected signature.
 Followed by a coinductive principle.
 I also added an in-universe version of `corec` called `corec'`.
-This has the exact behaviour of the old non generalized corecursor on PA #MTs.
+This has the exact behaviour of the old non generalized corecursor on progressive-approximation #MTs.
 In addition to this I add a corecursor unrolling lemmas and mapping lemmas.
 I then prove co-Lambek's theorem @cite:lambek and that the #TM is multifunctorial like the polynomial definition,
 along with destructor lemmas for map.
@@ -700,11 +700,11 @@ This will be used when we start working with futumorphic productivity.
 
 With this completed, I have a usable #MT library.
 
-== Non-Termination Monad (NTMonad)<sec:ntmonad>
+== The delay monad<sec:delay>
 #impl([@rq:ntm:impl], "sme/Sme/ITree/*")
 
-The NTMonad is an example of a coinductive data type.
-It has two constructors `tau : NTMonad A → NTMonad A` and `val : A → NTMonad A`.
+The delay monad @cite:delay is an example of a coinductive data type.
+It has two constructors `tau : Delay A → Delay A` and `val : A → Delay A`.
 The values of this type will always be either some value of `tau`s then a `val`,
 or an a unique value `spin = tau spin`.
 One can think of these as `coroutines`,
@@ -712,9 +712,9 @@ where interlacing destructing of taus,
 is interlacing computation.
 
 I implemented them by taking the cofixpoint of the Sum functor.
-Mainly I ended up focusing on ITrees as they are a strict generalization of the NTMonad,
-I still implemented the NTMonad as an exercise.
-This is adequate as `NTMonad A = ITree EmptyE A`,
+Mainly I ended up focusing on ITrees as they are a strict generalization of the Delay,
+I still implemented the Delay as an exercise.
+This is adequate as `Delay A = ITree EmptyE A`,
 so it would be a waste to double up the implementation.
 
 == Interaction Trees<sec:itree>
@@ -774,7 +774,7 @@ This makes using some of the proofs easier.
       - `bind : ITree E A → (A → ITree E B) → ITree E B`#super[LRM]
       - `trigger : E A → ITree E A`#super[LRM]
     ],
-    gfbox([Hetrogenous weak bisimilarity])[
+    gfbox([Heterogeneous weak bisimilarity])[
       - `eutt (r : A → B → Prop) : ITree E A → ITree E B → Prop`#super[R]
     ],
     gfbox([Strong and weak bisimilarity])[
@@ -920,7 +920,7 @@ This comes from the fact that sometimes we care about more than equality.
 For example, the program `println 10` and `println (10 + 0)` are _equivalent_,
 but not syntactically equal.
 We can note that the events produced by these programs are the same,
-yet one takes more steps to get there.
+yet one takes different steps to get there.
 This is where we consider weak bisimilarity instead.
 One can think of weak bisimilarity as an equivalence relation modulo silent steps;
 two objects with the same observable events but with a different tau count.
@@ -1012,7 +1012,7 @@ and is an example of how weak-bisimilarity can help prove an optimization correc
 #let trl = sym.triangle.stroked.l
 
 // Putting these ideas together I created the structure #AK named 'DeepThunk' (`DT` for short).
-Originally when considering the choice points for creating a variable layer polynomial,
+Originally when considering the choice points for creating a variable layer polynomial (@sec:free),
 I constructed it directly.
 This structure became known as DeepThunks `DT P (α ::: β)`,
 and was given as the cofix-point of `M ((P α -) ∘ (Sum β -)))`
@@ -1223,7 +1223,7 @@ Solving this is done through the next two sections.
 ```lean
 def corec : {α : TypeVec.{𝓤} n} → {β : Type 𝓤} → (g : β → P (α ::: β)) → β → M P α
 ```,
-  caption: [`corec`#footnote(link("https://github.com/leanprover-community/mathlib4/blob/7a60b315c7441b56020c4948c4be7b54c222247b/Mathlib/Data/PFunctor/Multivariate/M.lean#L152-L154")) of PA #MTs given in Mathlib]
+  caption: [`corec`#footnote(link("https://github.com/leanprover-community/mathlib4/blob/7a60b315c7441b56020c4948c4be7b54c222247b/Mathlib/Data/PFunctor/Multivariate/M.lean#L152-L154")) of progressive-approximation #MTs given in Mathlib]
 )<gp:fg:corec>
 
 ==== Universe lifting of polynomial functors<sec:ulift_p>
@@ -1266,7 +1266,7 @@ first we generalize a helper function#footnote[Done in PR #link("https://github.
 then we can define
 `corecU : {α : TypeVec.{𝓤} n} → {β : Type 𝓥} → (g : β → ULift P (ULift α ::: ULift β)) → β → M.{𝓤} P α`.
 Notably we are able to fit the object into $cal(U)$
-(this will not be the case for the SME).
+(this will not be the case for the state-machine encoding).
 
 The functions `corecU` and `dest` satisfy an unfolding equation.
 This is more complex than it used to be as we now need to lower the universe before we continue with the mapping.
