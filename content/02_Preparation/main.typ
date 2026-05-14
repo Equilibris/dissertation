@@ -32,7 +32,7 @@ The inference rules for these can be seen in @dtt:fg:psir.
 If you are unfamiliar with dependent types,
 it is often helpful to view them through this relationship.
 For a more in-depth look at dependent type theory,
-read the HoTTBook Section 1 up to Chapter 6 @cite:hottbook.
+read the HoTT Book Section 1 up to Chapter 6 @cite:hottbook.
 
 // TODO: You would rather understand a general notion of a dependent type,
 // than just seeing the rules
@@ -116,7 +116,7 @@ read the HoTTBook Section 1 up to Chapter 6 @cite:hottbook.
 )
 
 These rules are analogous to the rules for $forall, exists$ from the natural deduction system.
-In fact they are related through the Curry-Howard correspondence as seen in @dtt:eq:pt.
+In fact, they are related through the Curry-Howard correspondence as seen in @dtt:eq:pt.
 Going from dependent types to the propositional rules,
 we must equate all proofs/terms.
 This process is called propositional truncation,
@@ -143,7 +143,7 @@ Categorification is the process of finding a categorical object that truncates d
 
 == Universe levels
 
-Consider Russells Paradox `let R := { x ∣ x ∉ x } in R ∈ R`.
+Consider Russell's Paradox `let R := { x ∣ x ∉ x } in R ∈ R`.
 A way to resolve this is by making a hierarchy of sets `Set 0 : Set 1 : ...`.
 
 #definition[
@@ -475,22 +475,6 @@ inductive Sum (A B : Type) where
   [Sum polynomial],
   lab : <pf:fg:sum>,
 )
-
-// #figure(
-//   diagram(
-//     cell-size: 6mm,
-//     // debug : 1,
-//     show_decl("p1", (0,0), pfunc.prj),
-//     show_decl("p2", (3,0), pfunc.sum),
-//     show_decl("p3", (7,0), pfunc.list),
-//
-//     show_map("mp", (0,4), (($x$,),), (($alpha$,),), (($f$,),)),
-//     show_obj("il", (2,4), pfunc.sum, "inl", (($excl.inv$, $bold(K)v$),), gap : 1, term : $"inl" v$),
-//     show_obj("ir", (5,4), pfunc.sum, "inr", (($bold(K)v$, $excl.inv$),), gap : 1, term : $"inr" v$)
-//   )
-// )
-
-////////////////////////////////////////////////////////////////////////////////
 
 == Recursion and Inductive data type<sec:ind>
 
@@ -910,7 +894,7 @@ but now when you have your function,
 instead of knowing it works for finite cases,
 you can be guaranteed that it satisfies the equation.
 Furthermore, the proofs can serve to enrich the main artifact.
-This will be seen in the ITree implementation as well as the futumorphic productivity.
+This will be seen in the ITree implementation as well as the Free monad.
 Lean makes working in this style a delightful experience using constructs such as `#check`, `#print` and `#eval`,
 one can see exactly what a function is and what it is doing.
 These can also be turned into conventional tests using `#guard_msgs in`,
@@ -927,6 +911,23 @@ When working with simp one must be aware of non-terminal `simp`s; `simp`s that d
 for these we use the `simp?` tactic to limit the set of available lemmas.
 The reason for this has to do with how adding more lemmas can break the normal form `simp` leads to.
 Lean's built in linter can handle this.
+
+== Starting point <startpoint>
+
+I worked with meta-programming for polynomial during a UROP between Part Ia and Part Ib.
+This means I am aware of what the underlying structures are when it comes to the raw implementation.
+I also did a feasibility assessment of the project by seeing how the current polynomials respond to universe levels.
+This lead to me making 2 pull requests (♯28095, ♯28279) to mathlib on `TypeVec` in preparation for my project.
+I also tried to merge ♯28112, an implementation of commutable Shrink to mathlib that later got reverted when it was found to be inconsistent.
+During the internship I also came up with the DeepThunk structure, but could not prove any theorems about it as I did not understand bisimilarity.
+
+No code from the internship has been used in the dissertation.
+I tried to use the `Deepthunk` implementation,
+but this did not work and I had to rewrite it from scratch.
+
+There are more minor refactoring pull requests towards the mathlib repository which don't change any behaviour but in general all of these can be
+#link("https://github.com/leanprover-community/mathlib4/issues?q=author%3AEquilibris%20created%3A%3C2025-10-10")[#emph[found on this link]].
+I Include these for completeness and transparency.
 
 == Tools used
 

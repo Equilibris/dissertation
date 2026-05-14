@@ -5,7 +5,7 @@
 
 // TODO: Talk about validation
 
-This chapter will discuss and evaluate each of the components of the dissertation.
+This chapter discusses and evaluates each of the components of the dissertation.
 As mentioned in @sec:method,
 I have been writing proofs verifying the correctness of my different components.
 I refer to these throughout this chapter.
@@ -25,6 +25,7 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
   columns: 4,
   align: horizon,
   table.header[Req.][Met][Evidence][Path],
+  table.hline(),
   ..args
 )
 
@@ -39,7 +40,7 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
         [@rq:sme:stream:impl], Y, [@sec:s], [`Stream/SDefs.lean`],
         [@rq:sme:stream:equiv], Y, [@sec:s:equiv], [`Stream/Equiv.lean`],
         [@rq:sme:impl], Y, [@sec:sme:impl], [`M/Defs.lean`],
-        [@rq:sme:fast], Y, [@sec:smevpa], [-],
+        [@rq:sme:fast], Y, [@sec:ev:sme], [`M/HpLuM.lean`],
         [@rq:sme:equiv], Y, [@sec:sme:equiv], [`M/Equiv.lean`],
         [@rq:sme:ntm], Y, [@sec:delay], [`NTMonad/Defs.lean`],
         [@rq:sme:cind], Y, [@sec:sme:abi], [`M/{HpLuM,SM}.lean`],
@@ -102,7 +103,7 @@ An overview of all the requirements laid out can be viewed in @eval:tb:state.
 
 // As a main focus we will do an analysis of the asymptotics of the SM v PA encodings.
 
-== State-Machine encoding (core)
+== State-Machine encoding (core)<sec:ev:sme>
 
 We will compare the performance of #MT implementations.
 The implementations I will test are:
@@ -135,7 +136,7 @@ This generates @ev:fg:perf.
   caption: [Cumulative performance for stream destructing]
 ) <ev:fg:perf>
 
-Reviewing the output plot we can see that the state-machine encoding is $cal(O)(1)$ under destructuring,
+Reviewing the output plot we can see that the destructuring the state-machine encoding is $cal(O)(1)$,
 as opposed to the progressive approximation encoding which is $cal(O)(n)$.
 This is in line with the expected theoretical performance.
 
@@ -272,9 +273,9 @@ Function coverage can be found in @itree:tb:fns and proof coverage @itree:tb:eqs
 This is comparing against the ITree paper @cite:itree.
 In private conversation with #NC,
 he informed me of some of the additions to the interaction tree library for Rocq.
-These include relations such as simulation up to taus (sutt),
-and relation up to taus (rutt).
-For instance sutt is useful for compiler verification in for example compcert @cite:compcert.
+These include relations such as simulation up to taus (`sutt`),
+and relation up to taus (`rutt`).
+For instance `sutt` is useful for compiler verification in for example compcert @cite:compcert.
 In C, a non-terminating function is UB and therefore should be able to be related to any other function.
 This is in line with the fact that the spinning ITree can be simulated by any other ITree.
 This is as opposed to how the spinning ITree is unique up to weak bisimulation.

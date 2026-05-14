@@ -149,14 +149,14 @@ Therefore I expected this to be pedagogical to implement.
 First setting up a class of prestreams,
 these correspond to the corecursive principle holding their type.
 Followed by the destructors `hd` and `tl` for streams.
-Care must to be taken to ensure that the definition would work under a quotient as well.
+Care must be taken to ensure that the definition would work under a quotient as well.
 
 #figure(raw(sds.at(1) + sds.at(3), block : true), caption: [PreStream and destructors])
 
 Defining a bisimilarity relation;
 heads being equal and tails bisimilar as seen in @sec:bisim.
 Followed by proving this was an equivalence relation (reflexive, symmetric, transitive).
-This would setup a setoid on `PreStream`s.
+This would sets up a setoid on `PreStream`s.
 
 #spg(
   figure(raw(sds.at(4), block : true), caption: [Bisim definition], kind: raw),
@@ -209,7 +209,7 @@ and each of the families only hold one instance of the value (so child `λ i () 
   caption: [PStream definition]
 )
 
-I define the destructors of streams by calling the child with the correct indicies.
+I define the destructors of streams by calling the child with the correct indices.
 
 #spg(
   figure(raw(pds.at(4), block : true), caption: [Head of a PStream]),
@@ -220,7 +220,7 @@ I define the destructors of streams by calling the child with the correct indici
 
 For symmetry, I define a syntactically identical bisimilarity relation on progressive approximation streams,
 and for this I prove a coinduction principle for PStreams of this relation.
-This proof proceeds by using the coinduction principle on general polynomials.
+This proof proceeds by using the coinduction principle on general polynomial functors.
 
 #spg(
   figure(raw(pds.at(6), block : true), caption: [Bisimilarity of PStreams]),
@@ -243,10 +243,8 @@ I tried a few different relations trying to make it work.
 In the end, I landed on the straightforward equality as seen in @stream:fg:equiv.
 This solves and made the entire proof small after cleaning.
 
-Having done this, I now can handle the case of a generic polynomial.
+Having done this, I now can handle the case of a generic polynomial functor.
 This turns out to be harder than I expected.
-// TODO: Dont use the wrong statement here,
-// it should be mentioned that it is only a problem for when it comes to instantiate the AltRepr type ...
 The reader may notice the statement I proved is subtly different;
 rather than proving the statement for a universe polymorphic carrier `SStream.{𝓤, max 𝓤 𝓥} A`,
 here I prove it for a fixed universe `SStream.{𝓤, 𝓤} A`.
@@ -424,17 +422,17 @@ I then prove that it is an equivalence relation.
 This gives `PreM` a setoid structure to instantiate the quotient.
 
 === State-machine #MT (SM) <sec:sme:impl>
-#impl([@rq:sme:impl], "[UPSTREAMED],sme/Sme/{M/SM.lean,HEq.lean}")
+#impl([@rq:sme:impl], "[UPSTREAMED],sme/Sme/{M/SM,HEq}.lean")
 
 #let fsm = partL(flamboyant(read("../../sme/Sme/M/SM.lean")), 112, 122, 163)
 
 I expected implementing the state-machine $M$-types to go as smoothly as implementing state-machine streams.
 Defining the corecursor was as simple.
-Universe lifting and other defintions were not.
+Universe lifting and other definitions were not.
 
 The destructor of `SM`s will be given by quotient lifting as for streams.
 The function is also similar:
-take the preobject destructor and equalize deeper occurances as to not leak the type.
+take the preobject destructor and equalize deeper occurrences as to not leak the type.
 The stability of this function is proven by soundness of quotients for the corecursive case,
 and lifting the equality from bisimilarity for the other cases.
 
@@ -453,20 +451,9 @@ After doing this the proof falls out.
 #figure(raw(fsm.at(1), block:true), caption: [Bisimilarity of `SM`-types])
 
 The next proof is stability of universe lifting of state-machine #MTs,
-which involves lifting the carrier instead of any part of the polynomial.
+which involves lifting the carrier instead of any part of the polynomial functor.
 This is the universe lifting function I defined for PreM types.
 Universe lifting of this component is needed for proving the generalized equivalence I stated in @sec:s:equiv.
-
-// === Writing for performance
-//
-// #impl([@rq:sme:fast, @rq:sme:zc], "sme/Sme/M/SM.lean")
-//
-// While conducting the evaluation for @rq:sme:fast,
-// I noticed that while calling a corecursor is zero-cost,
-// destructing one is not.
-// The problem for this seems to do with the interactions between inlining and partially applied functions.
-// I forked mathlib and added multiple inline directives to various functions.
-// TODO Continue this section
 
 === State-machine Progressive approximation equivalence <sec:sme:equiv>
 
@@ -501,7 +488,7 @@ This means the equality for the children is homogenous.
 The other direction followed analogously.
 
 #figure(
-  raw(takeL(flamboyant(read("../../sme/Sme/M/Equiv.lean")), 14, 56), block:true),
+  raw(takeL(flamboyant(read("../../sme/Sme/M/Equiv.lean")), 12, 54), block:true),
   caption: [Equivalence between state-machine and progressive approximation encoded #MTs `equivP`]
 )
 
@@ -622,35 +609,6 @@ This let me eliminate into any universe independent of #U and #V.
   caption: [Universe transforming types.]
 )
 
-// === Weak univalence
-//
-// // TODO: Talk about how this is kinda univalent.
-//
-// #figure(
-//   diagram(
-//     cell-size: 15mm,
-//     // Top row nodes
-//     node((1, 0), $alpha$, name : <A1>),
-//     node((-1, 0), $beta$, name : <B1>),
-//     node((0, 1), $"AltRepr" alpha beta$, name : <S1>),
-//
-//     edge(<A1>, <B1>, $text("eq")$, "="),
-//
-//     edge(<A1>, <S1>, $text("mkA")$, "->"),
-//
-//     edge(<B1>, <S1>, $text("mkB")$, "->"),
-//   ),
-//   caption:[Weak univalence up to shrink]
-// )<shrkops>
-
-// === Relation to Shrink and further universe transforming types
-//
-// TODO
-// TODO: Shrink and AltRepr are related. "Universe altering type"
-// TODO: Highlight the delta from the shrink type
-
-////////////////////////////////////////////////////////////////////////////////
-
 === The #TM <sec:sme:abi>
 #impl([@rq:sme:abi], "sme/Sme/M/HpLuM.lean")
 
@@ -681,7 +639,7 @@ Followed by a coinductive principle.
 I also add an in-universe version of `corec` called `corec'`.
 This has the exact behaviour of the old non generalized corecursor on progressive-approximation #MTs.
 In addition to this I add a corecursor unrolling lemmas and mapping lemmas.
-I then prove co-Lambek's theorem @cite:lambek and that the #TM is multifunctorial like the polynomial definition,
+I then prove co-Lambek's theorem @cite:lambek and that the #TM is multifunctorial like the polynomial functor definition,
 along with destructor lemmas for map.
 
 I add functionality to reason about polynomial equivalents (@sec:polyeqs),
@@ -695,7 +653,7 @@ I also prove naturality conditions (@sec:nat) of these.
 Finally I prove one can transport a natural isomorphisms.
 This takes a natural isomorphism between `P` and `P'`
 and lifts it to a natural isomorphism between `M P` and `M P'`.
-This will be used when we start working with futumorphic.
+This will be used when we start working with the futumorphism.
 
 With this completed, I have a usable #MT library.
 
@@ -796,7 +754,7 @@ This makes using some of the proofs easier.
     ],
   ),
   kind: table,
-  caption: [Functions implemented in the dissertaton (L)ean, in (R)ocq @cite:itree and (M). Sammler @cite:mslc]
+  caption: [Functions implemented in the dissertaton#super[L], in Rocq#super[R] @cite:itree and M. Sammler#super[M] @cite:mslc]
 )
 <itree:tb:fns>
 
@@ -833,7 +791,7 @@ This makes using some of the proofs easier.
     ],
   ),
   kind: table,
-  caption: [Equations implemented in the dissertaton (L)ean, in (R)ocq @cite:itree and (M). Sammler @cite:mslc
+  caption: [Equations implemented in the dissertaton#super[L], in Rocq#super[R] @cite:itree and M. Sammler#super[M] @cite:mslc
   #footnote[
     The annotations in the table are as follows:
 
@@ -1011,7 +969,7 @@ and is an example of how weak-bisimilarity can help prove an optimization correc
 #let trl = sym.triangle.stroked.l
 
 // Putting these ideas together I created the structure #AK named 'DeepThunk' (`DT` for short).
-Originally when considering the choice points for creating a variable layer polynomial (@sec:free),
+Originally when considering the choice points for creating a variable layer polynomial functor (@sec:free),
 I constructed what seemed to be the most obvious type.
 This structure became known as DeepThunks `DT P (α ::: β)`,
 and was given as the cofix-point of `M ((P α -) ∘ (Sum β -)))`
@@ -1039,7 +997,7 @@ The implemented functions can be seen in @futu:tb:free.
 
 // TODO: Rewrite
 
-The definition given for deep-thunks used the carrier as one of the mapped parameters to the polynomial.
+The definition given for deep-thunks used the carrier as one of the mapped parameters to the polynomial functor.
 I did not need to implement a dedicated map function, this was a mistake.
 The problem here is that any multivariate map can change the carrier.
 For all equations involving the multivariate map,
@@ -1047,7 +1005,7 @@ had to be restricted to functions concatenated together.
 This also meant that working with binds became a mess for universe levels.
 Fundamentally we want to treat this as a different parameter so we can also use do notation.
 Proving facts about binds also became extremely tedious.
-We also did not have a monad unit as the structure of the base polynomial P can be arbitrary.
+We also did not have a monad unit as the structure of the base polynomial functor P can be arbitrary.
 Another problem was DeepThunks across universes required applying a sequence of natural transformations.
 These natural transformations had few equations other than naturality proven about them.
 
@@ -1185,7 +1143,7 @@ using this we define the transliteration as seen in @tr:ls:code.
 This is the closest we get to cumilativity in Lean;
 through an application of the transliteration `transliterate : ULift.{v} α → ULift.{w} α`,
 we can use a type as if it is in any higher universe.
-We will define transliteration between universe-lifted polynomials,
+We will define transliteration between universe-lifted polynomial functors,
 we will see more of this in @sec:ulift_p.
 
 #let f = takeL(read("../../sme/Sme/ForMathlib/Data/ULift.lean"), 2, 11)
@@ -1206,7 +1164,7 @@ and makes it possible to define a universe-polymorphic eliminator.
 
 #impl([], "[UPSTREAMED],sme/Sme/ForMathlib/{PFunctor/*,TypeVec.lean}")
 
-During the feasability assesment, I noticed that in the current formalised theory of polynomials,
+During the feasability assesment, I noticed that in the current formalised theory of polynomial functors,
 the equivalence would not even type-check.
 This follows from the fact that the corecursor (@gp:fg:corec) requires that both $alpha$ and $beta$ reside in #U.
 This would stop the corecursor having a state that is in a higher universe than the output.
@@ -1230,7 +1188,7 @@ This means we can have `β : Type 𝓤` and `α : Type 𝓥`,
 then ulift both of them to a common universe `ULift α ::: ULift β : TypeVec.{max 𝓤 𝓥} (n+1)`
 #footnote[Note we overload ULift as a notation to refer to lifting other structures as well.].
 
-The next hurdle we encounter is that polynomials are restricted to a universe level.
+The next hurdle we encounter is that polynomial functors are restricted to a universe level.
 Recall the definition from @sec:poly.
 Observe how for a `MvPfunctor.{𝓤} n`,
 we require that both the head and child reside in $cal(U)$.

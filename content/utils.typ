@@ -22,6 +22,8 @@
 #let NC = "Nicolas Chappe"
 #let MS = "Michael Sammler"
 
+#let BGN = "5065D"
+
 #show: thmrules.with(qed-symbol: $square$)
 
 #let theorem = thmbox("theorem", "Theorem", fill: rgb("#eeffee"))

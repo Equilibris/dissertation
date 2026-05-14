@@ -39,6 +39,7 @@ This project would be more work than this dissertation.
   table(
     columns: 4,
     table.header[][The project][#cite(<cite:keizer>, form: "prose")][#MS],
+    table.hline(),
     [`dest` performance], gcv[$cal(O)(1)$], $cal(O)(n)$, $cal(O)(n)$,
     [Type Macro], [N], gcv[Y#footnote[For Lean v4.25]], [N],
     [Function definitions], [`futu`], [-], gcv[`partial_fixpoint`],

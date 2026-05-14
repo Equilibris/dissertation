@@ -12,30 +12,48 @@
   // Insert your abstract after the colon, wrapped in brackets.
   // Example: `abstract: [This is my abstract...]`
   proforma: [
-/ Word count: #total-words
-/ Line count: 8701 + PR
-/ Year: 2026
-/ Project originator : The candidate
-/ Day-to-day supervisor : Alex Keizer, Tobias Grosser
-/ Marking supervisor : Jamie Vicary
-/ Ethics approval : N / A
+#table(
+  strong[BGN], [ #BGN],
+  [],[],
+  strong[Title], table.cell(colspan:3)[ Efficient Coinductives through State-Machine Corecursors],
+  strong[Word count], [ #total-words],
+  // nix-shell -p cloc --run "cloc . --exclude-dir=.lake,ista-plv-coinductive,content,font --include-ext lean,py,typ"
+  strong[Line count], [ #(9564 + 1755 + 388 + /* PR */150)],
+  strong[Examination], [CST Part II],
+  strong[Year], [ 2026],
+  strong[Day-to-day #linebreak() supervisor ], [Alex Keizer#linebreak() Tobias Grosser],
+  strong[Marking #linebreak() supervisor ], [ Jamie Vicary],
+  strong[Project originator ], [ The candidate],
+  strong[Ethics approval], [N/A],
+  columns: (auto, auto, auto, auto),
+  align: (right, left)
+)
+
+#set heading(outlined: false)
 
 == Project Aims
 
-Optimise library coinductive data types in Lean and implement an example structure.
+Create the first high performance coinduction library outside of the kernel.
+Construct simple coinductive types in this system.
+
+// Optimise library coinductive data types in Lean and implement an example structure.
 
 == Work completed
 
-Optimised library coinductive data types in Lean and implemented rich data types for program verification.
+Implemented the first constant time coinduction library.
+Constructed rich data structure for program verification and denotational semantics.
+Improved ergonomics for coinductive function writing.
+
+// Optimised library coinductive data types in Lean and implemented rich data types for program verification.
 
 == Special difficulties
 
-My Supervisor had to take a break half way through the project.
+Alex Keizer had to take a break half way through the project,
+Tobias Grosser took over supervision.
 
 My grandfather Stein-Ulf Sørensen Passed away (2025-10-28),
 my aunt Asbjørg Johanne Raanes Passed away (2025-12-19).
 I missed term for both the funerals.
-
   ],
   acknowledgements: [
 / Alex Keizer : For supervising this dissertation and giving me the opportunity to explore coinductive types.
@@ -57,11 +75,6 @@ I missed term for both the funerals.
   "caption",
   <aix>,
 ))
-
-#outline(
-  title: [List of figures],
-  target: figure
-)
 
 #set page(numbering: "1", number-align: center, )
 #context counter(page).update(n => 1)

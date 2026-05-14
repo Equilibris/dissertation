@@ -3,6 +3,7 @@
 // #import "@preview/codelst:2.0.2": sourcecode
 #import "@preview/itemize:0.2.0" as el
 #import "@preview/ctheorems:1.1.3": *
+#import "./content/utils.typ": BGN
 
 #let common(
   title: "My Dissertation",
@@ -15,7 +16,7 @@
   course: "Computer Science Tripos, Part III",
   body,
 ) = {
-  set document(author: author, title: title)
+  set document(author: BGN, title: title)
   set page(margin: 2cm)
   set text(font: "New Computer Modern", lang: "en")
   show math.equation: set text(weight: 400)
@@ -33,17 +34,6 @@
   // codly(languages: codly-languages, number-format : none, display-name: false, zebra-fill: none)
   // show raw: (code) => sourcecode(code)
 
-  show table.cell.where(y: 0): strong
-  set table(
-    stroke: (x, y) => if y == 0 {
-      (
-        bottom: 0.7pt + black,
-      )
-    },
-    align: (x, y) => (
-      { center }
-    )
-  )
 
   body
 }
@@ -62,6 +52,11 @@
   course: "Computer Science Tripos, Part II",
   body,
 ) = {
+  set page(margin: 2cm, header: align(right + horizon)[#BGN #h(-2cm + 1em)])
+
+  show table.header: strong
+  set table( stroke: none, align: center)
+
   body = common(title: title, author: author, proforma: proforma, acknowledgements: acknowledgements, date : date, logo : logo, college : college, course : course, body)
   let chapternum = loc => {
     str(query(heading.where(level: 1, numbering: "1.1").before(loc), ).len())
@@ -69,7 +64,7 @@
 
   show heading: it => {
     if it.level == 1 {
-      pagebreak()
+      pagebreak(weak: true)
       // v(4.5em)
       set text(size: 25pt)
       if it.numbering == "1.1" {
@@ -98,9 +93,12 @@
   // Title page.
   // The page can contain a logo if you pass one with `logo: "logo.png"`.
   set align(center)
-  if logo != none {
-    align(left, image(logo, width: 30%))
-  }
+  grid(
+    image("cst_logo.svg", height: 2cm),
+    [],
+    image("gnc.svg", height: 1.2cm),
+    columns: (auto, 1fr, auto)
+  )
 
   v(0.5fr)
   text(1.1em, date)
@@ -146,19 +144,41 @@
   proforma
 
   // Acknowledgements page.
-  heading(
-    outlined: false,
-    numbering: none,
-    "Acknowledgements"
-  )
+  {
+    show pagebreak: it => {}
+    heading(
+      outlined: false,
+      numbering: none,
+      "Acknowledgements"
+    )
+  }
   acknowledgements
 
   // Table of contents.
-  outline(
-    depth: 3,
-    // indent: true,
-    target: heading
+  pagebreak()
+  {
+  show pagebreak: it => {}
+
+  show footnote: it => {}
+  set footnote.entry(separator: none)
+
+  show cite: it => {}
+  show footnote.entry: it => {}
+  columns(2,
+    outline(
+      depth: 3,
+      // indent: true,
+      target: heading
+    )
   )
+  pagebreak(weak:true)
+  // columns(2,
+    outline(
+      title: [List of figures],
+      target: figure
+    )
+  // )
+  }
 
   // Main body.
   set par(justify: true)
