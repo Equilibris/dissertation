@@ -23,7 +23,8 @@
   strong[Year], [ 2026],
   strong[Day-to-day #linebreak() supervisor ], [Alex Keizer#linebreak() Tobias Grosser],
   strong[Marking #linebreak() supervisor ], [ Jamie Vicary],
-  strong[Project originator ], [ The candidate],
+  strong[Project #linebreak()originator ], [ The candidate],
+  [],[],
   strong[Ethics approval], [N/A],
   columns: (auto, auto, auto, auto),
   align: (right, left)
@@ -51,8 +52,8 @@ Improved ergonomics for coinductive function writing.
 Alex Keizer had to take a break half way through the project,
 Tobias Grosser took over supervision.
 
-My grandfather Stein-Ulf Sørensen Passed away (2025-10-28),
-my aunt Asbjørg Johanne Raanes Passed away (2025-12-19).
+My grandfather /*Stein-Ulf Sørensen*/ passed away (2025-10-28),
+my aunt /* Asbjørg Johanne Raanes*/ passed away (2025-12-19).
 I missed term for both the funerals.
   ],
   acknowledgements: [
