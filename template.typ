@@ -16,7 +16,7 @@
   course: "Computer Science Tripos, Part III",
   body,
 ) = {
-  set document(author: BGN, title: title)
+  set document(author: author, title: title)
   set page(margin: 2cm)
   set text(font: "New Computer Modern", lang: "en")
   show math.equation: set text(weight: 400)
@@ -96,7 +96,7 @@
   grid(
     image("cst_logo.svg", height: 2cm),
     [],
-    image("gnc.svg", height: 1.2cm),
+    // image("gnc.svg", height: 1.2cm),
     columns: (auto, 1fr, auto)
   )
 
@@ -106,10 +106,10 @@
   text(2em, weight: 700, title)
 
   // Author information.
-  pad(
-    top: 0.7em,
-    strong(author)
-  )
+  // pad(
+  //   top: 0.7em,
+  //   strong(author)
+  // )
 
   // College
   college
@@ -117,7 +117,7 @@
   v(1fr)
   par()[
     Submitted in partial fulfilment of the requirements for the\
-    #course
+    #course 2026
   ]
   set align(left)
 
@@ -128,10 +128,15 @@
     "Declaration"
   )
 
-  par()[
-    I, #author of #college, being a candidate for the \course, hereby declare that this report and the work described in it are my own work, unaided except as may be specified below, and that the report does not contain material that has already been used to any substantial extent for a comparable purpose. \
-    // #v(1em)
-    *Signed*: #author \
+  [
+    // I, #author of #college, being a candidate for the \course, hereby declare that this report and the work described in it are my own work, unaided except as may be specified below, and that the report does not contain material that has already been used to any substantial extent for a comparable purpose. \
+    I, the candidate for Part II of the Computer Science Tripos with Blind Grading Number #author,
+    hereby declare that this report and the work described in it are my own work,
+    unaided except as may be specified below,
+    and that the report does not contain material that has already been used to any substantial extent for a comparable purpose.
+    In preparation of this report, I adhered to the Department of Computer Science and Technology AI Policy.
+    I am content for my report to be made available to the students and staff of the University.
+
     *Date*: #date
   ]
 

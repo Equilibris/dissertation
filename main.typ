@@ -8,7 +8,8 @@
 
 #show: project.with(
   title: "Efficient Coinductives through \nState-Machine Corecursors",
-  author: "William Sørensen",
+  college: none, // "Gonville & Caius College",
+  author: BGN,
   // Insert your abstract after the colon, wrapped in brackets.
   // Example: `abstract: [This is my abstract...]`
   proforma: [
@@ -65,7 +66,6 @@ I missed term for both the funerals.
 / Russell Moore : For reviewing my dissertation and help me identify specialist language.
   ],
   date: "May 15, 2026",
-  college: "Gonville & Caius College",
   logo: "cst_logo.svg")
 
 // #todo[Abtract]
