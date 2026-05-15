@@ -147,7 +147,7 @@ Consider Russell's Paradox `let R := { x ∣ x ∉ x } in R ∈ R`.
 A way to resolve this is by making a hierarchy of sets `Set 0 : Set 1 : ...`.
 
 #definition[
-  A *universe* is a type, whos terms are themselves types @nlab:type_universe.
+  A *universe* is a type, whose terms are themselves types @nlab:type_universe.
 ]
 
 We also have a paradox like this for types, Girard's paradox,

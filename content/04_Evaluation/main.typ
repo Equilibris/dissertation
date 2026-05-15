@@ -136,7 +136,8 @@ This generates @ev:fg:perf.
   caption: [Cumulative performance for stream destructing]
 ) <ev:fg:perf>
 
-Reviewing the output plot we can see that the destructuring the state-machine encoding is $cal(O)(1)$,
+In @ev:fg:perf we see the `SM` and #TM are both linear and the implementations build on progressive approximation are quadratic.
+As this shows $n times cal(O)(f)$, we can see that destructuring of the state-machine encoding is $cal(O)(1)$,
 as opposed to the progressive approximation encoding which is $cal(O)(n)$.
 This is in line with the expected theoretical performance.
 
@@ -149,11 +150,11 @@ This is in line with the expected theoretical performance.
 // On the other hand, the #TM is 1.5x slower/* TODO: Prove*/.
 In addition to @ev:fg:perf,
 which mainly shows the asymptotics of the different implementations,
-I also computed a per-layer cost.
+I also computed a per destructure cost.
 This was done by dividing the samples by the stream index we are testing (@ev:fg:layer).
 The plot then shows the constant factor of the two implementations.
 
-The difference between `SM` and the #TM types from the destructor function needing to do a universe lowering.
+The difference between `SM` and the #TM comes from the destructor function needing to do a universe lowering.
 In practice this means the #TM adds two pointer indirections over the `SM` adding a fixed cost at each iteration,
 compared to the `SM` which calls the destructor function directly.
 
@@ -174,7 +175,7 @@ We now have to assess whether usage is zero cost (@rq:abi:zc).
 
 It is not clear how one would test the performance of the AltRepr type.
 So rather we can read the generated intermediate representation (LCNF) for the functions we care about.
-Inspecting the performance of `mkB` @eabi:ls:mkB and `destB` @eabi:ls:destB,
+Inspecting the intermediate representation of `mkB` @eabi:ls:mkB and `destB` @eabi:ls:destB,
 we can see they have become the identity.
 The eliminator `rec` has also compiled into simply calling the efficient implementation.
 Additionally, each of these are marked with an `@[inline]` hint,
@@ -267,7 +268,7 @@ def AltRepr.rec A B eq motive.1 hLog hCheap eqA eqB v : lcAny :=
 For evaluating interaction trees,
 there are 3 main aspects to evaluate: function coverage, proof coverage, and performance.
 Since performance is inherited directly from the performance of the $M$-Type,
-so I will focus on function and proof coverage.
+I will focus on function and proof coverage.
 
 Function coverage can be found in @itree:tb:fns and proof coverage @itree:tb:eqs.
 This is comparing against the ITree paper @cite:itree.
@@ -275,12 +276,11 @@ In private conversation with #NC,
 he informed me of some of the additions to the interaction tree library for Rocq.
 These include relations such as simulation up to taus (`sutt`),
 and relation up to taus (`rutt`).
-For instance `sutt` is useful for compiler verification in for example compcert @cite:compcert.
+For instance, `sutt` is useful for compiler verification in compcert @cite:compcert.
 In C, a non-terminating function is UB and therefore should be able to be related to any other function.
 This is in line with the fact that the spinning ITree can be simulated by any other ITree.
 This is as opposed to how the spinning ITree is unique up to weak bisimulation.
 
-On the other hand,
 Lean now has an ITree library,
 something multiple groups have requested.
 For this reason #TG has expressed interest in using the current implementation for his project VeIR @cite:veir.
@@ -288,8 +288,8 @@ For this reason #TG has expressed interest in using the current implementation f
 During the production of this dissertation,
 #MS also started work on an interaction tree library using the progressive approximation encoding and domain theoretic means.
 A consequence is that his definition of `iter` is not required to be productive.
-The reason for this has to do with trying to avoid weak bisimilarity,
-and therefore has no implementation of the relation.
+// This has to do with trying to avoid weak bisimilarity,
+// and therefore has no implementation of the relation.
 
 The domain construction of the coinductive data types allow for very natural function definitions,
 though unfortunately the definition is still slow.
@@ -326,15 +326,14 @@ In addition to this we will compare implementations between functions written us
 
 By inspecting the @futu:tb:free,
 we can see we have implemented a futumorphism (@rq:ft:corec) and an injection (@rq:ft:inject).
-In the code one can also find the cross universe futumorphism solving @rq:ft:corecu.
+In the code one can also find the cross universe futumorphism (@rq:ft:corecu).
 We also have theorems about flattening, mapping and injection proven in the code, these fill out the `simp`-set for futumorphism.
 The result of this is that when an end-user uses a futumorphism,
 all they have to provide is a mapping over constructor lemma,
 and the rest will automatically solve.
 The main theorems that make this possible,
 is the unfolding of futumorphism lemmas.
-For the case of `futu'`, the statement can be seen in @futu:ls:unf.
-With this implemented we have @rq:ft:unfold.
+For the case of `futu'`, the statement can be seen in @futu:ls:unf (@rq:ft:unfold).
 Furthermore, I added theorems stating `inject` is an injection,
 and `flatten` is `inject`'s left-inverse.
 
@@ -343,26 +342,20 @@ and `flatten` is `inject`'s left-inverse.
   caption: [Futumorphic unfolding lemma]
 )<futu:ls:unf>
 
-=== Comparing function definitions
-
-// TODO: Dont direclty use requirements.
-
-For evaluating the futumorphism, it is best to put practice over promise,
-for this we can look at some functions written using the current 3 possible styles of writing functions.
+For evaluating the futumorphism, it is best to put practice over promise.
+For this we can look at some functions written using the current 2 possible styles of writing functions.
 These are directly using the corecursor and using a futumorphism.
 I also tried to compare it to #MS,
 but the fixpoint turned out to try to compute the entire definition in finite memory,
 crashing my compiler,
 this means these functions would not be useful to compute with.
 
-The main use of a futumorphism,
-is moving any recursive component of a corecursor out of the state domain,
+The main use of a futumorphism is moving any recursive component of a corecursor out of the state domain,
 and into an explicit function.
 Doing this transformation lets the function be written exactly as one would expect to write a normal inductive function,
 just inserting corecursive calls as `recall` constructors.
 Three good examples of this can be seen in @futu:ls:ilc, @futu:ls:stutter and @futu:ls:rle.
-This fact means that a productive function,
-is exactly a function who's generating function to the futumorphism is terminating.
+This fact means that a productive function is exactly a function whose generating function to the futumorphism is terminating.
 
 // A function where it is immediately noticeably from both a readability perspective,
 // is interlacing with a constant @futu:ls:ilc and stuttering @futu:ls:stutter.
