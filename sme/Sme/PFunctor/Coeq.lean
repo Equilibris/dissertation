@@ -1,6 +1,7 @@
 import Sme.ForMathlib.Data.PFunctor.Multivariate.Basic
 import Sme.ForMathlib.Data.TypeVec
 import Mathlib.Tactic.DepRewrite
+import Mathlib.Order.Extension.Linear
 
 namespace MvPFunctor
 
@@ -110,6 +111,13 @@ theorem comp_child
   rw! [u.nt_fst_eq_hd]
   rfl
 
+theorem comp_child'
+    {u : NatTrans P Q} {v : NatTrans Q R}
+    : (u.comp v).child = (fun b => (u.child b) ⊚ (v.child (u.hd b))) := by
+  funext i b x
+  rw [←comp_child]
+  rfl
+
 theorem nt_snd_eq_child
     {v : NatTrans Q R}
     {α x}
@@ -130,6 +138,52 @@ theorem transform_mk
   · simp only [nt_snd_eq_child, TypeVec.id_comp]
     rw [TypeVec.heq_of_mp_mpr rfl (by simp)]
     simp
+
+def mkOfHdChild
+    (pos : P.A → Q.A)
+    (dir : ∀ hd, Q.B (pos hd) ⟹ P.B hd)
+    : NatTrans P Q where
+  f := fun _ x => ⟨pos x.1, x.2 ⊚ dir _⟩
+  nat _ _ _ _ := rfl
+
+@[simp]
+theorem hd_mkOfHdChild
+    (pos : P.A → Q.A)
+    (dir : ∀ hd, Q.B (pos hd) ⟹ P.B hd)
+    : (mkOfHdChild pos dir).hd = pos := rfl
+
+@[simp]
+theorem child_mkOfHdChild
+    (pos : P.A → Q.A)
+    (dir : ∀ hd, Q.B (pos hd) ⟹ P.B hd)
+    : (mkOfHdChild pos dir).child = dir := rfl
+
+@[simp]
+theorem mkOfHdChild_eta
+    {x : NatTrans P Q}
+    : (mkOfHdChild x.hd x.child) = x := by
+  ext i
+  simp only [mkOfHdChild, transform_mk, TypeVec.id_comp]
+  rfl
+
+@[elab_as_elim]
+def cases
+    {motive : NatTrans P Q → Sort _}
+    (h : ∀ pos dir, motive (mkOfHdChild pos dir))
+    x : motive x :=
+  cast (by rw [mkOfHdChild_eta]) (h x.hd x.child)
+
+@[ext 850]
+theorem ext_hd_child {a b : NatTrans P Q}
+    (hhd : a.hd = b.hd)
+    (hch : a.child ≍ b.child)
+    : a = b := by
+  cases a using cases; next ah ac =>
+  cases b using cases; next bh bc =>
+  obtain rfl : ah = bh := hhd
+  dsimp at hch
+  subst hch
+  rfl
 
 end NatTrans -------------------------------------------------------------------
 
@@ -195,6 +249,81 @@ theorem unique (x : NatTrans Q R) (h : f.comp x = g.comp x)
   simp [NatTrans.comp, lift, mk, NatTrans.transform_mk]
   rfl
 
+theorem ind {Z} {a b : NatTrans (coeq f g) Z}
+    (h : (mk f g).comp a = (mk f g).comp b)
+    : a = b := by
+  cases a using NatTrans.cases; next ap ad =>
+  cases b using NatTrans.cases; next bp bd =>
+  obtain rfl : ap = bp := by
+    obtain ⟨h', -⟩ := NatTrans.ext_hd_child_iff.mp h
+    dsimp at h'
+    funext hd
+    cases hd using Quot.ind; next hd =>
+    exact funext_iff.mp h' hd
+  refine NatTrans.ext_hd_child (by rfl) <| heq_of_eq ?_
+  dsimp
+  obtain ⟨-, h'⟩ := NatTrans.ext_hd_child_iff.mp h
+  simp only [NatTrans.comp_hd, NatTrans.hd_mkOfHdChild, Function.comp_apply, NatTrans.comp_child',
+    NatTrans.child_mkOfHdChild, heq_eq_eq] at h'
+  ext a i z
+  apply Subtype.ext
+  cases a using Quot.ind; next a =>
+  ext qz v
+  have : _ = _ := funext_iff.mp (funext_iff.mp (funext_iff.mp h' qz) i) (cast (by 
+    rw [←v];rfl) z)
+  dsimp [mk, NatTrans.child, NatTrans.hd, Function.comp] at this
+  rewrite! (castMode := .all) [v, v] at this
+  exact this
+
+-- Probs not provable
+def lift' {α} {B}
+    (fn : Q α → B)
+    (h : ∀ x, fn (f α x) = fn (g α x))
+    : coeq f g α → B
+  | ⟨hd, tl⟩ => by
+    induction hd using Quot.hrecOn
+    case f a =>
+      apply fn ⟨a, fun d hz => ?_⟩ -- tl d ?_⟩
+      stop
+      dsimp [coeq]
+      refine ⟨fun x h => ?_, ?_⟩
+      · sorry
+      · sorry
+    · sorry
+
+theorem mk_eq_iff' {α} {a b : Q α}
+    (h : mk f g α a = mk f g α b)
+    : Relation.EqvGen (∃ x, f α x = · ∧ g α x = ·) a b := by
+  rcases a with ⟨af, as⟩
+  rcases b with ⟨bf, bs⟩
+  dsimp [mk] at h
+  have ⟨ha, hb⟩ := Sigma.ext_iff.mp h; clear h
+  dsimp at ha hb
+  induction Quot.eq.mp ha <;> clear ha
+  case rel h =>
+    rcases h with ⟨x, rfl, rfl⟩
+    refine Relation.EqvGen.symm _ _ <| Relation.EqvGen.rel _ _ ?_
+    have := f.child x
+    use ⟨x, sorry⟩
+    rw [NatTrans.transform_mk, NatTrans.transform_mk, Sigma.ext_iff, Sigma.ext_iff]
+    simp only [heq_eq_eq, true_and]
+    sorry
+  · rw [heq_eq_eq] at hb
+    suffices h : as = bs by
+      subst h
+      exact .refl _
+    funext i x
+    have := as i x
+    have := funext_iff.mp (funext_iff.mp hb i) ⟨fun d heq => sorry, sorry⟩
+    sorry
+  · sorry
+  · sorry
+
+  stop
+  rcases h with ⟨x, rfl, rfl⟩
+  change (f.comp (mk f g)) α x = (g.comp (mk f g)) α x
+  rw [mk_f_mk_g]
+
 theorem mk_eq_iff {α} {a b : Q α}
     (h : ∃ x, f α x = a ∧ g α x = b)
     : mk f g α a = mk f g α b := by
@@ -204,17 +333,11 @@ theorem mk_eq_iff {α} {a b : Q α}
 
 section
 
-def permlist
-    : MvPFunctor 1 := ⟨
-  (x : Nat) × Equiv.Perm (Fin x),
-  fun ⟨v, _⟩ _ => Fin v
-⟩
+variable {α : TypeVec 1}
 
 def plist : MvPFunctor 1 := ⟨Nat, fun v _ => Fin v⟩
 
 namespace plist
-
-variable {α}
 
 def nil : plist α := ⟨Nat.zero, fun _ n => n.elim0⟩
 def cons (hd : α .fz) (tl : plist α) : plist α where
@@ -223,61 +346,239 @@ def cons (hd : α .fz) (tl : plist α) : plist α where
     | .fz, ⟨0, p⟩ => hd
     | .fz, ⟨n+1, p⟩ => tl.2 .fz ⟨n, by omega⟩
 
+def toList (l : plist α) : List (α .fz) := List.ofFn (l.snd .fz)
+def ofList (l : List (α .fz)) : plist α where
+  fst := l.length
+  snd | .fz => ((l[·]) : Fin _ → _)
+
+@[simp]
+theorem toList_nil : toList (nil (α := α)) = [] := rfl
+@[simp]
+theorem toList_cons {hd} {tl : plist α} : toList (cons hd tl) = hd :: toList tl := by
+  simp only [toList, cons, Nat.succ_eq_add_one, List.ofFn_succ, List.cons.injEq, List.ofFn_inj]
+  refine ⟨rfl, funext fun _ => rfl⟩
+
+
+#check List.pairwise_insertionSort
+#check ofList ∘ List.insertionSort (· ≤ ·) ∘ toList
+
+theorem toList_map {β} (f : α ⟹ β) (x : plist α)
+    : toList (f <$$> x) = (toList x).map (f .fz) := by
+  simp [toList]
+
+@[simp]
+theorem map_ofList {β} (f : α ⟹ β) (x : List (α .fz))
+    : f <$$> (ofList x) = (ofList (x.map (f .fz))) := by
+  simp only [ofList, Fin.getElem_fin, List.getElem_map]
+  rw! (castMode := .all) [List.length_map]
+  refine Sigma.ext rfl <| heq_of_eq ?_
+  funext i x
+  rcases i with (_|_|_)
+  simp
+
+@[simp]
+theorem ofList_toList {x : List (α .fz)}
+    : (toList (ofList x)) = x := by
+  simp [toList, ofList]
+
+@[simp]
+theorem toList_ofList {x : plist α}
+    : (ofList (toList x)) = x := by
+  rcases x with ⟨xf, xs⟩
+  simp only [ofList, toList, Fin.getElem_fin, List.getElem_ofFn]
+  rw! (castMode := .all) [List.length_ofFn]
+  refine Sigma.ext rfl <| heq_of_eq ?_
+  funext i x
+  rcases i with (_|_|_)
+  simp
+
+
+theorem ofList_cases {motive : plist α → Prop}
+    (h : ∀ v, motive (ofList v))
+    x : motive x := by
+  rw [←toList_ofList (x := x)]
+  exact h (toList x)
+
+def equivList : plist α ≃ List (α .fz) where
+  toFun := toList
+  invFun := ofList
+  left_inv x := by simp
+  right_inv _ := by simp
+
 end plist
 
-def permlist.proj : NatTrans permlist plist where
+def permlist
+    : MvPFunctor 1 := ⟨
+  (x : Nat) × Equiv.Perm (Fin x),
+  fun ⟨v, _⟩ _ => Fin v
+⟩
+
+namespace permlist
+
+def ofList (l : List (α .fz)) (perm : Equiv.Perm (Fin l.length)) : permlist α where
+  fst := ⟨_, perm⟩
+  snd | .fz => ((l[·]) : Fin _ → _)
+/- permlist.proj.f α (permlist.ofList (plist.toList a) eq) -/
+
+def proj : NatTrans permlist plist where
   f _ pls := ⟨pls.1.1, pls.2⟩
   nat a b f x := rfl
 
-def permlist.transp : NatTrans permlist plist where
+def transp : NatTrans permlist plist where
   f _ pls := ⟨pls.1.1, (fun a i => pls.2 _ (pls.1.2 i))⟩
   nat a b f x := rfl
+
+@[simp]
+theorem proj_ofList {l : List (α .fz)} {perm : Equiv.Perm (Fin l.length)}
+    : proj α (ofList l perm) = plist.ofList l := by
+  refine Sigma.ext rfl <| heq_of_eq ?_
+  funext i x
+  rcases i with (_|_|_)
+  simp [proj, ofList, plist.ofList]
+
+@[simp]
+theorem transp_ofList {l : List (α .fz)} {perm : Equiv.Perm (Fin l.length)}
+    : transp α (ofList l perm) = plist.ofList (List.ofFn ((l[·]) ∘ perm)) := by
+  simp only [transp, ofList, Fin.getElem_fin, plist.ofList, List.getElem_ofFn, Function.comp_apply]
+  rw! (castMode := .all) [List.length_ofFn]
+  refine Sigma.ext rfl <| heq_of_eq ?_
+  funext i x
+  rcases i with (_|_|_)
+  simp
+
+end permlist
 
 def multiset := coeq permlist.proj permlist.transp
 
 def multiset.mk : NatTrans plist multiset := coeq.mk _ _
 
-example : multiset.mk (fun _ => Nat) (plist.cons 1 <| plist.cons 2 <| plist.nil)
-    = multiset.mk _ (plist.cons 2 <| plist.cons 1 <| plist.nil) := by
+@[elab_as_elim]
+theorem ofList_cases {A} {motive : List A → Prop}
+    (hOfList : ∀ l : Nat, ∀ i : Fin l → A, motive (List.ofFn i))
+    x : motive x := by
+  rw [←List.ofFn_getElem (l := x)]
+  apply hOfList
+
+def fin_cast_equiv {a b : Nat}
+    (h : a = b)
+    : Fin a ≃ Fin b where
+  toFun := Fin.cast h
+  invFun := Fin.cast h.symm
+
+theorem perm_of_list_perm {A} {a b : List A} : List.Perm a b
+    → ∃ p : (Equiv.Perm (Fin a.length)), b = List.ofFn ((a[·]) ∘ p.toFun)
+  | .nil => ⟨⟨Fin.elim0, Fin.elim0, fun x => x.elim0, fun x => x.elim0⟩, by simp⟩
+  | .trans x y => by
+    have ⟨xeq, hx⟩ := perm_of_list_perm x
+    have ⟨yeq, hy⟩ := perm_of_list_perm y
+    subst hx
+    subst hy
+    use Equiv.trans (((fin_cast_equiv (by simp)).trans yeq).trans (fin_cast_equiv (by simp))) xeq
+    cases a using ofList_cases; next la fa =>
+    cases b using ofList_cases; next lb fb =>
+    simp only [List.length_ofFn, Fin.getElem_fin, List.getElem_ofFn, Equiv.toFun_as_coe,
+      Function.comp_apply, Fin.cast_mk, List.ofFn_inj] at *
+    ext v
+    simp [Equiv.trans_apply]
+    rfl
+  | .swap x y l => by
+    use ⟨
+      fun
+        | ⟨0, h⟩ => ⟨1, Nat.one_lt_succ_succ l.length⟩
+        | ⟨1, h⟩ => ⟨0, Nat.zero_lt_succ (x :: l).length⟩
+        | ⟨n+2, h⟩ => ⟨n+2, h⟩,
+      fun
+        | ⟨0, h⟩ => ⟨1, Nat.one_lt_succ_succ l.length⟩
+        | ⟨1, h⟩ => ⟨0, Nat.zero_lt_succ (x :: l).length⟩
+        | ⟨n+2, h⟩ => ⟨n+2, h⟩,
+      fun
+        | ⟨0, h⟩ => rfl
+        | ⟨1, h⟩ => rfl
+        | ⟨n+2, h⟩ => rfl,
+      fun
+        | ⟨0, h⟩ => rfl
+        | ⟨1, h⟩ => rfl
+        | ⟨n+2, h⟩ => rfl,
+    ⟩
+    simp only [List.length_cons, Fin.getElem_fin, Fin.mk_one, Fin.zero_eta, List.ofFn_succ,
+      Function.comp_apply, Fin.succ_zero_eq_one, List.cons.injEq]
+    refine ⟨rfl, rfl, ?_⟩
+    change l = List.ofFn fun i => l[i]
+    simp only [Fin.getElem_fin, List.ofFn_getElem]
+  | .cons x h => by
+    have ⟨xeq, h⟩ := perm_of_list_perm h
+    use ⟨
+      fun
+        | ⟨0, h⟩ => ⟨0, h⟩
+        | ⟨n+1, h⟩ => Fin.succ (xeq ⟨n, Nat.succ_lt_succ_iff.mp h⟩),
+      fun
+        | ⟨0, h⟩ => ⟨0, h⟩
+        | ⟨n+1, h⟩ => Fin.succ (xeq.invFun ⟨n, Nat.succ_lt_succ_iff.mp h⟩),
+      fun
+        | ⟨0, h⟩ => rfl
+        | ⟨n+1, h⟩ => by simp [Fin.succ]
+        ,
+      fun
+        | ⟨0, h⟩ => rfl
+        | ⟨n+1, h⟩ => by simp [Fin.succ]
+    ⟩
+    subst h
+    simp only [Fin.getElem_fin, Equiv.toFun_as_coe, List.length_cons, Fin.zero_eta, List.ofFn_succ,
+      Function.comp_apply, List.cons.injEq, List.ofFn_inj]
+    refine ⟨rfl, rfl⟩
+
+theorem multiset.eq_mk {α a b}
+    (h : (plist.toList a).Perm (plist.toList b))
+    : multiset.mk α a = multiset.mk α b := by
   apply coeq.mk_eq_iff
-  use ⟨
-    ⟨2, {
-      toFun := fun
-        | ⟨0, _⟩ => ⟨1, by omega⟩
-        | ⟨1, _⟩ => ⟨0, by omega⟩
-      invFun := fun
-        | ⟨0, _⟩ => ⟨1, by omega⟩
-        | ⟨1, _⟩ => ⟨0, by omega⟩
-      left_inv := fun
-        | ⟨0, _⟩ => rfl
-        | ⟨1, _⟩ => rfl
-      right_inv := fun
-        | ⟨0, _⟩ => rfl
-        | ⟨1, _⟩ => rfl
-    }⟩,
-    fun
-      | .fz, ⟨0, _⟩ => 1
-      | .fz, ⟨1, _⟩ => 2
-    ,
-  ⟩
-  constructor
-  <;> dsimp [permlist.transp, permlist.proj, plist.nil, plist.cons]
-  · refine Sigma.ext rfl <| heq_of_eq ?_
-    funext x i
-    change Fin 2 at i
-    rcases x with (_|_|_)
-    rcases i with ⟨(_|_|_), _⟩
-    · rfl
-    · rfl
-    · omega
-  · refine Sigma.ext rfl <| heq_of_eq ?_
-    funext x i
-    change Fin 2 at i
-    rcases x with (_|_|_)
-    rcases i with ⟨(_|_|_), _⟩
-    · rfl
-    · rfl
-    · omega
+  have ⟨eq, h⟩:= perm_of_list_perm h
+  use permlist.ofList (plist.toList a) eq
+  simp only [permlist.proj_ofList, plist.toList_ofList, permlist.transp_ofList, Fin.getElem_fin,
+    true_and]
+  cases b using plist.ofList_cases; next b =>
+  cases a using plist.ofList_cases; next a =>
+  apply (plist.equivList (α := α)).injective
+  dsimp [plist.equivList]
+  simp only [plist.ofList_toList]
+  simp only [plist.ofList_toList, Fin.getElem_fin, Equiv.toFun_as_coe, Function.comp_apply] at h
+  subst h
+  rfl
+
+theorem multiset.mk_eq {α a b}
+    (h : multiset.mk α a = multiset.mk α b)
+    : (plist.toList a).Perm (plist.toList b)
+    := by
+  simp only [mk, coeq.mk] at h
+  rw [Sigma.ext_iff] at h
+  dsimp at h
+  sorry
+
+example : multiset.mk (fun _ => Nat) (plist.cons 1 <| plist.cons 2 <| plist.nil)
+    = multiset.mk _ (plist.cons 2 <| plist.cons 1 <| plist.nil) := multiset.eq_mk <| by
+  simp only [plist.toList_cons, plist.toList_nil]
+  exact .swap _ _ _
+
+def ofMultiset {α} (x : Multiset α) : multiset (fun _ => α) :=
+  x.lift (multiset.mk _ ∘ plist.ofList) fun a b h => multiset.eq_mk <| by
+    simp only [plist.ofList_toList]
+    exact h
+
+theorem ofMultiset.surjective {α}
+    : Function.Surjective (ofMultiset (α := α)) := by
+  intro ms
+  sorry
+
+theorem ofMultiset.injective {α}
+    : Function.Injective (ofMultiset (α := α)) := by
+  intro a b x
+  cases a using Quotient.ind; next a =>
+  cases b using Quotient.ind; next b =>
+  dsimp [-Multiset.quot_mk_to_coe, ofMultiset] at x
+  apply Quot.sound
+  change a.Perm b
+  have := multiset.mk_eq x
+  simp only [plist.ofList_toList] at this
+  exact this
 
 example {α} : multiset (fun _ => α) ≃ Multiset α where
   toFun := sorry
