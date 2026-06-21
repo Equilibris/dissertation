@@ -77,7 +77,7 @@ attribute [irreducible, implemented_by equivXUImpl, inline] equivXU
 end
 
 def M (P : MvPFunctor.{u} (n + 1)) (α : TypeVec.{u} n) : Type u :=
-  AltRepr _ _ (SM.equivP.{u, u} (P := P) (α := α)).symm
+  AltRepr (P.M α) (SM.{u, _} P α) (SM.equivP.{u, u} (P := P) (α := α)).symm
 
 namespace M
 
