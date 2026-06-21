@@ -14,49 +14,49 @@ universe u v w x
 variable {n : Nat} (P : MvPFunctor.{u} n.succ)
 
 /-- A path from the root of a tree to one of its node -/
-inductive M.Path : (Uni.M P.last) → Fin2 n → Type u
+inductive MM.Path : (Uni.M P.last) → Fin2 n → Type u
   | root (x : _)
           (a : P.A)
           (f : P.last.B a → Uni.M P.last)
           (h : x.dest = ⟨a, f⟩)
           (i : Fin2 n)
-          (c : P.drop.B a i) : M.Path x i
+          (c : P.drop.B a i) : MM.Path x i
   | child (x : _)
           (a : P.A)
           (f : P.last.B a → Uni.M P.last)
           (h : x.dest = ⟨a, f⟩)
           (j : P.last.B a)
           (i : Fin2 n)
-          (c : M.Path (f j) i) : M.Path x i
+          (c : MM.Path (f j) i) : MM.Path x i
 
-instance M.Path.inhabited (x : Uni.M P.last) {i}
-    [Inhabited (P.drop.B x.head i)] : Inhabited (M.Path P x i) :=
-  ⟨M.Path.root _ x.head x.children (by cases x using Uni.M.mk_cases; rfl) _ default⟩
+instance MM.Path.inhabited (x : Uni.M P.last) {i}
+    [Inhabited (P.drop.B x.head i)] : Inhabited (MM.Path P x i) :=
+  ⟨MM.Path.root _ x.head x.children (by cases x using Uni.M.mk_cases; rfl) _ default⟩
 
-/-- Polynomial functor of the M-type of `P`. `A` is a data-less
+/-- Polynomial functor of the MM-type of `P`. `A` is a data-less
 possibly infinite tree whereas, for a given `a : A`, `B a` is a valid
 path in tree `a` so that `mp α` is made of a tree and a function
 from its valid paths to the values it contains -/
 def mp : MvPFunctor n where
   A := Uni.M P.last
-  B := M.Path P
+  B := MM.Path P
 
-/-- `n`-ary M-type for `P` -/
-def M (α : TypeVec n) : Type u :=
+/-- `n`-ary MM-type for `P` -/
+def MM (α : TypeVec n) : Type u :=
   mp P α
 
-namespace M
+namespace MM
 
 @[reducible]
-instance : MvFunctor (M P) := by
+instance : MvFunctor (MM P) := by
   change MvFunctor (mp P)
   infer_instance
 
 /- instance {α : TypeVec _} [I : Inhabited P.A] [∀ i : Fin2 n, Inhabited (α i)]  -/
-/-     : Inhabited (P.M α) := -/
-/-   @Obj.inhabited _ (mp P) _ (@PFunctor.M.inhabited P.last I) _ -/
+/-     : Inhabited (P.MM α) := -/
+/-   @Obj.inhabited _ (mp P) _ (@PFunctor.MM.inhabited P.last I) _ -/
 
-/-- construct through corecursion the shape of an M-type
+/-- construct through corecursion the shape of an MM-type
 without its contents -/
 def corecShape {β : Type v} (g₀ : β → P.A) (g₂ : ∀ b : β, P.last.B (g₀ b) → β) :
     β → Uni.M P.last :=
@@ -70,7 +70,7 @@ def castDropB {a a' : P.A} (h : a = a') : P.drop.B a ⟹ P.drop.B a' := fun _i b
 /-- Proof of type equality as a function -/
 def castLastB {a a' : P.A} (h : a = a') : P.last.B a → P.last.B a' := fun b => Eq.recOn h b
 
-/-- Using corecursion, construct the contents of an M-type -/
+/-- Using corecursion, construct the contents of an MM-type -/
 def corecContents {α : TypeVec.{u} n}
     {β : Type v}
     (g₀ : β → P.A)
@@ -78,91 +78,91 @@ def corecContents {α : TypeVec.{u} n}
     (g₂ : ∀ b : β, P.last.B (g₀ b) → β)
     (x : _)
     (b : β)
-    (h : x = M.corecShape P g₀ g₂ b) :
-    M.Path P x ⟹ α
-  | _, M.Path.root x a f h' i c =>
+    (h : x = MM.corecShape P g₀ g₂ b) :
+    MM.Path P x ⟹ α
+  | _, MM.Path.root x a f h' i c =>
     have : a = g₀ b := by
-      rw [h, M.corecShape, Uni.M.dest_corec] at h'
+      rw [h, MM.corecShape, Uni.M.dest_corec] at h'
       cases h'
       rfl
     g₁ b i (P.castDropB this i c)
-  | _, M.Path.child x a f h' j i c =>
+  | _, MM.Path.child x a f h' j i c =>
     have h₀ : a = g₀ b := by
-      rw [h, M.corecShape, Uni.M.dest_corec] at h'
+      rw [h, MM.corecShape, Uni.M.dest_corec] at h'
       cases h'
       rfl
-    have h₁ : f j = M.corecShape P g₀ g₂ (g₂ b (castLastB P h₀ j)) := by
-      rw [h, M.corecShape, Uni.M.dest_corec] at h'
+    have h₁ : f j = MM.corecShape P g₀ g₂ (g₂ b (castLastB P h₀ j)) := by
+      rw [h, MM.corecShape, Uni.M.dest_corec] at h'
       cases h'
       rfl
-    M.corecContents g₀ g₁ g₂ (f j) (g₂ b (P.castLastB h₀ j)) h₁ i c
+    MM.corecContents g₀ g₁ g₂ (f j) (g₂ b (P.castLastB h₀ j)) h₁ i c
 
-/-- Corecursor for M-type of `P` -/
+/-- Corecursor for MM-type of `P` -/
 def corecBase
     {α : TypeVec n} {β : Type w} (g₀ : β → P.A)
     (g₁ : ∀ b : β, P.drop.B (g₀ b) ⟹ α)
     (g₂ : ∀ b : β, P.last.B (g₀ b) → β) (b : β)
-    : M P α where
+    : MM P α where
   fst := corecShape P g₀ g₂ b
-  snd := M.corecContents P g₀ g₁ g₂ _ _ rfl
+  snd := MM.corecContents P g₀ g₁ g₂ _ _ rfl
 
 variable {P}
 
-/-- Corecursor for M-type of `P` -/
-def corec' {α : TypeVec n} {β : Type u} (g : β → P (α.append1 β)) : β → M P α :=
-  M.corecBase P
+/-- Corecursor for MM-type of `P` -/
+def corec' {α : TypeVec n} {β : Type u} (g : β → P (α.append1 β)) : β → MM P α :=
+  MM.corecBase P
     (fun b => (g b).fst)
     (fun b => TypeVec.dropFun (g b).snd)
     (fun b => TypeVec.lastFun (g b).snd)
 
 def corec {α : TypeVec n} {β : Type v}
-    (gen : β → P.uLift (α.uLift.append1 (ULift.{u} β))) : β → M P α :=
-  M.corecBase P
+    (gen : β → P.uLift (α.uLift.append1 (ULift.{u} β))) : β → MM P α :=
+  MM.corecBase P
     (gen · |>.fst.down)
     (gen · |>.snd |> TypeVec.dropFun |>.uLift_arrow)
     (fun x => (.up · |> (gen x |>.snd |> TypeVec.lastFun) |>.down))
 
-/-- Implementation of destructor for M-type of `P` -/
+/-- Implementation of destructor for MM-type of `P` -/
 def pathDestLeft {α : TypeVec n} {x : Uni.M P.last} {a : P.A} {f : P.last.B a → Uni.M P.last}
-    (h : x.dest = ⟨a, f⟩) (f' : M.Path P x ⟹ α) : P.drop.B a ⟹ α := fun i c =>
-  f' i (M.Path.root x a f h i c)
+    (h : x.dest = ⟨a, f⟩) (f' : MM.Path P x ⟹ α) : P.drop.B a ⟹ α := fun i c =>
+  f' i (MM.Path.root x a f h i c)
 
-/-- Implementation of destructor for M-type of `P` -/
+/-- Implementation of destructor for MM-type of `P` -/
 def pathDestRight {α : TypeVec n} {x : Uni.M P.last} {a : P.A} {f : P.last.B a → Uni.M P.last}
-    (h : x.dest = ⟨a, f⟩) (f' : M.Path P x ⟹ α)
+    (h : x.dest = ⟨a, f⟩) (f' : MM.Path P x ⟹ α)
     (j : P.last.B a)
-    : M.Path P (f j) ⟹ α := fun i c => f' i (M.Path.child x a f h j i c)
+    : MM.Path P (f j) ⟹ α := fun i c => f' i (MM.Path.child x a f h j i c)
 
-/-- Destructor for M-type of `P` -/
+/-- Destructor for MM-type of `P` -/
 def dest' {α : TypeVec n} {x : Uni.M P.last} {a : P.A} {f : P.last.B a → Uni.M P.last}
-    (h : x.dest = ⟨a, f⟩) (f' : M.Path P x ⟹ α) : P (α.append1 (M P α)) :=
-  ⟨a, TypeVec.splitFun (M.pathDestLeft h f') fun x => ⟨f x, M.pathDestRight h f' x⟩⟩
+    (h : x.dest = ⟨a, f⟩) (f' : MM.Path P x ⟹ α) : P (α.append1 (MM P α)) :=
+  ⟨a, TypeVec.splitFun (MM.pathDestLeft h f') fun x => ⟨f x, MM.pathDestRight h f' x⟩⟩
 
-/-- Destructor for M-types -/
-def dest {α : TypeVec n} (x : M P α) : P (α ::: M P α) :=
-  M.dest'
+/-- Destructor for MM-types -/
+def dest {α : TypeVec n} (x : MM P α) : P (α ::: MM P α) :=
+  MM.dest'
     (Sigma.eta <| (x.fst).dest).symm
     x.snd
 
-/-- Constructor for M-types -/
-def mk {α : TypeVec n} : P (α.append1 (M P α)) → M P α :=
-  M.corec' fun i => TypeVec.appendFun TypeVec.id dest <$$> i
+/-- Constructor for MM-types -/
+def mk {α : TypeVec n} : P (α.append1 (MM P α)) → MM P α :=
+  MM.corec' fun i => TypeVec.appendFun TypeVec.id dest <$$> i
 
 theorem dest'_eq_dest' {α : TypeVec n} {x : Uni.M P.last} {a₁ : P.A}
     {f₁ : P.last.B a₁ → Uni.M P.last} (h₁ : x.dest = ⟨a₁, f₁⟩) {a₂ : P.A}
-    {f₂ : P.last.B a₂ → Uni.M P.last} (h₂ : x.dest = ⟨a₂, f₂⟩) (f' : M.Path P x ⟹ α) :
-    M.dest' h₁ f' = M.dest' h₂ f' := by cases h₁.symm.trans h₂; rfl
+    {f₂ : P.last.B a₂ → Uni.M P.last} (h₂ : x.dest = ⟨a₂, f₂⟩) (f' : MM.Path P x ⟹ α) :
+    MM.dest' h₁ f' = MM.dest' h₂ f' := by cases h₁.symm.trans h₂; rfl
 
 theorem dest_eq_dest' {α : TypeVec n} {x : Uni.M P.last} {a : P.A}
-    {f : P.last.B a → Uni.M P.last} (h : x.dest = ⟨a, f⟩) (f' : M.Path P x ⟹ α) :
-    M.dest ⟨x, f'⟩ = M.dest' h f' :=
+    {f : P.last.B a → Uni.M P.last} (h : x.dest = ⟨a, f⟩) (f' : MM.Path P x ⟹ α) :
+    MM.dest ⟨x, f'⟩ = MM.dest' h f' :=
   dest'_eq_dest' _ _ _
 
 theorem dest_corecBase {α : TypeVec.{u} n} {β : Type v} (g₀ : β → P.A)
     (g₁ : ∀ b : β, P.drop.B (g₀ b) ⟹ α) (g₂ : ∀ b : β, P.last.B (g₀ b) → β) (x : β)
-    : M.dest
-      (M.corecBase P g₀ g₁ g₂ x)
-    = ⟨g₀ x, TypeVec.splitFun (g₁ x) (M.corecBase P g₀ g₁ g₂ ∘ g₂ x)⟩ :=by
+    : MM.dest
+      (MM.corecBase P g₀ g₁ g₂ x)
+    = ⟨g₀ x, TypeVec.splitFun (g₁ x) (MM.corecBase P g₀ g₁ g₂ ∘ g₂ x)⟩ :=by
   simp only [Nat.succ_eq_add_one, dest, dest', corecBase, TypeVec.drop_append1_simp,
     TypeVec.last_eq, TypeVec.append1_get_fz]
   simp only [corecShape]
@@ -172,9 +172,9 @@ theorem dest_corecBase {α : TypeVec.{u} n} {β : Type v} (g₀ : β → P.A)
 
 @[simp]
 theorem dest_corec' {α : TypeVec n} {β : Type u} (g : β → P (α.append1 β)) (x : β) 
-    : M.dest (M.corec' g x) = TypeVec.appendFun TypeVec.id (M.corec' g) <$$> g x := by
+    : MM.dest (MM.corec' g x) = TypeVec.appendFun TypeVec.id (MM.corec' g) <$$> g x := by
   trans
-  · apply M.dest_corecBase
+  · apply MM.dest_corecBase
   have ⟨a, f⟩ := g x; dsimp
   refine Sigma.ext rfl <| heq_of_eq <| funext fun | .fz | .fs _ => ?_
   <;> rfl
@@ -185,12 +185,12 @@ open scoped TypeVec
 theorem dest_corec {α : TypeVec n} {β : Type v}
     (g : β → P.uLift (TypeVec.uLift.{u, v} α ::: ULift.{u, v} β))
     (x : β) :
-    M.dest (M.corec g x)
+    MM.dest (MM.corec g x)
     = (P.uLift_down <|
-        (TypeVec.Arrow.uLift_up ⊚ (TypeVec.Arrow.uLift_down ::: (M.corec g ·.down)))
+        (TypeVec.Arrow.uLift_up ⊚ (TypeVec.Arrow.uLift_down ::: (MM.corec g ·.down)))
           <$$> g x) := by
   trans
-  · apply M.dest_corecBase
+  · apply MM.dest_corecBase
   refine Sigma.ext rfl <| heq_of_eq ?_
   dsimp
   funext i v
@@ -202,8 +202,8 @@ def toLast {α} (x : P α) : P.last (α .fz) where
   snd := x.2 .fz
 
 theorem bisim_map {α}
-    {a b : M.{u} P α}
-    (R : M.{u} P α → M.{u} P α → Prop)
+    {a b : MM.{u} P α}
+    (R : MM.{u} P α → MM.{u} P α → Prop)
     (x : R a b)
     (h : ∀ s t, R s t →
       ∃ (x : (TypeVec.id ::: Function.const _ PUnit.unit) <$$> s.dest
@@ -224,7 +224,7 @@ theorem bisim_map {α}
     dsimp
     have ⟨hf, hrst⟩ := h _ _ r
     refine ⟨?_, ?_⟩
-    · change toLast ((TypeVec.id ::: Function.const (M P α) PUnit.unit) <$$> M.dest ⟨a, af⟩) = _
+    · change toLast ((TypeVec.id ::: Function.const (MM P α) PUnit.unit) <$$> MM.dest ⟨a, af⟩) = _
       rw [hf]
       rfl
     · refine fun v => ⟨_, _, hrst v⟩
@@ -238,9 +238,9 @@ theorem bisim_map {α}
     subst h'
     have ⟨tf, ts⟩ := h _ _ x
     have := funext_iff.mp (eq_of_heq (Sigma.ext_iff.mp tf).2) j.fs
-    dsimp [M.dest, M.dest', ] at this
+    dsimp [MM.dest, MM.dest', ] at this
     have := funext_iff.mp this (cast (by simp) c)
-    simp only [M.pathDestLeft] at this
+    simp only [MM.pathDestLeft] at this
     rewrite! [Uni.M.mk_dest] at this
     exact this
   case child x' a f h' v j c ih =>
@@ -250,8 +250,8 @@ theorem bisim_map {α}
     apply ih
     have ⟨_, ts⟩ := h _ _ x
     dsimp at ts
-    specialize ts (cast (by simp [M.dest, M.dest']; rfl) v)
-    simp only [M.dest, M.dest', Nat.succ_eq_add_one, TypeVec.drop_append1_simp, TypeVec.last_eq,
+    specialize ts (cast (by simp [MM.dest, MM.dest']; rfl) v)
+    simp only [MM.dest, MM.dest', Nat.succ_eq_add_one, TypeVec.drop_append1_simp, TypeVec.last_eq,
       TypeVec.splitFun.get_fz] at ts
     rewrite! [Uni.M.mk_dest] at ts
     exact ts
@@ -260,7 +260,7 @@ variable {α : TypeVec _}
 
 @[simp]
 theorem dest_map
-    {α β : TypeVec.{u} n} (g : α ⟹ β) (x : M P α)
+    {α β : TypeVec.{u} n} (g : α ⟹ β) (x : MM P α)
     : dest (g <$$> x) = (g ::: (g <$$> ·)) <$$> dest x := by
   simp only [Nat.succ_eq_add_one, id_eq, MvFunctor.map, map]
   refine Sigma.ext (by rfl) <| heq_of_eq ?_
@@ -308,7 +308,7 @@ theorem map_corec' {γ : Type u} {β : TypeVec n} {f : α ⟹ β}
     rw [eqRec_eq_cast, eqRec_eq_cast]
 
 @[simp]
-theorem dest_mk {v : M P α} : mk (dest v) = v := by
+theorem dest_mk {v : MM P α} : mk (dest v) = v := by
   apply bisim_map (· = (mk ∘ dest) ·) rfl
   rintro _ x rfl
   simp only [Nat.succ_eq_add_one, Function.comp_apply, map_fst]
@@ -321,11 +321,11 @@ theorem dest_mk {v : M P α} : mk (dest v) = v := by
     rfl
 
 @[ext]
-theorem ext_dest {α : TypeVec n} {x y : M P α} (h : x.dest = y.dest) : x = y := by
+theorem ext_dest {α : TypeVec n} {x y : MM P α} (h : x.dest = y.dest) : x = y := by
   rw [← dest_mk (v := x), h, dest_mk]
 
 @[elab_as_elim]
-theorem mk_cases {motive : M P α → Prop}
+theorem mk_cases {motive : MM P α → Prop}
     (h : ∀ v, motive (.mk v))
     v
     : motive v := by
@@ -333,8 +333,8 @@ theorem mk_cases {motive : M P α → Prop}
   exact h v.dest
 
 @[simp]
-theorem mk_dest {v : P (α ::: M P α)} : dest (mk v) = v := by
-  have : mk ∘ dest = @id (M P α) := funext fun x => dest_mk
+theorem mk_dest {v : P (α ::: MM P α)} : dest (mk v) = v := by
+  have : mk ∘ dest = @id (MM P α) := funext fun x => dest_mk
   rw [mk, dest_corec', ←mk, ←comp_map]
   refine Sigma.ext rfl <| heq_of_eq ?_
   dsimp only [map_fst, map_snd]
@@ -344,8 +344,9 @@ theorem mk_dest {v : P (α ::: M P α)} : dest (mk v) = v := by
     rw [this]
   · rfl
 
+@[push]
 theorem map_mk
-    {α β : TypeVec.{u} n} (g : α ⟹ β) (x : P (α ::: M P α))
+    {α β : TypeVec.{u} n} (g : α ⟹ β) (x : P (α ::: MM P α))
     : g <$$> mk x = mk ((g ::: (MvFunctor.map g)) <$$> x) := by
   ext
   simp

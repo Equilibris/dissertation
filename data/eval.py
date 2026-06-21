@@ -1,11 +1,12 @@
 from matplotlib import pyplot as plt, rc
 import numpy as np
-from data import slRuns, hpRuns, bigRuns, preMRuns, smRuns, msRuns
+from data import slRuns, hpRuns, bigRuns, preMRuns, smRuns, msRuns, hpARuns
 from scipy.stats import gaussian_kde
 
 # rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
 
 HP = "State machine M-Type"
+HPA = "PF State machine M-Type"
 PA = "Progressive approximation"
 BIG = "Big"
 PREM = "`PreM`-type"
@@ -16,6 +17,7 @@ data = {
     # PREM : [[i / 1_000_000 for i in x] for x in preMRuns[:3]],
     SM : [[i / 1_000_000 for i in x] for x in smRuns[:3]],
     HP : [[i / 1_000_000 for i in x] for x in hpRuns[:3]],
+    HPA : [[i / 1_000_000 for i in x] for x in hpARuns[:3]],
 
     PA : [[i / 1_000_000 for i in x] for x in slRuns[:3]],
     MS : [i[:150] for i in msRuns[:3]],
@@ -27,6 +29,7 @@ data = {
 degrees = {
     PA : 2,
     HP : 1,
+    HPA : 2,
     BIG : 1,
     PREM : 1,
     SM : 1,
@@ -144,8 +147,6 @@ def sign_test(data, fname):
             # color=col,
             alpha=.1, s=1)
 
-
-
     scatter.set_xlabel(X_LAB)
     scatter.set_ylabel(Y_LAB)
     histy.set_xlabel("Resampling probability")
@@ -157,5 +158,5 @@ def sign_test(data, fname):
     fig.savefig(fname, dpi=fig.dpi)
 
 if __name__ == "__main__":
-    plot_performance_comparison(data, "plot.png")
+    # plot_performance_comparison(data, "plot.png")
     sign_test(data, "stest.png")

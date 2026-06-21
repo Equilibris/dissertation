@@ -2,7 +2,7 @@ import Sme.UniM.SM
 
 open PFunctor
 
-namespace Sme.SM
+namespace Sme.Uni.SM
 
 universe u v w
 

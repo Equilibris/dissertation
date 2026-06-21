@@ -3,7 +3,7 @@ import Mathlib.Data.PFunctor.Univariate.M
 
 section
 
-namespace Sme
+namespace Sme.Uni
 
 universe u v w x y z
 
@@ -102,7 +102,7 @@ theorem dest_uLift {a : PreM P}
     : (uLift.{u, v, w, x} a).dest
     = map P uLift a.dest := rfl
 
-end Sme.PreM
+end Sme.Uni.PreM
 
 end
 

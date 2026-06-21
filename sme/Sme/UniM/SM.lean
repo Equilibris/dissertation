@@ -6,7 +6,7 @@ import Mathlib.Control.Functor.Multivariate
 
 open PFunctor
 
-namespace Sme
+namespace Sme.Uni
 
 universe u v w x y z
 
@@ -119,4 +119,6 @@ theorem dest_uList
   dsimp [uLift, dest]
   rw [P.map_map, P.map_map]
   rfl
+
+end Sme.Uni.SM
 

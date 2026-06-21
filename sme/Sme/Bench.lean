@@ -1,4 +1,5 @@
 import Sme
+import Sme.UniM.MultiM
 
 open Sme MvPFunctor
 
@@ -11,6 +12,7 @@ def QStream.Base : MvPFunctor 2 := ⟨
 
 def QStreamSl α := MvPFunctor.M QStream.Base (fun _ => α)
 def QStreamHp α := Sme.M QStream.Base (fun _ => α)
+def QStreamHp' α := Sme.MM QStream.Base (fun _ => α)
 def QStreamPreM α := PreM QStream.Base (fun _ => α)
 def QStreamSM α := SM QStream.Base (fun _ => α)
 
@@ -37,6 +39,12 @@ def numsSl : QStreamSl Nat :=
 
 def numsHp : QStreamHp.{0} Nat :=
   Sme.M.corec.{0,0} (fun n => ⟨
+    .up .unit,
+    fun | .fz, .up .unit => .up <| .up <| n.down.succ | .fs .fz, .up .unit => n⟩)
+    <| ULift.up Nat.zero
+
+def numsHp' : QStreamHp'.{0} Nat :=
+  Sme.MM.corec.{0,0} (fun n => ⟨
     .up .unit,
     fun | .fz, .up .unit => .up <| .up <| n.down.succ | .fs .fz, .up .unit => n⟩)
     <| ULift.up Nat.zero
@@ -84,6 +92,12 @@ def QStreamHp.getNth (x : QStreamHp Nat) : Nat → Nat
   | n+1 => match x.dest with
     | ⟨.unit, v⟩ => QStreamHp.getNth (v .fz .unit) n
 
+def QStreamHp'.getNth (x : QStreamHp' Nat) : Nat → Nat
+  | 0 => match x.dest with
+    | ⟨.unit, v⟩ => v (.fs .fz) .unit
+  | n+1 => match x.dest with
+    | ⟨.unit, v⟩ => QStreamHp'.getNth (v .fz .unit) n
+
 end
 
 def time (f : Unit → IO Unit) : IO Nat := do
@@ -97,6 +111,7 @@ def runs {A} (s : Nat) (io : IO (List A)) : IO (List (List A)) :=
 
 def runTests : IO Unit := do
   let testHp   := fun n _ => do if (QStreamHp.getNth numsHp n) ≠ n then println! "NEQ!";
+  let testHp'  := fun n _ => do if (QStreamHp'.getNth numsHp' n) ≠ n then println! "NEQ!";
   let testSl   := fun n _ => do if (QStreamSl.getNth numsSl n) ≠ n then println! "NEQ!";
   let testSM   := fun n _ => do if (QStreamSM.getNth.{0} numsSM n) ≠ n then println! "NEQ!";
   let testPreM := fun n _ => do if (QStreamPreM.getNth.{0} numsPreM n) ≠ n then println! "NEQ!";
@@ -107,8 +122,9 @@ def runTests : IO Unit := do
   let n := 200
   let sl := (List.range n).map (time ∘ testSl)
 
-  let n := 5000
+  let n := 1000
   let hp   := (List.range n).map (time ∘ testHp)
+  let hp'  := (List.range n).map (time ∘ testHp')
   let big  := (List.range n).map (time ∘ testBig)
   let preM := (List.range n).map (time ∘ testPreM)
   let sm   := (List.range n).map (time ∘ testSM)
@@ -119,6 +135,10 @@ def runTests : IO Unit := do
 
   IO.print "hpRuns = "
   let res ← runs s <| hp.mapM id
+  println! res
+
+  IO.print "hpARuns = "
+  let res ← runs s <| hp'.mapM id
   println! res
 
   /- IO.print "bigRuns = " -/

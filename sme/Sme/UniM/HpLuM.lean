@@ -5,7 +5,7 @@ import Mathlib.Logic.Small.Defs
 
 open PFunctor
 
-namespace Sme
+namespace Sme.Uni
 
 universe u v w x
 
@@ -57,10 +57,10 @@ private unsafe def equivXUImpl : SM.{u, v, max u v w} P ≃ SM.{u, v, max u v x}
 
 attribute [irreducible, implemented_by equivXUImpl, inline] equivXU
 
-def Uni.M (P : PFunctor.{u, v}) : Type max u v :=
+def M (P : PFunctor.{u, v}) : Type max u v :=
   AltRepr P.M (SM.{u,v, max u v} P) equivP.symm
 
-namespace Uni.M
+namespace M
 
 def corec
     {β : Type w}
