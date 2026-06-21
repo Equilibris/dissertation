@@ -53,7 +53,7 @@ theorem fn_diff : {n : _} → {i j : Fin2 n} → (h : i ≠ j) → prj.fn i j = 
   | _, .fs i, .fs j, h =>
     fn_diff (i := i) (j := j) (h <| (Fin2.fs.injEq _ _).mpr ·)
 
-theorem fn_eq_v {n} : {i : Fin2 n} → (v : fn i i) → v = cast fn_same.symm PUnit.unit 
+theorem fn_eq_v {n} : {i : Fin2 n} → (v : fn i i) → v = cast fn_same.symm PUnit.unit
   | .fz, _ => rfl
   | .fs i, v =>by
     obtain rfl := fn_eq_v (i := i) v
