@@ -69,7 +69,7 @@ theorem mk.fn_same
   | _, _, .fz => rfl
   | _, _, .fs i => mk.fn_same (i := i)
 
-def get {n : Nat} {α : TypeVec n} {i : Fin2 n} (v : prj i α) : α i := 
+def get {n : Nat} {α : TypeVec n} {i : Fin2 n} (v : prj i α) : α i :=
   v.snd i (cast fn_same.symm .unit: fn i i)
 
 theorem heq_const_of_unique {U T} [Subsingleton U] {u : U} {t : T} : u ≍ t ↔ U = T where
