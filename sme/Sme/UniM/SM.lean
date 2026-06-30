@@ -79,7 +79,6 @@ def uLift : SM.{u, v, w} P → SM.{u, v, max w x} P :=
     (.mk _ ∘ PreM.uLift)
     <| by
       intro a b ⟨r, rib, rab⟩
-      dsimp
       refine Quot.sound ⟨fun a b =>
         ∃ x y, a = PreM.uLift.{u, v, w, x} x
           ∧ b = PreM.uLift.{u, v, w, x} y
@@ -91,7 +90,7 @@ def uLift : SM.{u, v, w} P → SM.{u, v, max w x} P :=
       rw! [P.map_map, P.map_map]
       have ⟨hf, hrst⟩ := rib _ _ rxy
       dsimp
-      have : P.map 
+      have : P.map
           (Function.const (PreM.{u, v, w} P) PUnit.unit.{(max u v ((max w x) + 1)) + 1}) x.dest
         = P.map (Function.const (PreM.{u, v, w} P) PUnit.unit) y.dest := by
         dsimp [] at hf
@@ -108,7 +107,8 @@ def uLift : SM.{u, v, w} P → SM.{u, v, max w x} P :=
             rfl) v,
           rfl,
           rfl,
-          hrst v⟩
+          hrst v
+        ⟩
 
 @[simp]
 theorem dest_uList

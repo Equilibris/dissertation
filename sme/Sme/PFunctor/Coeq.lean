@@ -3,6 +3,7 @@ import Sme.ForMathlib.Data.TypeVec
 import Mathlib.Tactic.DepRewrite
 import Mathlib.Order.Extension.Linear
 import Sme.PFunctor.NatTrans
+import Sme.PFunctor.Prod
 
 namespace MvPFunctor
 
@@ -11,49 +12,6 @@ open scoped MvFunctor
 universe u
 
 variable {n : Nat}
-
-def prod (P Q : MvPFunctor.{u} n) : MvPFunctor n where
-  A := P.1 × Q.1
-  B p i := P.2 p.1 i ⊕ Q.2 p.2 i
-
-namespace prod
-
-variable {P Q : MvPFunctor n}
-
-def fst : NatTrans (prod P Q) P where
-  f _ x := ⟨x.1.1, fun i => x.2 i ∘ .inl⟩
-  nat _ _ _ _ := rfl
-
-def snd : NatTrans (prod P Q) Q where
-  f _ x := ⟨x.1.2, fun i => x.2 i ∘ .inr⟩
-  nat _ _ _ _ := rfl
-
-def mk {R} (f : NatTrans R P) (g : NatTrans R Q) : NatTrans R (prod P Q) where
-  f _ x :=
-    have fx := f _ x
-    have gx := g _ x
-    ⟨⟨fx.1, gx.1⟩, fun i v => v.elim (fx.2 i) (gx.2 i)⟩
-  nat _ _ _ _ := by
-    stop
-    dsimp
-    refine Sigma.ext rfl sorry
-    simp
-    sorry
-
-theorem fst_mk {R} {f : NatTrans R P} {g : NatTrans R Q}
-    : ((mk f g).comp fst) = f := rfl
-theorem snd_mk {R} {f : NatTrans R P} {g : NatTrans R Q}
-    : ((mk f g).comp snd) = g := rfl
-
-def map {P' Q'} (f : NatTrans P' P) (g : NatTrans Q' Q) : NatTrans (prod P' Q') (prod P Q) :=
-  mk (fst.comp f) (snd.comp g)
-
-theorem fst_map {P' Q'} {f : NatTrans P' P} {g : NatTrans Q' Q}
-    : ((map f g).comp fst) = fst.comp f := rfl
-theorem snd_map {P' Q'} {f : NatTrans P' P} {g : NatTrans Q' Q}
-    : ((map f g).comp snd) = snd.comp g := rfl
-
-end prod
 
 abbrev coeq.r {P Q : MvPFunctor n} (f g : NatTrans P Q) : Q.A → Q.A → Prop :=
   (∃ x, · = g.hd x ∧ · = f.hd x)
@@ -78,40 +36,41 @@ namespace coeq -----------------------------------------------------------------
 variable {P Q R : MvPFunctor n} (f g : NatTrans P Q)
 
 def mk : NatTrans Q (coeq f g) where
-  f _ v := ⟨Quot.mk _ v.1, fun i b => v.2 i <| b.1 _ rfl⟩
-  nat _ _ _ _ := rfl
+  hd := Quot.mk _
+  child x _ v := v.1 x rfl
 
 variable {f g : NatTrans P Q}
 
 theorem mk_f_mk_g : f.comp (mk f g) = g.comp (mk f g) := by
   apply NatTrans.ext; funext α ⟨hd, tl⟩
-  simp only [NatTrans.comp, mk]
-  have : Quot.mk (r f g) (g.f α ⟨hd, tl⟩).fst = Quot.mk (r f g) (f.f α ⟨hd, tl⟩).fst :=
-    Quot.sound <| ⟨hd, NatTrans.nt_fst_eq _ rfl, NatTrans.nt_fst_eq _ rfl⟩
+  simp only [NatTrans.comp, mk, NatTrans.hd_mkOfHdChild, Function.comp_apply,
+    NatTrans.child_mkOfHdChild, NatTrans.transform_mk]
+  have : Quot.mk (r f g) (g.hd hd) = Quot.mk (r f g) (f.hd hd) :=
+    Quot.sound <| ⟨hd, rfl, rfl⟩
   rw! (castMode := .all) [this]
   refine Sigma.ext_iff.mpr ⟨rfl, heq_of_eq <| funext₂ fun i ⟨v, p⟩ => ?_⟩
-  dsimp
-  rw! (castMode := .all) [NatTrans.nt_fst_eq_hd f, NatTrans.nt_fst_eq_hd g]
-  simp only [eqRec_eq_cast]
-  exact NatTrans.child_eq tl (p hd (by simp))
+  exact NatTrans.child_eq tl (p hd rfl)
 
 def lift
     (x : NatTrans Q R)
     (h : f.comp x = g.comp x)
     : NatTrans (coeq f g) R where
-  f α v := by
-    refine ⟨v.1.lift x.hd ?_,
-      fun i hv => v.snd i ⟨fun d hz => x.child d i (cast (by rw [←hz]) hv),?_⟩⟩
-    · rintro _ _ ⟨w, rfl, rfl⟩
-      change (g.comp x).hd w = (f.comp x).hd w
-      rw [h]
-    · intro b h'
-      dsimp [coeq]
+  hd := Quot.lift x.hd fun a b => by
+    rintro ⟨w, rfl, rfl⟩
+    change (g.comp x).hd w = (f.comp x).hd w
+    rw [h]
+  child hv i v := ⟨
+    fun d hz => x.child d i (cast (by
+        subst hz
+        rfl
+      ) v),
+    fun b => by
+      rintro rfl
+      dsimp only [cast_eq]
       rw [NatTrans.comp_child, NatTrans.comp_child]
       rw! (castMode := .all) [h]
       simp [eqRec_eq_cast]
-  nat _ _ _ _ := rfl
-
+  ⟩
 
 -- False
 def dist
@@ -131,33 +90,33 @@ def dist
   nat := sorry
 
 -- False
-def lift₂
-    {P Q P' Q' : MvPFunctor.{u} _}
-    {f g : NatTrans P Q}
-    {f' g' : NatTrans P' Q'}
-    (x : NatTrans (prod Q Q') R)
-    (h₁ : (prod.map f .id').comp x = (prod.map g .id').comp x)
-    (h₂ : (prod.map .id' f').comp x = (prod.map .id' g').comp x)
-    : NatTrans (prod (coeq f g) (coeq f' g')) R where
-  f α v := by
-    have := x.hd
-    refine ⟨Quot.lift₂ (x.hd ⟨·, ·⟩) ?_ ?_ v.1.1 v.1.2,
-      fun i hv =>
-        have := x.child sorry
-        v.snd i (by sorry)
-    ⟩
-    stop
-    refine ⟨v.1.lift x.hd ?_,
-      fun i hv => v.snd i ⟨fun d hz => x.child d i (cast (by rw [←hz]) hv),?_⟩⟩
-    · rintro _ _ ⟨w, rfl, rfl⟩
-      change (g.comp x).hd w = (f.comp x).hd w
-      rw [h]
-    · intro b h'
-      dsimp [coeq]
-      rw [NatTrans.comp_child, NatTrans.comp_child]
-      rw! (castMode := .all) [h]
-      simp [eqRec_eq_cast]
-  nat _ _ _ _ := rfl
+/- def lift₂ -/
+/-     {P Q P' Q' : MvPFunctor.{u} _} -/
+/-     {f g : NatTrans P Q} -/
+/-     {f' g' : NatTrans P' Q'} -/
+/-     (x : NatTrans (prod Q Q') R) -/
+/-     (h₁ : (prod.map f .id').comp x = (prod.map g .id').comp x) -/
+/-     (h₂ : (prod.map .id' f').comp x = (prod.map .id' g').comp x) -/
+/-     : NatTrans (prod (coeq f g) (coeq f' g')) R where -/
+/-   f α v := by -/
+/-     have := x.hd -/
+/-     refine ⟨Quot.lift₂ (x.hd ⟨·, ·⟩) ?_ ?_ v.1.1 v.1.2, -/
+/-       fun i hv => -/
+/-         have := x.child sorry -/
+/-         v.snd i (by sorry) -/
+/-     ⟩ -/
+/-     stop -/
+/-     refine ⟨v.1.lift x.hd ?_, -/
+/-       fun i hv => v.snd i ⟨fun d hz => x.child d i (cast (by rw [←hz]) hv),?_⟩⟩ -/
+/-     · rintro _ _ ⟨w, rfl, rfl⟩ -/
+/-       change (g.comp x).hd w = (f.comp x).hd w -/
+/-       rw [h] -/
+/-     · intro b h' -/
+/-       dsimp [coeq] -/
+/-       rw [NatTrans.comp_child, NatTrans.comp_child] -/
+/-       rw! (castMode := .all) [h] -/
+/-       simp [eqRec_eq_cast] -/
+/-   nat _ _ _ _ := rfl -/
 
 theorem unique (x : NatTrans Q R) (h : f.comp x = g.comp x)
     : (mk f g).comp (lift x h) = x := by
@@ -168,28 +127,21 @@ theorem unique (x : NatTrans Q R) (h : f.comp x = g.comp x)
 theorem ind {Z} {a b : NatTrans (coeq f g) Z}
     (h : (mk f g).comp a = (mk f g).comp b)
     : a = b := by
-  cases a using NatTrans.cases; next ap ad =>
-  cases b using NatTrans.cases; next bp bd =>
-  obtain rfl : ap = bp := by
-    obtain ⟨h', -⟩ := NatTrans.ext_hd_child_iff.mp h
-    dsimp at h'
-    funext hd
-    cases hd using Quot.ind; next hd =>
-    exact funext_iff.mp h' hd
-  refine NatTrans.ext_hd_child (by rfl) <| heq_of_eq ?_
-  dsimp
-  obtain ⟨-, h'⟩ := NatTrans.ext_hd_child_iff.mp h
-  simp only [NatTrans.comp_hd, NatTrans.hd_mkOfHdChild, Function.comp_apply, NatTrans.comp_child',
-    NatTrans.child_mkOfHdChild, heq_eq_eq] at h'
-  ext a i z
+  rcases a with ⟨ha, ca⟩
+  rcases b with ⟨hb, cb⟩
+  simp only [NatTrans.comp, NatTrans.hd_mkOfHdChild, mk, Function.comp_apply,
+    NatTrans.child_mkOfHdChild, NatTrans.mkOfHdChild.injEq] at h
+  have ⟨hh, ch⟩ := h; clear h
+  obtain rfl : ha = hb := funext <| by
+    rintro ⟨x⟩
+    exact funext_iff.mp hh x
+  clear hh
+  rw [heq_eq_eq] at ch
+  simp only [NatTrans.mkOfHdChild.injEq, heq_eq_eq, true_and]
+  funext v i z
   apply Subtype.ext
-  cases a using Quot.ind; next a =>
-  ext qz v
-  have : _ = _ := funext_iff.mp (funext_iff.mp (funext_iff.mp h' qz) i) (cast (by 
-    rw [←v];rfl) z)
-  dsimp [mk, NatTrans.child, NatTrans.hd, Function.comp] at this
-  rewrite! (castMode := .all) [v, v] at this
-  exact this
+  ext x rfl
+  exact funext_iff.mp (funext_iff.mp (funext_iff.mp ch x) i) z
 
 theorem mk_sur
     {α}
@@ -197,6 +149,7 @@ theorem mk_sur
     (hf : ∀ h i, Function.Injective (f.child h i))
     (hg : ∀ h i, Function.Injective (g.child h i))
     : Function.Surjective (mk f g α) := by
+  stop
   rintro ⟨⟨hd⟩, ch⟩
   conv => rhs; intro x; rw [Sigma.ext_iff]
   dsimp [mk]
@@ -213,8 +166,7 @@ theorem mk_sur
     ext a w
     have := h.choose_spec
     sorry
-  · 
-    sorry
+  · sorry
 
 theorem ind' {α}
     {motive : coeq f g α → Prop}
@@ -228,6 +180,7 @@ theorem ind' {α}
   dsimp at this
   sorry
 
+-- This is the holy grail
 def toQuotient {R : (α : _) → Q α → Q α → Prop}
     (cohere : ∀ α a b, Relation.EqvGen (∃ x, f α x = · ∧ g α x = ·) a b = R α a b)
     (nat : ∀ α β f a b, R α a b → R β (f <$$> a) (f <$$> b))
@@ -253,6 +206,41 @@ def toQuotient {R : (α : _) → Q α → Q α → Prop}
   /- by -/
   /- sorry -/
 
+example {α} {a b : Q α} :
+    Relation.EqvGen (∃ x, f α x = · ∧ g α x = ·) a b
+    = (Relation.EqvGen (r f g) a.1 b.1
+    ∧ ∀ i h x, a.2 i x = b.2 i (cast (congr (congr rfl h) rfl) x)
+    ) := propext {
+  mp 
+    | .rel _ _ ⟨x, rfl, rfl⟩ => ⟨
+      by
+        change Relation.EqvGen (r f g) (f.hd x.1) (g.hd x.1)
+        exact .symm _ _ <| .rel _ _ ⟨_, rfl, rfl⟩
+      ,
+      fun i u v => by
+        change x.2 _ _ = x.2 _ _
+        sorry
+    ⟩
+    | .refl x => sorry
+    | .symm _ _ _ => sorry
+    | .trans _ _ _ _ _ => sorry
+  mpr := sorry
+}
+
+theorem mk_r {α} {a b : Q α}
+    (h : mk f g α a = mk f g α b)
+    : Relation.EqvGen (r f g) a.1 b.1 := by
+  have := (Sigma.ext_iff.mp h).1
+  apply Quot.eq.mp this
+
+theorem mk_snd {α} {a b : Q α}
+    (h : mk f g α a = mk f g α b)
+    : Relation.EqvGen (r f g) a.1 b.1 := by
+  have := (Sigma.ext_iff.mp h).2
+  simp [mk, NatTrans.f] at this
+  /- have := f.child (f.hd sorry) ∘ a.snd -/
+  sorry
+
 theorem mk_eq_iff' {α} {a b : Q α}
     (h : mk f g α a = mk f g α b)
     : Relation.EqvGen (∃ x, f α x = · ∧ g α x = ·) a b := by
@@ -261,7 +249,8 @@ theorem mk_eq_iff' {α} {a b : Q α}
   dsimp [mk] at h
   have ⟨ha, hb⟩ := Sigma.ext_iff.mp h; clear h
   dsimp at ha hb
-  induction Quot.eq.mp ha <;> clear ha
+  rw [Quot.eq] at ha
+  induction ha
   case rel h =>
     rcases h with ⟨x, rfl, rfl⟩
     refine Relation.EqvGen.symm _ _ <| Relation.EqvGen.rel _ _ ?_
@@ -278,7 +267,8 @@ theorem mk_eq_iff' {α} {a b : Q α}
     have := as i x
     have := funext_iff.mp (funext_iff.mp hb i) ⟨fun d heq => sorry, sorry⟩
     sorry
-  · sorry
+  · 
+    sorry
   · sorry
 
   stop
@@ -314,8 +304,8 @@ def ofList (l : List (α .fz)) : plist α where
   snd | .fz => ((l[·]) : Fin _ → _)
 
 def length : NatTrans plist (const _ Nat) where
-  f _ x := const.mk _ x.1
-  nat _ _ _ _ := by simp
+  hd := id
+  child _ _ := PEmpty.elim
 
 @[simp]
 theorem toList_nil : toList (nil (α := α)) = [] := rfl
@@ -385,12 +375,12 @@ def ofList (l : List (α .fz)) (perm : Equiv.Perm (Fin l.length)) : permlist α 
 /- permlist.proj.f α (permlist.ofList (plist.toList a) eq) -/
 
 def proj : NatTrans permlist plist where
-  f _ pls := ⟨pls.1.1, pls.2⟩
-  nat a b f x := rfl
+  hd := Sigma.fst
+  child _ := TypeVec.id
 
 def transp : NatTrans permlist plist where
-  f _ pls := ⟨pls.1.1, (fun a i => pls.2 _ (pls.1.2 i))⟩
-  nat a b f x := rfl
+  hd := Sigma.fst
+  child v _ := v.snd
 
 @[simp]
 theorem proj_ofList {l : List (α .fz)} {perm : Equiv.Perm (Fin l.length)}
@@ -491,6 +481,14 @@ theorem perm_of_list_perm {A} {a b : List A} : List.Perm a b
       Function.comp_apply, List.cons.injEq, List.ofFn_inj]
     refine ⟨rfl, rfl⟩
 
+theorem list_perm_of_perm {A} {a b : List A}
+    : (∃ p : (Equiv.Perm (Fin a.length)), b = List.ofFn ((a[·]) ∘ p))
+    → List.Perm a b := by
+  rintro ⟨w, rfl⟩
+  have := Equiv.Perm.ofFn_comp_perm w a.get
+  simp at this
+  exact this.symm
+
 theorem multiset.eq_mk {α a b}
     (h : (plist.toList a).Perm (plist.toList b))
     : multiset.mk α a = multiset.mk α b := by
@@ -512,9 +510,42 @@ theorem multiset.mk_eq {α a b}
     (h : multiset.mk α a = multiset.mk α b)
     : (plist.toList a).Perm (plist.toList b)
     := by
-  simp only [mk, coeq.mk] at h
+  rcases a with ⟨af, as⟩
+  rcases b with ⟨bf, bs⟩
+  simp only [mk, coeq.mk, NatTrans.transform_mk, NatTrans.hd_mkOfHdChild] at h
   rw [Sigma.ext_iff] at h
-  dsimp at h
+  simp only at h
+  rcases h with ⟨hf, hs⟩
+  rw [Quot.eq] at hf
+  obtain rfl : af = bf := by
+    clear *-hf
+    induction hf
+    case rel h =>
+      simp only [r] at h
+      rcases h with ⟨w, rfl, rfl⟩
+      rfl
+    · rfl
+    case symm ih => exact ih.symm
+    case trans iha ihb=>
+      subst iha ihb
+      rfl
+  clear hf
+  simp only [heq_eq_eq] at hs
+  simp only [plist.toList]
+  apply list_perm_of_perm
+  rw [funext_iff] at hs
+  specialize hs .fz
+  rw [funext_iff] at hs
+  simp only [TypeVec.comp.get, Function.comp_apply] at hs
+  simp only [List.length_ofFn, Fin.getElem_fin, List.getElem_ofFn, Function.comp_apply,
+    List.ofFn_inj]
+  rw! [List.length_ofFn]
+  simp only [Fin.cast_eq_self, Fin.eta]
+  dsimp [multiset, coeq] at hs
+  specialize hs ⟨
+    sorry,
+    sorry
+  ⟩
   sorry
 
 example : multiset.mk (fun _ => Nat) (plist.cons 1 <| plist.cons 2 <| plist.nil)
@@ -530,7 +561,12 @@ def ofMultiset {α} (x : Multiset α) : multiset (fun _ => α) :=
 def length : NatTrans multiset (const _ Nat) :=
   coeq.lift
     plist.length
-    rfl
+    (by
+      apply NatTrans.ext_hd_child
+      · rfl
+      apply heq_of_eq
+      funext _ _ v
+      exact v.elim)
 
 -- We need to find operations that are invariant under mapping,
 -- these can then maybe be used to try to extract information.

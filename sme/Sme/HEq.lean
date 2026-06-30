@@ -54,6 +54,26 @@ theorem cast_sigma_snd {α : Type _} {β γ : α → Type _} (fst : α) (snd : �
   subst p
   rfl
 
+theorem cast_subtype_val {A B}
+    {p : A → Prop}
+    (h : A = B)
+    {x : Subtype p}
+    : (Subtype.val (p := p ∘ (cast h.symm)) (cast (by subst h; rfl) x) : B)
+    = cast (by subst h; rfl) (Subtype.val x) := by
+  subst h
+  rfl
+
+theorem cast_subtype_mk {A B}
+    {p : A → Prop}
+    (h : A = B)
+    {x : A}
+    {h' : p x}
+    : (cast (by subst h; rfl) (Subtype.mk x h') : Subtype (p ∘ cast h.symm))
+    = Subtype.mk (cast h x) (by simp [h'])
+    := by
+  subst h
+  rfl
+
 theorem cast_ulift_up {α β : Type u} (v : α)
     (p : α = β)
     : cast (congr rfl p) (ULift.up v ) = ULift.up (cast p v) := by
