@@ -48,14 +48,14 @@ Improved ergonomics for coinductive function writing.
 
 // Optimised library coinductive data types in Lean and implemented rich data types for program verification.
 
-== Special difficulties
-
-Alex Keizer had to take a break half way through the project,
-Tobias Grosser took over supervision.
-
-My grandfather /*Stein-Ulf Sørensen*/ passed away (2025-10-28),
-my aunt /* Asbjørg Johanne Raanes*/ passed away (2025-12-19).
-I missed term for both the funerals.
+// == Special difficulties
+//
+// Alex Keizer had to take a break half way through the project,
+// Tobias Grosser took over supervision.
+//
+// My grandfather /*Stein-Ulf Sørensen*/ passed away (2025-10-28),
+// my aunt /* Asbjørg Johanne Raanes*/ passed away (2025-12-19).
+// I missed term for both the funerals.
   ],
   acknowledgements: [
 / Alex Keizer : For supervising this dissertation and giving me the opportunity to explore coinductive types.
